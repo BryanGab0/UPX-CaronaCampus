@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-shell:      #0E1116; /* fundo escuro atrás da moldura */
+  --color-canvas:     #F3F5F9; /* fundo da tela */
+  --color-surface:    #FFFFFF; /* cards */
+  --color-ink:        #161A22; /* texto principal */
+  --color-sub:        #6A7382; /* texto secundário */
+  --color-line:       #E6EAF1; /* bordas */
+
+  --color-brand:      #2F4BFF; /* cor da marca */
+  --color-brand-dark: #1D2ED0;
+  --color-brand-soft: #EAEEFF;
+
+  --color-accent:      #FF7A45; /* ponto de encontro / destaque */
+  --color-accent-soft: #FFEDE4;
+
+  --color-good:      #12B886; /* economia / impacto positivo */
+  --color-good-soft: #E4F8F0;
+
+  --font-sans:    "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-shell);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Esconde a barra de rolagem dentro da moldura do app */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Animação de entrada suave das telas */
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.animate-rise { animation: rise .4s cubic-bezier(.2, .8, .2, 1) both; }
+@media (prefers-reduced-motion: reduce) { .animate-rise { animation: none; } }

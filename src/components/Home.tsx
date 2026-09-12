@@ -1,0 +1,65 @@
+import { Bell, Navigation, ChevronRight, Star } from "lucide-react";
+import { usuario, outras } from "../data/mock";
+import { ImpactStats } from "./ImpactStats";
+import { BestRideCard } from "./BestRideCard";
+import { RideRow } from "./RideRow";
+
+// Tela principal. Só compõe os blocos, na ordem em que aparecem.
+export function Home() {
+  return (
+    <div className="animate-rise">
+      {/* Cabeçalho: saudação + notificações + avatar */}
+      <div className="px-[22px] pb-[18px] pt-[46px]">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-sub">Bom dia,</div>
+            <h1 className="font-display text-[27px] font-bold tracking-tight">{usuario.nome}</h1>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <button className="relative grid size-10 place-items-center rounded-xl border border-line bg-surface transition active:scale-[.98]">
+              <Bell size={18} className="text-sub" />
+              <span className="absolute right-2.5 top-2.5 size-[7px] rounded-full border-2 border-surface bg-accent" />
+            </button>
+            <div className="grid size-10 place-items-center rounded-xl bg-brand text-sm font-bold text-white">{usuario.nome[0]}</div>
+          </div>
+        </div>
+
+        {/* Pill do trajeto atual */}
+        <button className="mt-4 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3 text-left transition active:scale-[.98]">
+          <div className="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-brand-soft">
+            <Navigation size={16} className="text-brand" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[11.5px] text-sub">seu trajeto</div>
+            <div className="truncate text-[13.5px] font-semibold">
+              {usuario.origem} → {usuario.destino}
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-sub" />
+        </button>
+      </div>
+
+      <ImpactStats />
+
+      {/* Hero: melhor carona do dia */}
+      <div className="px-[22px] pb-2 pt-[22px]">
+        <div className="mb-3 flex items-center gap-1.5">
+          <Star size={15} className="fill-accent text-accent" />
+          <span className="text-sm font-bold">Melhor carona pra você hoje</span>
+        </div>
+        <BestRideCard />
+      </div>
+
+      {/* Feed: outras compatíveis */}
+      <div className="flex items-center justify-between px-[22px] pb-2 pt-[18px]">
+        <span className="text-sm font-bold">Outras compatíveis</span>
+        <button className="text-xs font-semibold text-brand">ver todas</button>
+      </div>
+      <div className="px-4">
+        {outras.map((carona, i) => (
+          <RideRow key={i} carona={carona} />
+        ))}
+      </div>
+    </div>
+  );
+}

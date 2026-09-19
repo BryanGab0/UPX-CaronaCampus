@@ -1,5 +1,7 @@
 // Dados fixos só para desenvolver a interface.
-import type { Usuario, Stat, MelhorCarona, Carona } from "../types";
+import type { Usuario, Stat, Carona, Coord } from "../types";
+
+export const FACENS: Coord = { lat: -23.594, lng: -47.526 };
 
 export const usuario: Usuario = {
   nome: "Ana",
@@ -13,19 +15,57 @@ export const stats: Stat[] = [
   { icone: "car", valor: "16", label: "caronas dadas" },
 ];
 
-export const melhor: MelhorCarona = {
-  nome: "Marina Alves",
-  bairro: "Parque Campolim",
-  carro: "Chevrolet Onix",
-  chegada: "08:00",
-  ponto: "Shopping Iguatemi Esplanada",
-  caminhada: "320 m",
-  custoDia: "8,10",
-  compat: 92,
-};
-
-export const outras: Carona[] = [
-  { nome: "Rafael Costa", bairro: "Jardim Vergueiro", chegada: "07:45", custoDia: "9,40", compat: 78 },
-  { nome: "Lucas Pereira", bairro: "Vila Hortência", chegada: "08:15", custoDia: "6,90", compat: 64 },
-  { nome: "Camila Rocha", bairro: "Éden", chegada: "08:00", custoDia: "7,20", compat: 58 },
+// Lista única. A "melhor" é a primeira; as "outras" são o resto
+export const caronas: Carona[] = [
+  {
+    id: "marina-alves",
+    nome: "Marina Alves",
+    bairro: "Parque Campolim",
+    origem: { lat: -23.523, lng: -47.472 },
+    carro: "Chevrolet Onix",
+    chegada: "08:00",
+    dias: ["seg", "ter", "qua", "qui", "sex"],
+    ponto: { nome: "Shopping Iguatemi Esplanada", lat: -23.545, lng: -47.518, caminhada: "320 m" },
+    custoDia: "8,10",
+    compat: 92,
+  },
+  {
+    id: "rafael-costa",
+    nome: "Rafael Costa",
+    bairro: "Jardim Vergueiro",
+    origem: { lat: -23.478, lng: -47.448 },
+    carro: "Hyundai HB20",
+    chegada: "07:45",
+    dias: ["seg", "qua", "sex"],
+    ponto: { nome: "Shopping Cidade Sorocaba", lat: -23.512, lng: -47.466, caminhada: "450 m" },
+    custoDia: "9,40",
+    compat: 78,
+  },
+  {
+    id: "lucas-pereira",
+    nome: "Lucas Pereira",
+    bairro: "Vila Hortência",
+    origem: { lat: -23.492, lng: -47.478 },
+    carro: "Renault Kwid",
+    chegada: "08:15",
+    dias: ["seg", "ter", "qua", "qui", "sex"],
+    ponto: { nome: "Terminal Santo Antônio", lat: -23.506, lng: -47.458, caminhada: "600 m" },
+    custoDia: "6,90",
+    compat: 64,
+  },
+  {
+    id: "camila-rocha",
+    nome: "Camila Rocha",
+    bairro: "Éden",
+    origem: { lat: -23.560, lng: -47.575 },
+    carro: "Toyota Corolla",
+    chegada: "08:00",
+    dias: ["seg", "ter", "qua", "qui"],
+    ponto: { nome: "Terminal Éden", lat: -23.558, lng: -47.560, caminhada: "700 m" },
+    custoDia: "7,20",
+    compat: 58,
+  },
 ];
+ 
+export const melhor = caronas[0];
+export const outras = caronas.slice(1);

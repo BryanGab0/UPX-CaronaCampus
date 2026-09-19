@@ -1,5 +1,3 @@
-export type TabId = "inicio" | "buscar" | "trajeto" | "perfil";
-
 export interface Usuario {
   nome: string;
   origem: string;   // bairro de origem
@@ -14,24 +12,37 @@ export interface Stat {
   label: string;
 }
 
-export interface Carona {
-  nome: string;
-  bairro: string;
-  chegada: string;   // "HH:MM"
-  custoDia: string;  // valor formatado, ex: "6,90"
-  compat: number;    // 0..100 (resultado do algoritmo de match)
+export type DiaSemana = "seg" | "ter" | "qua" | "qui" | "sex";
+
+// Coordenada geográfica (usada no mapa).
+export interface Coord {
+  lat: number;
+  lng: number;
 }
 
-export interface MelhorCarona extends Carona {
+// Ponto de encontro sugerido, com sua localização e a caminhada até ele.
+export interface PontoEncontro extends Coord {
+  nome: string;
+  caminhada: string; // distância a pé, ex: "320 m"
+}
+
+// Uma carona. O `id` permite abrir a tela de detalhe por URL (/carona/:id)
+export interface Carona {
+  id: string;
+  nome: string;
+  bairro: string;
+  origem: Coord;        // coordenada do bairro (aproximada — protótipo)
   carro: string;
-  ponto: string;      // ponto de encontro sugerido
-  caminhada: string;  // distância a pé até o ponto
+  chegada: string;      // "HH:MM"
+  dias: DiaSemana[];
+  ponto: PontoEncontro; // ponto de encontro sugerido
+  custoDia: string;     // sua parte por dia, ex: "8,10"
+  compat: number;       // 0..100 (resultado do algoritmo de match)
 }
 
 /* -- Cadastro de trajeto -- */
 export type Papel = "motorista" | "passageiro";
-export type DiaSemana = "seg" | "ter" | "qua" | "qui" | "sex";
-
+ 
 export interface Carro {
   modelo: string;
   lugares: number;

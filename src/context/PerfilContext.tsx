@@ -1,8 +1,8 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
+import { usePersistedState } from "../hooks/usePersistedState";
 import type { Trajeto } from "../types";
  
-// Trajeto inicial (Ana). Depois pode vir de um "salvo" real / back-end.
 const TRAJETO_INICIAL: Trajeto = {
   papel: "passageiro",
   bairro: "Campolim",
@@ -19,13 +19,12 @@ interface PerfilContextValue {
  
 const PerfilContext = createContext<PerfilContextValue | null>(null);
  
-// Provedor: mantém o trajeto em estado e o disponibiliza para toda a árvore.
 export function PerfilProvider({ children }: { children: ReactNode }) {
-  const [trajeto, setTrajeto] = useState<Trajeto>(TRAJETO_INICIAL);
+  // Persistido: o trajeto cadastrado continua salvo ao recarregar.
+  const [trajeto, setTrajeto] = usePersistedState<Trajeto>("carona:trajeto", TRAJETO_INICIAL);
   return <PerfilContext.Provider value={{ trajeto, salvar: setTrajeto }}>{children}</PerfilContext.Provider>;
 }
  
-// Hook de acesso. Garante que só é usado dentro do provedor.
 export function usePerfilContext() {
   const ctx = useContext(PerfilContext);
   if (!ctx) throw new Error("usePerfilContext deve ser usado dentro de PerfilProvider");

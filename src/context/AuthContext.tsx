@@ -1,13 +1,18 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
+import { usePersistedState } from "../hooks/usePersistedState";
  
-// Domínio institucional. Ajuste se a Facens usar subdomínio para alunos.
 export const DOMINIO_FACENS = "facens.br";
  
 // Valida o e-mail institucional no formato RA@facens.br (RA = matrícula numérica).
 export function emailInstitucional(email: string): boolean {
   const re = new RegExp(`^\\d+@${DOMINIO_FACENS.replace(".", "\\.")}$`, "i");
   return re.test(email.trim());
+}
+ 
+interface Sessao {
+  email: string;
+  nome: string;
 }
  
 interface AuthContextValue {
@@ -21,28 +26,20 @@ interface AuthContextValue {
  
 const AuthContext = createContext<AuthContextValue | null>(null);
  
-// Login PROVISÓRIO: guarda e-mail + nome em memória.
-// (futuramente a validação/identidade virá da própria Facens)
+// Login PROVISÓRIO, agora persistido: a sessão sobrevive ao recarregar a página.
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [email, setEmail] = useState("");
-  const [nome, setNome] = useState("");
-  const [autenticado, setAutenticado] = useState(false);
+  const [sessao, setSessao] = usePersistedState<Sessao | null>("carona:sessao", null);
  
-  const entrar = (e: string, n: string) => {
-    setEmail(e.trim());
-    setNome(n.trim());
-    setAutenticado(true);
-  };
-  const sair = () => {
-    setEmail("");
-    setNome("");
-    setAutenticado(false);
-  };
+  const entrar = (email: string, nome: string) => setSessao({ email: email.trim(), nome: nome.trim() });
+  const sair = () => setSessao(null);
  
-  const ra = email.split("@")[0];
+  const email = sessao?.email ?? "";
+  const nome = sessao?.nome ?? "";
  
   return (
-    <AuthContext.Provider value={{ autenticado, nome, email, ra, entrar, sair }}>
+    <AuthContext.Provider
+      value={{ autenticado: sessao !== null, nome, email, ra: email.split("@")[0], entrar, sair }}
+    >
       {children}
     </AuthContext.Provider>
   );

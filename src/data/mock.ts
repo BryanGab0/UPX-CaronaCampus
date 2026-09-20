@@ -1,27 +1,20 @@
-// Dados fixos só para desenvolver a interface.
-import type { Usuario, Stat, Carona, Coord, Perfil } from "../types";
-
+// Dados fixos só para desenvolver a interface
+import type { Usuario, Stat, Carona, Coord } from "../types";
+ 
 export const FACENS: Coord = { lat: -23.594, lng: -47.526 };
-
+ 
 export const usuario: Usuario = {
   nome: "Ana",
   origem: "Campolim",
-  destino: "UniFacens",
+  destino: "Facens",
 };
-
-// Perfil da Ana - a ENTRADA do algoritmo. (depois virá do cadastro de trajeto)
-export const meuPerfil: Perfil = {
-  origem: { lat: -23.520, lng: -47.470 }, // Campolim (aprox.)
-  chegada: "08:00",
-  dias: ["seg", "ter", "qua", "qui", "sex"],
-};
-
+ 
 export const stats: Stat[] = [
   { icone: "wallet", valor: "R$ 214", label: "economia no mês" },
   { icone: "leaf", valor: "38 kg", label: "CO₂ evitado" },
   { icone: "car", valor: "16", label: "caronas dadas" },
 ];
-
+ 
 export const caronas: Carona[] = [
   {
     id: "marina-alves",

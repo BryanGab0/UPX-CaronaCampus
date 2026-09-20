@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { Car, Clock, Footprints, Wallet } from "lucide-react";
-import { melhor } from "../data/resultados";
+import type { Resultado } from "../lib/match";
 import { RouteLine } from "./RouteLine";
 import { CompatRing } from "./CompatRing";
-
-// Card em destaque (hero): a melhor carona do dia
-export function BestRideCard() {
+ 
+// Card em destaque. Recebe o melhor Resultado do ranking (calculado no Home).
+export function BestRideCard({ resultado }: { resultado: Resultado }) {
   const navigate = useNavigate();
-  const { carona, compat } = melhor;
+  const { carona, compat } = resultado;
   const iniciais = carona.nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
  
   return (

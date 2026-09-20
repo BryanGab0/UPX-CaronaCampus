@@ -1,14 +1,17 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router";
-import './index.css'
-import App from './App.tsx'
-
+import { PerfilProvider } from "./context/PerfilContext";
+import App from "./App";
+import "./index.css";
+ 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    {/* BrowserRouter usa a URL do navegador para decidir qual tela mostrar */}
     <BrowserRouter>
-      <App />
+      {/* PerfilProvider deixa o trajeto acessível em todas as telas */}
+      <PerfilProvider>
+        <App />
+      </PerfilProvider>
     </BrowserRouter>
   </StrictMode>,
 );

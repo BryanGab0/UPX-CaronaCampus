@@ -1,41 +1,41 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
+import { useNavigate } from "react-router";
 import { MapPin, CalendarDays, Clock, Car, Users, Navigation, Check } from "lucide-react";
 import { cn } from "../lib/cn";
 import { BAIRROS, DIAS } from "../data/bairros";
-import { usuario } from "../data/mock";
+import { usePerfilContext } from "../context/PerfilContext";
 import type { Trajeto as TrajetoType, DiaSemana } from "../types";
-
-// Tela de cadastro de trajeto
+ 
 export function Trajeto() {
-  const [form, setForm] = useState<TrajetoType>({
-    papel: "passageiro",
-    bairro: usuario.origem,
-    dias: ["seg", "ter", "qua", "qui", "sex"],
-    chegada: "08:00",
-    saida: "18:00",
-    carro: { modelo: "", lugares: 4, consumo: 12 },
-  });
+  const { trajeto, salvar } = usePerfilContext();
+  const navigate = useNavigate();
+ 
+  // Estado local do formulário, iniciado com o trajeto atual (persiste ao voltar).
+  const [form, setForm] = useState<TrajetoType>(trajeto);
   const [salvo, setSalvo] = useState(false);
-
-  // Atualiza parte do formulário e some com o aviso de "salvo".
+ 
   const set = (patch: Partial<TrajetoType>) => {
     setForm((f) => ({ ...f, ...patch }));
     setSalvo(false);
   };
-
-  // Marca/desmarca um dia da semana
+ 
   const toggleDia = (d: DiaSemana) =>
     set({ dias: form.dias.includes(d) ? form.dias.filter((x) => x !== d) : [...form.dias, d] });
  
+  // Salva no context -> o ranking recalcula sozinho nas outras telas.
+  const onSalvar = () => {
+    salvar(form);
+    setSalvo(true);
+  };
+ 
   const podeSalvar = form.dias.length > 0;
-
+ 
   return (
     <div className="animate-rise px-[22px] pb-6 pt-[46px]">
       <h1 className="font-display text-[26px] font-bold tracking-tight">Meu trajeto</h1>
       <p className="mt-1 text-sm text-sub">É com isso que o app encontra caronas compatíveis.</p>
  
-      {/* Papel */}
       <Section icone={<Users size={16} />} titulo="Como você vai?">
         <div className="flex gap-2.5">
           <Toggle ativo={form.papel === "passageiro"} onClick={() => set({ papel: "passageiro" })} texto="Preciso de carona" />
@@ -43,11 +43,10 @@ export function Trajeto() {
         </div>
       </Section>
  
-      {/* Origem */}
       <Section icone={<MapPin size={16} />} titulo="De onde você sai">
         <div className="flex flex-wrap gap-2">
           {BAIRROS.map((b) => (
-            <Chip key={b} ativo={form.bairro === b} onClick={() => set({ bairro: b })} texto={b} />
+            <Chip key={b.nome} ativo={form.bairro === b.nome} onClick={() => set({ bairro: b.nome })} texto={b.nome} />
           ))}
         </div>
         <p className="mt-3 flex items-center gap-1.5 text-xs text-sub">
@@ -55,7 +54,6 @@ export function Trajeto() {
         </p>
       </Section>
  
-      {/* Dias */}
       <Section icone={<CalendarDays size={16} />} titulo="Dias de aula">
         <div className="flex gap-2">
           {DIAS.map((d) => (
@@ -64,7 +62,6 @@ export function Trajeto() {
         </div>
       </Section>
  
-      {/* Horários */}
       <Section icone={<Clock size={16} />} titulo="Horários">
         <div className="flex gap-3">
           <TimeField label="Chego às" value={form.chegada} onChange={(v) => set({ chegada: v })} />
@@ -72,7 +69,6 @@ export function Trajeto() {
         </div>
       </Section>
  
-      {/* Carro — só aparece para quem oferece carona */}
       {form.papel === "motorista" && (
         <Section icone={<Car size={16} />} titulo="Seu carro">
           <input
@@ -88,14 +84,18 @@ export function Trajeto() {
         </Section>
       )}
  
-      {/* Ação */}
       {salvo ? (
-        <div className="mt-6 flex items-center justify-center gap-2 rounded-[14px] bg-good-soft py-4 text-sm font-bold text-good">
-          <Check size={18} /> Trajeto salvo!
+        <div className="mt-6 rounded-[14px] bg-good-soft p-4">
+          <div className="flex items-center justify-center gap-2 text-sm font-bold text-good">
+            <Check size={18} /> Trajeto salvo!
+          </div>
+          <button onClick={() => navigate("/")} className="mt-2 w-full text-center text-xs font-semibold text-good">
+            ver caronas recalculadas
+          </button>
         </div>
       ) : (
         <button
-          onClick={() => setSalvo(true)}
+          onClick={onSalvar}
           disabled={!podeSalvar}
           className={cn(
             "mt-6 w-full rounded-[14px] py-4 text-sm font-bold transition active:scale-[.98]",
@@ -108,10 +108,8 @@ export function Trajeto() {
     </div>
   );
 }
-
-/* -- Blocos de formulário -- */
-
-// Cartão de uma seção do formulário
+ 
+/* ---------- Blocos de formulário ---------- */
 function Section({ icone, titulo, children }: { icone: ReactNode; titulo: string; children: ReactNode }) {
   return (
     <div className="mt-3 rounded-[18px] border border-line bg-surface p-4">
@@ -123,8 +121,7 @@ function Section({ icone, titulo, children }: { icone: ReactNode; titulo: string
     </div>
   );
 }
-
-// Botão grande de escolha única (papel).
+ 
 function Toggle({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; texto: string }) {
   return (
     <button
@@ -138,8 +135,7 @@ function Toggle({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void
     </button>
   );
 }
-
-// Etiqueta clicável (bairro / dia).
+ 
 function Chip({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; texto: string }) {
   return (
     <button
@@ -153,33 +149,23 @@ function Chip({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; 
     </button>
   );
 }
-
-// Campo de horário.
+ 
 function TimeField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <label className="flex-1">
       <span className="text-xs font-semibold text-sub">{label}</span>
-      <input
-        type="time"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand"
-      />
+      <input type="time" value={value} onChange={(e) => onChange(e.target.value)}
+        className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
     </label>
   );
 }
-
-// Campo numérico.
+ 
 function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
     <label className="flex-1">
       <span className="text-xs font-semibold text-sub">{label}</span>
-      <input
-        type="number"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand"
-      />
+      <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))}
+        className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
     </label>
   );
 }

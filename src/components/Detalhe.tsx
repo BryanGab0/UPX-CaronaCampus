@@ -4,20 +4,21 @@ import { useParams, useNavigate } from "react-router";
 import { ChevronLeft, MapPin, Footprints, Fuel, Users, Leaf, Check } from "lucide-react";
 import { cn } from "../lib/cn";
 import { FACENS } from "../data/mock";
-import { resultados } from "../data/resultados";
+import { useResultados } from "../hooks/useResultados";
 import { PESO_HORARIO, PESO_ROTA } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { MapaRota } from "./MapaRota";
-
+ 
 const paraNumero = (v: string) => Number(v.replace(",", "."));
 const reais = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
-
+ 
 export function Detalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [solicitado, setSolicitado] = useState(false);
-
-  // Procura no ranking já calculado pelo algoritmo
+ 
+  // Procura no ranking já calculado pelo algoritmo.
+  const resultados = useResultados();
   const resultado = resultados.find((r) => r.carona.id === id);
  
   if (!resultado) {
@@ -30,11 +31,11 @@ export function Detalhe() {
       </div>
     );
   }
-
+ 
   const { carona, compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm } = resultado;
   const iniciais = carona.nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
   const mensal = reais(paraNumero(carona.custoDia) * 22);
-
+ 
   return (
     <div className="animate-rise pb-6">
       {/* Cabeçalho */}
@@ -60,7 +61,7 @@ export function Detalhe() {
             <Legenda className="bg-ink" texto="Facens" />
           </div>
         </div>
-
+ 
         {/* Ponto de encontro */}
         <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
           <div className="flex items-start gap-3">
@@ -133,9 +134,9 @@ export function Detalhe() {
     </div>
   );
 }
-
-/* -- Peças locais -- */
-
+ 
+/* ---------- Peças locais ---------- */
+ 
 function Legenda({ className, texto }: { className: string; texto: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -144,8 +145,8 @@ function Legenda({ className, texto }: { className: string; texto: string }) {
     </span>
   );
 }
-
-// Barra de progresso de um critério do algoritmo
+ 
+// Barra de progresso de um critério do algoritmo.
 function Barra({ titulo, pct, detalhe, cor }: { titulo: string; pct: number; detalhe: string; cor: string }) {
   return (
     <div className="mt-3">
@@ -160,7 +161,7 @@ function Barra({ titulo, pct, detalhe, cor }: { titulo: string; pct: number; det
     </div>
   );
 }
-
+ 
 function Metric({ icone, valor, label, destaque }: { icone: ReactNode; valor: string; label: string; destaque?: boolean }) {
   return (
     <div className={cn("flex-1 rounded-[13px] p-3.5", destaque ? "bg-brand-soft" : "bg-canvas")}>

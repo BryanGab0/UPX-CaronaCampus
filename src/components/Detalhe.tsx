@@ -1,49 +1,45 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ChevronLeft, MapPin, Footprints, Clock, Car, Fuel, Users, Leaf, Check } from "lucide-react";
+import { ChevronLeft, MapPin, Footprints, Fuel, Users, Leaf, Check } from "lucide-react";
 import { cn } from "../lib/cn";
-import { caronas, FACENS } from "../data/mock";
+import { FACENS } from "../data/mock";
+import { resultados } from "../data/resultados";
+import { PESO_HORARIO, PESO_ROTA } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { MapaRota } from "./MapaRota";
 
-// Converte "8,10" -> 8.1 para poder calcular a estimativa mensal
 const paraNumero = (v: string) => Number(v.replace(",", "."));
 const reais = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
 
-// Tela de detalhe. Lê o :id da URL, encontra a carona e mostra tudo
 export function Detalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [solicitado, setSolicitado] = useState(false);
 
-  const carona = caronas.find((c) => c.id === id);
-
-  // Se a URL tiver um id inválido, avisa em vez de quebrar.
-  if (!carona) {
+  // Procura no ranking já calculado pelo algoritmo
+  const resultado = resultados.find((r) => r.carona.id === id);
+ 
+  if (!resultado) {
     return (
       <div className="grid h-[620px] place-items-center px-10 text-center text-sub">
         <div>
           <p className="text-sm">Carona não encontrada.</p>
-          <button onClick={() => navigate("/")} className="mt-3 font-semibold text-brand">
-            Voltar para o início
-          </button>
+          <button onClick={() => navigate("/")} className="mt-3 font-semibold text-brand">Voltar para o início</button>
         </div>
       </div>
     );
   }
 
+  const { carona, compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm } = resultado;
   const iniciais = carona.nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
-  const mensal = reais(paraNumero(carona.custoDia) * 22); // ~22 dias letivos/mês
+  const mensal = reais(paraNumero(carona.custoDia) * 22);
 
   return (
     <div className="animate-rise pb-6">
-      {/* Cabeçalho com voltar */}
+      {/* Cabeçalho */}
       <div className="flex items-center gap-3 border-b border-line bg-surface px-[22px] pb-3 pt-[44px]">
-        <button
-          onClick={() => navigate(-1)}
-          className="grid size-9 place-items-center rounded-xl border border-line transition active:scale-[.98]"
-        >
+        <button onClick={() => navigate(-1)} className="grid size-9 place-items-center rounded-xl border border-line transition active:scale-[.98]">
           <ChevronLeft size={19} className="text-sub" />
         </button>
         <div className="grid size-11 place-items-center rounded-[13px] bg-brand text-sm font-bold text-white">{iniciais}</div>
@@ -51,7 +47,7 @@ export function Detalhe() {
           <div className="font-bold">{carona.nome}</div>
           <div className="text-xs text-sub">motorista · {carona.bairro}</div>
         </div>
-        <CompatRing valor={carona.compat} />
+        <CompatRing valor={compat} />
       </div>
  
       <div className="px-[22px]">
@@ -81,18 +77,33 @@ export function Detalhe() {
           </div>
         </div>
  
-        {/* Fatos da carona */}
-        <div className="mt-3.5 grid grid-cols-2 gap-2.5">
-          <Fato icone={<Clock size={16} />} titulo="Chega às" valor={carona.chegada} />
-          <Fato icone={<Car size={16} />} titulo="Carro" valor={carona.carro} />
-        </div>
-        <div className="mt-2.5 rounded-[18px] border border-line bg-surface p-4">
-          <div className="mb-2 text-xs font-semibold text-sub">Dias</div>
-          <div className="flex gap-2">
-            {carona.dias.map((d) => (
+        {/* Por que esse match? — transparência do algoritmo */}
+        <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
+          <div className="font-display font-bold">Por que esse match?</div>
+ 
+          <Barra
+            titulo="Compatibilidade de horário"
+            pct={Math.round(scoreHorario * 100)}
+            detalhe={`chega ${carona.chegada} · ${difChegadaMin} min de diferença · ${diasComuns.length} dias em comum`}
+            cor="bg-brand"
+          />
+          <Barra
+            titulo="Proximidade de rota"
+            pct={Math.round(scoreRota * 100)}
+            detalhe={`${desvioKm.toFixed(1)} km fora da sua rota direta até a Facens`}
+            cor="bg-good"
+          />
+ 
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {diasComuns.map((d) => (
               <span key={d} className="rounded-lg bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand">{d}</span>
             ))}
           </div>
+ 
+          <p className="mt-3 text-[11.5px] leading-relaxed text-sub">
+            Nota final = {Math.round(PESO_HORARIO * 100)}% horário + {Math.round(PESO_ROTA * 100)}% rota ={" "}
+            <b className="text-ink">{compat}%</b>
+          </p>
         </div>
  
         {/* Divisão de custo */}
@@ -104,9 +115,7 @@ export function Detalhe() {
           </div>
           <div className="mt-2.5 flex items-center gap-2.5 rounded-xl bg-good-soft px-3.5 py-3">
             <Leaf size={18} className="shrink-0 text-good" />
-            <div className="text-xs text-ink">
-              Dividindo essa carona, é um carro a menos na rua nos dias em que vocês fazem o mesmo trajeto.
-            </div>
+            <div className="text-xs text-ink">Dividindo essa carona, é um carro a menos na rua nos dias em comum.</div>
           </div>
         </div>
  
@@ -116,10 +125,7 @@ export function Detalhe() {
             <Check size={18} /> Pedido enviado para {carona.nome.split(" ")[0]}
           </div>
         ) : (
-          <button
-            onClick={() => setSolicitado(true)}
-            className="mt-5 w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]"
-          >
+          <button onClick={() => setSolicitado(true)} className="mt-5 w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]">
             Solicitar carona
           </button>
         )}
@@ -128,7 +134,7 @@ export function Detalhe() {
   );
 }
 
-/* -- Peças locais desta tela -- */
+/* -- Peças locais -- */
 
 function Legenda({ className, texto }: { className: string; texto: string }) {
   return (
@@ -139,12 +145,18 @@ function Legenda({ className, texto }: { className: string; texto: string }) {
   );
 }
 
-function Fato({ icone, titulo, valor }: { icone: ReactNode; titulo: string; valor: string }) {
+// Barra de progresso de um critério do algoritmo
+function Barra({ titulo, pct, detalhe, cor }: { titulo: string; pct: number; detalhe: string; cor: string }) {
   return (
-    <div className="rounded-[18px] border border-line bg-surface p-4">
-      <div className="text-brand">{icone}</div>
-      <div className="mt-2 text-xs text-sub">{titulo}</div>
-      <div className="font-semibold">{valor}</div>
+    <div className="mt-3">
+      <div className="flex justify-between text-[13px] font-semibold">
+        <span>{titulo}</span>
+        <span className="font-display">{pct}%</span>
+      </div>
+      <div className="mt-1.5 h-[7px] overflow-hidden rounded-full bg-canvas">
+        <div className={cn("h-full rounded-full", cor)} style={{ width: `${pct}%` }} />
+      </div>
+      <div className="mt-1.5 text-[11.5px] text-sub">{detalhe}</div>
     </div>
   );
 }

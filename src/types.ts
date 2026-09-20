@@ -14,30 +14,32 @@ export interface Stat {
 
 export type DiaSemana = "seg" | "ter" | "qua" | "qui" | "sex";
 
-// Coordenada geográfica (usada no mapa).
 export interface Coord {
   lat: number;
   lng: number;
 }
 
-// Ponto de encontro sugerido, com sua localização e a caminhada até ele.
 export interface PontoEncontro extends Coord {
   nome: string;
-  caminhada: string; // distância a pé, ex: "320 m"
+  caminhada: string; // distância a pé
 }
 
-// Uma carona. O `id` permite abrir a tela de detalhe por URL (/carona/:id)
 export interface Carona {
   id: string;
   nome: string;
   bairro: string;
-  origem: Coord;        // coordenada do bairro (aproximada — protótipo)
+  origem: Coord;        // coordenada do bairro (aproximada - protótipo)
   carro: string;
   chegada: string;      // "HH:MM"
   dias: DiaSemana[];
   ponto: PontoEncontro; // ponto de encontro sugerido
   custoDia: string;     // sua parte por dia, ex: "8,10"
-  compat: number;       // 0..100 (resultado do algoritmo de match)
+}
+
+export interface Perfil {
+  origem: Coord;
+  chegada: string;
+  dias: DiaSemana[];
 }
 
 /* -- Cadastro de trajeto -- */
@@ -54,7 +56,7 @@ export interface Trajeto {
   papel: Papel;
   bairro: string;
   dias: DiaSemana[];
-  chegada: string; // "HH:MM"
-  saida: string;   // "HH:MM"
+  chegada: string;
+  saida: string;
   carro: Carro;
 }

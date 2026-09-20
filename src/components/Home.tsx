@@ -1,5 +1,6 @@
 import { Bell, Navigation, ChevronRight, Star } from "lucide-react";
-import { usuario, outras } from "../data/mock";
+import { usuario } from "../data/mock";
+import { outras } from "../data/resultados";
 import { ImpactStats } from "./ImpactStats";
 import { BestRideCard } from "./BestRideCard";
 import { RideRow } from "./RideRow";
@@ -8,7 +9,6 @@ import { RideRow } from "./RideRow";
 export function Home() {
   return (
     <div className="animate-rise">
-      {/* Cabeçalho: saudação + notificações + avatar */}
       <div className="px-[22px] pb-[18px] pt-[46px]">
         <div className="flex items-center justify-between">
           <div>
@@ -24,7 +24,6 @@ export function Home() {
           </div>
         </div>
 
-        {/* Pill do trajeto atual */}
         <button className="mt-4 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3 text-left transition active:scale-[.98]">
           <div className="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-brand-soft">
             <Navigation size={16} className="text-brand" />
@@ -41,7 +40,6 @@ export function Home() {
 
       <ImpactStats />
 
-      {/* Hero: melhor carona do dia */}
       <div className="px-[22px] pb-2 pt-[22px]">
         <div className="mb-3 flex items-center gap-1.5">
           <Star size={15} className="fill-accent text-accent" />
@@ -50,14 +48,13 @@ export function Home() {
         <BestRideCard />
       </div>
 
-      {/* Feed: outras compatíveis */}
       <div className="flex items-center justify-between px-[22px] pb-2 pt-[18px]">
         <span className="text-sm font-bold">Outras compatíveis</span>
         <button className="text-xs font-semibold text-brand">ver todas</button>
       </div>
       <div className="px-4">
-        {outras.map((carona, i) => (
-          <RideRow key={i} carona={carona} />
+        {outras.map((r) => (
+          <RideRow key={r.carona.id} resultado={r} />
         ))}
       </div>
     </div>

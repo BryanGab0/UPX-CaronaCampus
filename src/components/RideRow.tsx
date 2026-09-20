@@ -1,12 +1,13 @@
 import { Link } from "react-router";
 import { MapPin, Clock } from "lucide-react";
 import { cn } from "../lib/cn";
-import type { Carona } from "../types";
+import type { Resultado } from "../lib/match";
 
-// Uma linha do feed. Agora é um Link: leva para o detalhe daquela carona
-export function RideRow({ carona }: { carona: Carona }) {
+// Linha do feed. Recebe o Resultado do algoritmo (carona + compatibilidade calculada)
+export function RideRow({ resultado }: { resultado: Resultado }) {
+  const { carona, compat } = resultado;
   const iniciais = carona.nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
-  const cor = carona.compat >= 75 ? "text-good" : carona.compat >= 50 ? "text-brand" : "text-accent";
+  const cor = compat >= 75 ? "text-good" : compat >= 50 ? "text-brand" : "text-accent";
  
   return (
     <Link
@@ -22,7 +23,7 @@ export function RideRow({ carona }: { carona: Carona }) {
         </div>
       </div>
       <div className="text-right">
-        <div className={cn("font-display text-sm font-bold", cor)}>{carona.compat}%</div>
+        <div className={cn("font-display text-sm font-bold", cor)}>{compat}%</div>
         <div className="mt-px text-[11.5px] text-sub">R$ {carona.custoDia}</div>
       </div>
     </Link>

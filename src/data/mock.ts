@@ -1,5 +1,5 @@
 // Dados fixos só para desenvolver a interface.
-import type { Usuario, Stat, Carona, Coord } from "../types";
+import type { Usuario, Stat, Carona, Coord, Perfil } from "../types";
 
 export const FACENS: Coord = { lat: -23.594, lng: -47.526 };
 
@@ -9,13 +9,19 @@ export const usuario: Usuario = {
   destino: "UniFacens",
 };
 
+// Perfil da Ana - a ENTRADA do algoritmo. (depois virá do cadastro de trajeto)
+export const meuPerfil: Perfil = {
+  origem: { lat: -23.520, lng: -47.470 }, // Campolim (aprox.)
+  chegada: "08:00",
+  dias: ["seg", "ter", "qua", "qui", "sex"],
+};
+
 export const stats: Stat[] = [
   { icone: "wallet", valor: "R$ 214", label: "economia no mês" },
   { icone: "leaf", valor: "38 kg", label: "CO₂ evitado" },
   { icone: "car", valor: "16", label: "caronas dadas" },
 ];
 
-// Lista única. A "melhor" é a primeira; as "outras" são o resto
 export const caronas: Carona[] = [
   {
     id: "marina-alves",
@@ -27,7 +33,6 @@ export const caronas: Carona[] = [
     dias: ["seg", "ter", "qua", "qui", "sex"],
     ponto: { nome: "Shopping Iguatemi Esplanada", lat: -23.545, lng: -47.518, caminhada: "320 m" },
     custoDia: "8,10",
-    compat: 92,
   },
   {
     id: "rafael-costa",
@@ -39,7 +44,6 @@ export const caronas: Carona[] = [
     dias: ["seg", "qua", "sex"],
     ponto: { nome: "Shopping Cidade Sorocaba", lat: -23.512, lng: -47.466, caminhada: "450 m" },
     custoDia: "9,40",
-    compat: 78,
   },
   {
     id: "lucas-pereira",
@@ -51,7 +55,6 @@ export const caronas: Carona[] = [
     dias: ["seg", "ter", "qua", "qui", "sex"],
     ponto: { nome: "Terminal Santo Antônio", lat: -23.506, lng: -47.458, caminhada: "600 m" },
     custoDia: "6,90",
-    compat: 64,
   },
   {
     id: "camila-rocha",
@@ -63,9 +66,5 @@ export const caronas: Carona[] = [
     dias: ["seg", "ter", "qua", "qui"],
     ponto: { nome: "Terminal Éden", lat: -23.558, lng: -47.560, caminhada: "700 m" },
     custoDia: "7,20",
-    compat: 58,
   },
 ];
- 
-export const melhor = caronas[0];
-export const outras = caronas.slice(1);

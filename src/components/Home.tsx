@@ -1,5 +1,5 @@
 import { Bell, Navigation, ChevronRight, Star } from "lucide-react";
-import { usuario } from "../data/mock";
+import { useAuth } from "../context/AuthContext";
 import { usePerfilContext } from "../context/PerfilContext";
 import { useResultados } from "../hooks/useResultados";
 import { ImpactStats } from "./ImpactStats";
@@ -7,6 +7,7 @@ import { BestRideCard } from "./BestRideCard";
 import { RideRow } from "./RideRow";
  
 export function Home() {
+  const { nome } = useAuth();
   const { trajeto } = usePerfilContext();
   const resultados = useResultados(); // recalcula quando o trajeto muda
   const melhor = resultados[0];
@@ -18,14 +19,14 @@ export function Home() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm text-sub">Bom dia,</div>
-            <h1 className="font-display text-[27px] font-bold tracking-tight">{usuario.nome}</h1>
+            <h1 className="font-display text-[27px] font-bold tracking-tight">{nome.split(" ")[0]}</h1>
           </div>
           <div className="flex items-center gap-2.5">
             <button className="relative grid size-10 place-items-center rounded-xl border border-line bg-surface transition active:scale-[.98]">
               <Bell size={18} className="text-sub" />
               <span className="absolute right-2.5 top-2.5 size-[7px] rounded-full border-2 border-surface bg-accent" />
             </button>
-            <div className="grid size-10 place-items-center rounded-xl bg-brand text-sm font-bold text-white">{usuario.nome[0]}</div>
+            <div className="grid size-10 place-items-center rounded-xl bg-brand text-sm font-bold text-white">{nome[0]}</div>
           </div>
         </div>
  

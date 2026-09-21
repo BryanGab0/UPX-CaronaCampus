@@ -4,12 +4,12 @@ import "dotenv/config";
 import { pool } from "./db.js";
 import { caronasRouter } from "./routes/caronas.js";
 import { usuariosRouter } from "./routes/usuarios.js";
+import { solicitacoesRouter } from "./routes/solicitacoes.js";
  
 const app = express();
-app.use(cors());          // libera o front (localhost:5173) a chamar a API
-app.use(express.json());  // interpreta o corpo JSON das requisições
+app.use(cors());
+app.use(express.json());
  
-// Saúde da API + do banco.
 app.get("/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
@@ -19,9 +19,9 @@ app.get("/health", async (_req, res) => {
   }
 });
  
-// Rotas por recurso.
 app.use(caronasRouter);
 app.use(usuariosRouter);
+app.use(solicitacoesRouter);
  
 const PORT = Number(process.env.PORT) || 3333;
 app.listen(PORT, () => console.log(`API em http://localhost:${PORT}`));

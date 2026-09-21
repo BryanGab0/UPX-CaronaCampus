@@ -4,9 +4,9 @@ Plataforma de **carona universitária** exclusiva para a comunidade da faculdade
 > Projeto acadêmico de faculdade.
 
 ## Stack
-- Frontend: React + TypeScript + Vite (estilização com Tailwind CSS)
-- Backend: (a definir)
-- Banco: (a definir)
+- Frontend: React + TypeScript + Vite
+- Backend: Node.js + Express + TypeScript
+- Banco: PostgreSQL
 
 ## Como rodar localmente
 Precisa de Node 20+.

@@ -11,25 +11,35 @@ export function Trajeto() {
   const { trajeto, salvar } = usePerfilContext();
   const navigate = useNavigate();
  
-  // Estado local do formulário, iniciado com o trajeto atual (persiste ao voltar).
   const [form, setForm] = useState<TrajetoType>(trajeto);
   const [salvo, setSalvo] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
  
   const set = (patch: Partial<TrajetoType>) => {
     setForm((f) => ({ ...f, ...patch }));
     setSalvo(false);
+    setErroSalvar(null);
   };
  
   const toggleDia = (d: DiaSemana) =>
     set({ dias: form.dias.includes(d) ? form.dias.filter((x) => x !== d) : [...form.dias, d] });
  
-  // Salva no context -> o ranking recalcula sozinho nas outras telas.
-  const onSalvar = () => {
-    salvar(form);
-    setSalvo(true);
+  // Grava no banco (via context). Mostra "salvando" e trata erro.
+  const onSalvar = async () => {
+    setSalvando(true);
+    setErroSalvar(null);
+    try {
+      await salvar(form);
+      setSalvo(true);
+    } catch {
+      setErroSalvar("Não foi possível salvar. Verifique se a API está rodando.");
+    } finally {
+      setSalvando(false);
+    }
   };
  
-  const podeSalvar = form.dias.length > 0;
+  const podeSalvar = form.dias.length > 0 && !salvando;
  
   return (
     <div className="animate-rise px-[22px] pb-6 pt-[46px]">
@@ -94,16 +104,20 @@ export function Trajeto() {
           </button>
         </div>
       ) : (
-        <button
-          onClick={onSalvar}
-          disabled={!podeSalvar}
-          className={cn(
-            "mt-6 w-full rounded-[14px] py-4 text-sm font-bold transition active:scale-[.98]",
-            podeSalvar ? "bg-brand text-white" : "bg-line text-sub",
-          )}
-        >
-          Salvar trajeto
-        </button>
+        <>
+          {erroSalvar && <p className="mt-6 text-[13px] text-accent">{erroSalvar}</p>}
+          <button
+            onClick={onSalvar}
+            disabled={!podeSalvar}
+            className={cn(
+              "w-full rounded-[14px] py-4 text-sm font-bold transition active:scale-[.98]",
+              erroSalvar ? "mt-3" : "mt-6",
+              podeSalvar ? "bg-brand text-white" : "bg-line text-sub",
+            )}
+          >
+            {salvando ? "Salvando…" : "Salvar trajeto"}
+          </button>
+        </>
       )}
     </div>
   );
@@ -124,13 +138,7 @@ function Section({ icone, titulo, children }: { icone: ReactNode; titulo: string
  
 function Toggle({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; texto: string }) {
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex-1 rounded-[13px] border px-2.5 py-3 text-[13.5px] font-semibold transition active:scale-[.98]",
-        ativo ? "border-brand bg-brand-soft text-brand" : "border-line bg-surface text-sub",
-      )}
-    >
+    <button onClick={onClick} className={cn("flex-1 rounded-[13px] border px-2.5 py-3 text-[13.5px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand-soft text-brand" : "border-line bg-surface text-sub")}>
       {texto}
     </button>
   );
@@ -138,13 +146,7 @@ function Toggle({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void
  
 function Chip({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; texto: string }) {
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "rounded-[11px] border px-3.5 py-2 text-[13px] font-semibold transition active:scale-[.98]",
-        ativo ? "border-brand bg-brand text-white" : "border-line bg-surface text-sub",
-      )}
-    >
+    <button onClick={onClick} className={cn("rounded-[11px] border px-3.5 py-2 text-[13px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand text-white" : "border-line bg-surface text-sub")}>
       {texto}
     </button>
   );
@@ -154,8 +156,7 @@ function TimeField({ label, value, onChange }: { label: string; value: string; o
   return (
     <label className="flex-1">
       <span className="text-xs font-semibold text-sub">{label}</span>
-      <input type="time" value={value} onChange={(e) => onChange(e.target.value)}
-        className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
+      <input type="time" value={value} onChange={(e) => onChange(e.target.value)} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
     </label>
   );
 }
@@ -164,8 +165,7 @@ function NumberField({ label, value, onChange }: { label: string; value: number;
   return (
     <label className="flex-1">
       <span className="text-xs font-semibold text-sub">{label}</span>
-      <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))}
-        className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
+      <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
     </label>
   );
 }

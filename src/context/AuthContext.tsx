@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 import { usePersistedState } from "../hooks/usePersistedState";
+import { registrarUsuario } from "../lib/api";
  
 export const DOMINIO_FACENS = "facens.br";
  
@@ -19,27 +20,30 @@ interface AuthContextValue {
   autenticado: boolean;
   nome: string;
   email: string;
-  ra: string; // matrícula (parte antes do @)
+  ra: string;
   entrar: (email: string, nome: string) => void;
   sair: () => void;
 }
  
 const AuthContext = createContext<AuthContextValue | null>(null);
  
-// Login PROVISÓRIO, agora persistido: a sessão sobrevive ao recarregar a página.
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessao, setSessao] = usePersistedState<Sessao | null>("carona:sessao", null);
  
-  const entrar = (email: string, nome: string) => setSessao({ email: email.trim(), nome: nome.trim() });
+  const entrar = (email: string, nome: string) => {
+    const e = email.trim();
+    const n = nome.trim();
+    setSessao({ email: e, nome: n });
+    // Registra o usuário no banco. Melhor-esforço: não bloqueia o login se a API cair.
+    registrarUsuario(e.split("@")[0], n, e).catch(() => {});
+  };
   const sair = () => setSessao(null);
  
   const email = sessao?.email ?? "";
   const nome = sessao?.nome ?? "";
  
   return (
-    <AuthContext.Provider
-      value={{ autenticado: sessao !== null, nome, email, ra: email.split("@")[0], entrar, sair }}
-    >
+    <AuthContext.Provider value={{ autenticado: sessao !== null, nome, email, ra: email.split("@")[0], entrar, sair }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,7 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { usePersistedState } from "../hooks/usePersistedState";
+import { useAuth } from "./AuthContext";
+import { buscarTrajeto, salvarTrajeto } from "../lib/api";
 import type { Trajeto } from "../types";
  
 const TRAJETO_INICIAL: Trajeto = {
@@ -14,15 +15,33 @@ const TRAJETO_INICIAL: Trajeto = {
  
 interface PerfilContextValue {
   trajeto: Trajeto;
-  salvar: (t: Trajeto) => void;
+  salvar: (t: Trajeto) => Promise<void>;
 }
  
 const PerfilContext = createContext<PerfilContextValue | null>(null);
  
 export function PerfilProvider({ children }: { children: ReactNode }) {
-  // Persistido: o trajeto cadastrado continua salvo ao recarregar.
-  const [trajeto, setTrajeto] = usePersistedState<Trajeto>("carona:trajeto", TRAJETO_INICIAL);
-  return <PerfilContext.Provider value={{ trajeto, salvar: setTrajeto }}>{children}</PerfilContext.Provider>;
+  const { autenticado, ra } = useAuth();
+  const [trajeto, setTrajeto] = useState<Trajeto>(TRAJETO_INICIAL);
+ 
+  // Ao logar, carrega o trajeto salvo do usuário no banco (fonte da verdade).
+  useEffect(() => {
+    if (!autenticado || !ra) {
+      setTrajeto(TRAJETO_INICIAL);
+      return;
+    }
+    buscarTrajeto(ra)
+      .then((t) => setTrajeto(t ?? TRAJETO_INICIAL))
+      .catch(() => {});
+  }, [autenticado, ra]);
+ 
+  // Salva no banco e, dando certo, atualiza o estado local.
+  const salvar = async (t: Trajeto) => {
+    if (ra) await salvarTrajeto(ra, t);
+    setTrajeto(t);
+  };
+ 
+  return <PerfilContext.Provider value={{ trajeto, salvar }}>{children}</PerfilContext.Provider>;
 }
  
 export function usePerfilContext() {

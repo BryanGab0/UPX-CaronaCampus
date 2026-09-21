@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:16
+    container_name: carona-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: carona
+      POSTGRES_PASSWORD: carona
+      POSTGRES_DB: caronacampus
+    ports:
+      - "5432:5432"
+    volumes:
+      # scripts .sql aqui rodam automaticamente na criação do banco
+      - ./db:/docker-entrypoint-initdb.d
+      - carona_pgdata:/var/lib/postgresql/data
+
+volumes:
+  carona_pgdata:

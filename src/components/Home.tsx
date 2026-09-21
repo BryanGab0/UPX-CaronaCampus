@@ -5,11 +5,12 @@ import { useResultados } from "../hooks/useResultados";
 import { ImpactStats } from "./ImpactStats";
 import { BestRideCard } from "./BestRideCard";
 import { RideRow } from "./RideRow";
+import { Carregando, ErroCarga } from "./Estado";
  
 export function Home() {
   const { nome } = useAuth();
   const { trajeto } = usePerfilContext();
-  const resultados = useResultados(); // recalcula quando o trajeto muda
+  const { resultados, carregando, erro } = useResultados();
   const melhor = resultados[0];
   const outras = resultados.slice(1);
  
@@ -44,23 +45,31 @@ export function Home() {
  
       <ImpactStats />
  
-      <div className="px-[22px] pb-2 pt-[22px]">
-        <div className="mb-3 flex items-center gap-1.5">
-          <Star size={15} className="fill-accent text-accent" />
-          <span className="text-sm font-bold">Melhor carona pra você hoje</span>
-        </div>
-        {melhor && <BestRideCard resultado={melhor} />}
-      </div>
+      {carregando ? (
+        <Carregando />
+      ) : erro ? (
+        <div className="px-[22px]"><ErroCarga msg={erro} /></div>
+      ) : (
+        <>
+          <div className="px-[22px] pb-2 pt-[22px]">
+            <div className="mb-3 flex items-center gap-1.5">
+              <Star size={15} className="fill-accent text-accent" />
+              <span className="text-sm font-bold">Melhor carona pra você hoje</span>
+            </div>
+            {melhor && <BestRideCard resultado={melhor} />}
+          </div>
  
-      <div className="flex items-center justify-between px-[22px] pb-2 pt-[18px]">
-        <span className="text-sm font-bold">Outras compatíveis</span>
-        <button className="text-xs font-semibold text-brand">ver todas</button>
-      </div>
-      <div className="px-4">
-        {outras.map((r) => (
-          <RideRow key={r.carona.id} resultado={r} />
-        ))}
-      </div>
+          <div className="flex items-center justify-between px-[22px] pb-2 pt-[18px]">
+            <span className="text-sm font-bold">Outras compatíveis</span>
+            <button className="text-xs font-semibold text-brand">ver todas</button>
+          </div>
+          <div className="px-4">
+            {outras.map((r) => (
+              <RideRow key={r.carona.id} resultado={r} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

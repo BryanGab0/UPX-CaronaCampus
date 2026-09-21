@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import { cn } from "../lib/cn";
 import { useResultados } from "../hooks/useResultados";
 import { RideRow } from "./RideRow";
+import { Carregando, ErroCarga } from "./Estado";
  
 type Ordem = "compat" | "custo" | "horario";
  
@@ -15,11 +16,10 @@ const ORDENS: { id: Ordem; label: string }[] = [
 const paraNumero = (v: string) => Number(v.replace(",", "."));
  
 export function Caronas() {
-  const resultados = useResultados();
+  const { resultados, carregando, erro } = useResultados();
   const [busca, setBusca] = useState("");
   const [ordem, setOrdem] = useState<Ordem>("compat");
  
-  // Lista filtrada + ordenada, derivada do estado. useMemo evita refazer à toa.
   const lista = useMemo(() => {
     const q = busca.trim().toLowerCase();
     const filtrada = resultados.filter(
@@ -31,16 +31,16 @@ export function Caronas() {
     } else if (ordem === "horario") {
       ordenada.sort((a, b) => a.carona.chegada.localeCompare(b.carona.chegada));
     }
-    // "compat" já vem ordenado pelo algoritmo
     return ordenada;
   }, [resultados, busca, ordem]);
  
   return (
     <div className="animate-rise px-[22px] pt-[46px]">
       <h1 className="font-display text-[26px] font-bold tracking-tight">Caronas</h1>
-      <p className="mt-1 text-sm text-sub">{resultados.length} compatíveis com o seu trajeto</p>
+      <p className="mt-1 text-sm text-sub">
+        {carregando ? "buscando…" : `${resultados.length} compatíveis com o seu trajeto`}
+      </p>
  
-      {/* Busca */}
       <div className="mt-4 flex items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3">
         <Search size={18} className="text-sub" />
         <input
@@ -51,7 +51,6 @@ export function Caronas() {
         />
       </div>
  
-      {/* Ordenação */}
       <div className="mt-3 flex gap-2">
         {ORDENS.map((o) => (
           <button
@@ -67,14 +66,19 @@ export function Caronas() {
         ))}
       </div>
  
-      {/* Lista */}
-      <div className="mt-4">
-        {lista.length === 0 ? (
-          <p className="py-16 text-center text-sm text-sub">Nenhuma carona encontrada.</p>
-        ) : (
-          lista.map((r) => <RideRow key={r.carona.id} resultado={r} />)
-        )}
-      </div>
+      {carregando ? (
+        <Carregando />
+      ) : erro ? (
+        <ErroCarga msg={erro} />
+      ) : (
+        <div className="mt-4">
+          {lista.length === 0 ? (
+            <p className="py-16 text-center text-sm text-sub">Nenhuma carona encontrada.</p>
+          ) : (
+            lista.map((r) => <RideRow key={r.carona.id} resultado={r} />)
+          )}
+        </div>
+      )}
     </div>
   );
 }

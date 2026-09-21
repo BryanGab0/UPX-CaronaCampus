@@ -8,6 +8,7 @@ import { useResultados } from "../hooks/useResultados";
 import { PESO_HORARIO, PESO_ROTA } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { MapaRota } from "./MapaRota";
+import { Carregando, ErroCarga } from "./Estado";
  
 const paraNumero = (v: string) => Number(v.replace(",", "."));
 const reais = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
@@ -16,9 +17,11 @@ export function Detalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [solicitado, setSolicitado] = useState(false);
+  const { resultados, carregando, erro } = useResultados();
  
-  // Procura no ranking já calculado pelo algoritmo.
-  const resultados = useResultados();
+  if (carregando) return <div className="pt-[46px]"><Carregando /></div>;
+  if (erro) return <div className="px-[22px] pt-[46px]"><ErroCarga msg={erro} /></div>;
+ 
   const resultado = resultados.find((r) => r.carona.id === id);
  
   if (!resultado) {
@@ -38,7 +41,6 @@ export function Detalhe() {
  
   return (
     <div className="animate-rise pb-6">
-      {/* Cabeçalho */}
       <div className="flex items-center gap-3 border-b border-line bg-surface px-[22px] pb-3 pt-[44px]">
         <button onClick={() => navigate(-1)} className="grid size-9 place-items-center rounded-xl border border-line transition active:scale-[.98]">
           <ChevronLeft size={19} className="text-sub" />
@@ -52,7 +54,6 @@ export function Detalhe() {
       </div>
  
       <div className="px-[22px]">
-        {/* Mapa */}
         <div className="mt-4 rounded-[18px] border border-line bg-surface p-2">
           <MapaRota origem={carona.origem} ponto={carona.ponto} destino={FACENS} />
           <div className="flex flex-wrap justify-center gap-4 py-1.5 text-[11px] text-sub">
@@ -62,7 +63,6 @@ export function Detalhe() {
           </div>
         </div>
  
-        {/* Ponto de encontro */}
         <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
           <div className="flex items-start gap-3">
             <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent-soft">
@@ -78,36 +78,23 @@ export function Detalhe() {
           </div>
         </div>
  
-        {/* Por que esse match? — transparência do algoritmo */}
         <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
           <div className="font-display font-bold">Por que esse match?</div>
- 
-          <Barra
-            titulo="Compatibilidade de horário"
-            pct={Math.round(scoreHorario * 100)}
-            detalhe={`chega ${carona.chegada} · ${difChegadaMin} min de diferença · ${diasComuns.length} dias em comum`}
-            cor="bg-brand"
-          />
-          <Barra
-            titulo="Proximidade de rota"
-            pct={Math.round(scoreRota * 100)}
-            detalhe={`${desvioKm.toFixed(1)} km fora da sua rota direta até a Facens`}
-            cor="bg-good"
-          />
- 
+          <Barra titulo="Compatibilidade de horário" pct={Math.round(scoreHorario * 100)}
+            detalhe={`chega ${carona.chegada} · ${difChegadaMin} min de diferença · ${diasComuns.length} dias em comum`} cor="bg-brand" />
+          <Barra titulo="Proximidade de rota" pct={Math.round(scoreRota * 100)}
+            detalhe={`${desvioKm.toFixed(1)} km fora da sua rota direta até a Facens`} cor="bg-good" />
           <div className="mt-3 flex flex-wrap gap-1.5">
             {diasComuns.map((d) => (
               <span key={d} className="rounded-lg bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand">{d}</span>
             ))}
           </div>
- 
           <p className="mt-3 text-[11.5px] leading-relaxed text-sub">
             Nota final = {Math.round(PESO_HORARIO * 100)}% horário + {Math.round(PESO_ROTA * 100)}% rota ={" "}
             <b className="text-ink">{compat}%</b>
           </p>
         </div>
  
-        {/* Divisão de custo */}
         <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
           <div className="font-display font-bold">Divisão do combustível</div>
           <div className="mt-3 flex gap-2.5">
@@ -120,7 +107,6 @@ export function Detalhe() {
           </div>
         </div>
  
-        {/* Ação */}
         {solicitado ? (
           <div className="mt-5 flex items-center justify-center gap-2 rounded-[14px] bg-good-soft py-4 text-sm font-bold text-good">
             <Check size={18} /> Pedido enviado para {carona.nome.split(" ")[0]}
@@ -135,8 +121,6 @@ export function Detalhe() {
   );
 }
  
-/* ---------- Peças locais ---------- */
- 
 function Legenda({ className, texto }: { className: string; texto: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -146,7 +130,6 @@ function Legenda({ className, texto }: { className: string; texto: string }) {
   );
 }
  
-// Barra de progresso de um critério do algoritmo.
 function Barra({ titulo, pct, detalhe, cor }: { titulo: string; pct: number; detalhe: string; cor: string }) {
   return (
     <div className="mt-3">

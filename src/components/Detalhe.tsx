@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ChevronLeft, MapPin, Footprints, Fuel, Users, Leaf, Check } from "lucide-react";
 import { cn } from "../lib/cn";
 import { FACENS } from "../data/mock";
 import { useResultados } from "../hooks/useResultados";
+import { useAuth } from "../context/AuthContext";
+import { buscarSolicitacoes, solicitarCarona } from "../lib/api";
 import { PESO_HORARIO, PESO_ROTA } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { MapaRota } from "./MapaRota";
@@ -16,8 +18,36 @@ const reais = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
 export function Detalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [solicitado, setSolicitado] = useState(false);
+  const { ra } = useAuth();
   const { resultados, carregando, erro } = useResultados();
+ 
+  const [solicitado, setSolicitado] = useState(false);
+  const [solicitando, setSolicitando] = useState(false);
+  const [erroSolic, setErroSolic] = useState<string | null>(null);
+ 
+  // Ao abrir, verifica se o usuário já solicitou ESTA carona.
+  useEffect(() => {
+    if (!ra || !id) return;
+    let ativo = true;
+    buscarSolicitacoes(ra)
+      .then((lista) => { if (ativo && lista.some((s) => s.caronaId === id)) setSolicitado(true); })
+      .catch(() => {});
+    return () => { ativo = false; };
+  }, [ra, id]);
+ 
+  const onSolicitar = async () => {
+    if (!ra || !id) return;
+    setSolicitando(true);
+    setErroSolic(null);
+    try {
+      await solicitarCarona(ra, id);
+      setSolicitado(true);
+    } catch {
+      setErroSolic("Não foi possível solicitar. Verifique se a API está rodando.");
+    } finally {
+      setSolicitando(false);
+    }
+  };
  
   if (carregando) return <div className="pt-[46px]"><Carregando /></div>;
   if (erro) return <div className="px-[22px] pt-[46px]"><ErroCarga msg={erro} /></div>;
@@ -112,9 +142,16 @@ export function Detalhe() {
             <Check size={18} /> Pedido enviado para {carona.nome.split(" ")[0]}
           </div>
         ) : (
-          <button onClick={() => setSolicitado(true)} className="mt-5 w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]">
-            Solicitar carona
-          </button>
+          <>
+            {erroSolic && <p className="mt-5 text-[13px] text-accent">{erroSolic}</p>}
+            <button
+              onClick={onSolicitar}
+              disabled={solicitando}
+              className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erroSolic ? "mt-3" : "mt-5")}
+            >
+              {solicitando ? "Enviando…" : "Solicitar carona"}
+            </button>
+          </>
         )}
       </div>
     </div>

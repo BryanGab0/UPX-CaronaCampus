@@ -1,56 +1,62 @@
+import { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import type { Coord } from "../types";
-
-const W = 300;
-const H = 200;
-const PAD = 34;
-
-// Mapa estilizado. Projeta lat/lng em x/y ajustando os 3 pontos na área visível
-// (coordenadas aproximadas)
+ 
+// Mapa real (Leaflet + OpenStreetMap). Mostra origem -> ponto de encontro -> Facens.
+// O Leaflet é uma biblioteca imperativa; encapsulamos ela num componente React:
+// o useEffect cria o mapa ao montar e o destrói ao desmontar (cleanup).
 export function MapaRota({ origem, ponto, destino }: { origem: Coord; ponto: Coord; destino: Coord }) {
-  const pts = [origem, ponto, destino];
-  const minLat = Math.min(...pts.map((p) => p.lat));
-  const maxLat = Math.max(...pts.map((p) => p.lat));
-  const minLng = Math.min(...pts.map((p) => p.lng));
-  const maxLng = Math.max(...pts.map((p) => p.lng));
+  const ref = useRef<HTMLDivElement>(null);
  
-  const project = (p: Coord) => ({
-    x: PAD + (maxLng === minLng ? 0.5 : (p.lng - minLng) / (maxLng - minLng)) * (W - 2 * PAD),
-    y: PAD + (maxLat === minLat ? 0.5 : (maxLat - p.lat) / (maxLat - minLat)) * (H - 2 * PAD),
-  });
+  useEffect(() => {
+    if (!ref.current) return;
  
-  const a = project(origem);  // casa
-  const b = project(ponto);   // ponto de encontro
-  const c = project(destino); // UniFacens
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-[14px] bg-canvas">
-      {/* grade sutil para dar textura de mapa */}
-      {Array.from({ length: 5 }).map((_, i) => (
-        <line key={"h" + i} x1={0} y1={(H / 5) * i} x2={W} y2={(H / 5) * i} className="stroke-line" strokeWidth="1" />
-      ))}
-      {Array.from({ length: 7 }).map((_, i) => (
-        <line key={"v" + i} x1={(W / 7) * i} y1={0} x2={(W / 7) * i} y2={H} className="stroke-line" strokeWidth="1" />
-      ))}
+    const map = L.map(ref.current, { zoomControl: false });
  
-      {/* trajeto de carro: ponto de encontro -> UniFacens */}
-      <path d={`M ${b.x} ${b.y} L ${c.x} ${c.y}`} className="stroke-brand" strokeWidth="3" fill="none" strokeLinecap="round" />
-      {/* caminhada: casa -> ponto de encontro (tracejado) */}
-      <path d={`M ${a.x} ${a.y} L ${b.x} ${b.y}`} className="stroke-accent" strokeWidth="2.5" strokeDasharray="2 5" fill="none" strokeLinecap="round" />
+    // Camada de tiles (o "fundo" do mapa) — OpenStreetMap, gratuito.
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap",
+      maxZoom: 19,
+    }).addTo(map);
  
-      {/* marcadores */}
-      <Marcador x={a.x} y={a.y} className="fill-accent" />
-      <Marcador x={b.x} y={b.y} className="fill-accent" grande />
-      <Marcador x={c.x} y={c.y} className="fill-ink" grande />
-    </svg>
-  );
+    const A: [number, number] = [origem.lat, origem.lng];   // você
+    const P: [number, number] = [ponto.lat, ponto.lng];     // ponto de encontro
+    const F: [number, number] = [destino.lat, destino.lng]; // Facens
+ 
+    // Caminhada (você -> ponto), tracejada; trajeto de carro (ponto -> Facens), sólido.
+    L.polyline([A, P], { color: "#FF7A45", weight: 3, dashArray: "4 6" }).addTo(map);
+    L.polyline([P, F], { color: "#2F4BFF", weight: 4 }).addTo(map);
+ 
+    L.marker(A, { icon: pino("#FF7A45", 13) }).addTo(map);
+    L.marker(P, { icon: pinoPonto() }).addTo(map);
+    L.marker(F, { icon: pino("#161A22", 16) }).addTo(map);
+ 
+    // Enquadra os três pontos na área visível.
+    map.fitBounds(L.latLngBounds([A, P, F]).pad(0.35));
+ 
+    return () => { map.remove(); }; // limpa o mapa ao sair da tela
+  }, [origem.lat, origem.lng, ponto.lat, ponto.lng, destino.lat, destino.lng]);
+ 
+  return <div ref={ref} className="h-52 w-full overflow-hidden rounded-[14px]" />;
 }
-
-function Marcador({ x, y, className, grande }: { x: number; y: number; className: string; grande?: boolean }) {
-  const r = grande ? 7 : 5;
-  return (
-    <g>
-      <circle cx={x} cy={y} r={r + 3} className={className} opacity={0.18} />
-      <circle cx={x} cy={y} r={r} className={className} />
-    </g>
-  );
+ 
+// Marcador circular simples.
+function pino(cor: string, size: number) {
+  return L.divIcon({
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${cor};border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)"></div>`,
+  });
+}
+ 
+// Marcador do ponto de encontro (alvo laranja com miolo branco).
+function pinoPonto() {
+  return L.divIcon({
+    className: "",
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+    html: `<div style="width:22px;height:22px;border-radius:50%;background:#FF7A45;border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center"><div style="width:7px;height:7px;border-radius:50%;background:#fff"></div></div>`,
+  });
 }

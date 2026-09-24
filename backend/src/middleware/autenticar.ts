@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
  
 const SEGREDO = process.env.JWT_SECRET ?? "dev-secret";
  
-// Request com o RA do usuário autenticado (preenchido pelo middleware).
 export interface ReqAuth extends Request {
   usuarioRa?: string;
 }
@@ -23,4 +22,13 @@ export function autenticar(req: ReqAuth, res: Response, next: NextFunction) {
   } catch {
     res.status(401).json({ erro: "token inválido" });
   }
+}
+ 
+// Garante que o usuário do token é o mesmo do parâmetro :ra da URL.
+export function mesmoUsuario(req: ReqAuth, res: Response, next: NextFunction) {
+  if (req.usuarioRa !== req.params.ra) {
+    res.status(403).json({ erro: "acesso negado" });
+    return;
+  }
+  next();
 }

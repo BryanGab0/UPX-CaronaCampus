@@ -33,7 +33,7 @@ authRouter.post("/auth/registrar", async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO usuarios (ra, nome, email, senha_hash) VALUES ($1, $2, $3, $4)
        ON CONFLICT (ra) DO NOTHING
-       RETURNING ra, nome, email`,
+       RETURNING ra, nome, email, admin`,
       [ra, nome, email, hash],
     );
     if (rows.length === 0) {
@@ -56,7 +56,7 @@ authRouter.post("/auth/login", async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      "SELECT ra, nome, email, senha_hash FROM usuarios WHERE ra = $1",
+      "SELECT ra, nome, email, senha_hash, admin FROM usuarios WHERE ra = $1",
       [ra],
     );
     const u = rows[0];
@@ -65,7 +65,7 @@ authRouter.post("/auth/login", async (req, res) => {
       res.status(401).json({ erro: "RA ou senha inválidos" });
       return;
     }
-    res.json({ token: gerarToken(ra), usuario: { ra: u.ra, nome: u.nome, email: u.email } });
+    res.json({ token: gerarToken(ra), usuario: { ra: u.ra, nome: u.nome, email: u.email, admin: u.admin } });
   } catch (e) {
     console.error(e);
     res.status(500).json({ erro: "falha no login" });

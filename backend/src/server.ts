@@ -5,6 +5,7 @@ import { pool } from "./db.js";
 import { caronasRouter } from "./routes/caronas.js";
 import { usuariosRouter } from "./routes/usuarios.js";
 import { solicitacoesRouter } from "./routes/solicitacoes.js";
+import { authRouter } from "./routes/auth.js";
  
 const app = express();
 app.use(cors());
@@ -22,6 +23,7 @@ app.get("/health", async (_req, res) => {
 app.use(caronasRouter);
 app.use(usuariosRouter);
 app.use(solicitacoesRouter);
+app.use(authRouter);
  
 const PORT = Number(process.env.PORT) || 3333;
 app.listen(PORT, () => console.log(`API em http://localhost:${PORT}`));

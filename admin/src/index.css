@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@theme {
+  --color-canvas: #F3F5F9; --color-surface: #FFFFFF;
+  --color-ink: #161A22; --color-sub: #6A7382; --color-line: #E6EAF1;
+  --color-brand: #2F4BFF; --color-brand-soft: #EAEEFF;
+  --color-accent: #FF7A45; --color-good: #12B886;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+}
+body { font-family: var(--font-sans); background: var(--color-canvas); color: var(--color-ink); -webkit-font-smoothing: antialiased; }

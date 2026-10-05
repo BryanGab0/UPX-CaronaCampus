@@ -10,6 +10,15 @@ function telefoneValido(t: string): boolean {
   return d.length >= 10 && d.length <= 13;
 }
 
+// Formata enquanto digita: (11) 99999-9999 (máscara só visual).
+function formatarTelefone(valor: string): string {
+  const d = valor.replace(/\D/g, "").slice(0, 11); // no máx. 11 dígitos (DDD + número)
+  if (d.length <= 2) return d.length ? `(${d}` : "";
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
+}
+
 export function Login() {
   const { login, registrar } = useAuth();
   const navigate = useNavigate();
@@ -44,7 +53,7 @@ export function Login() {
     setCarregando(true);
     try {
       if (modo === "login") await login(email, senha);
-      else await registrar(email, nome, telefone, senha);
+      else await registrar(email, nome, telefone.replace(/\D/g, ""), senha);
       navigate("/");
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Não foi possível entrar.");
@@ -104,7 +113,7 @@ export function Login() {
                 <Campo icone={<Phone size={18} />}>
                   <input
                     value={telefone}
-                    onChange={(e) => { setTelefone(e.target.value); setErro(""); }}
+                    onChange={(e) => { setTelefone(formatarTelefone(e.target.value)); setErro(""); }}
                     placeholder="(11) 99999-9999"
                     inputMode="tel"
                     className="flex-1 bg-transparent text-[15px] outline-none"

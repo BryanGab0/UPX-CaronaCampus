@@ -4,6 +4,13 @@ O acesso é só com e-mail institucional, o que resolve confiança e segurança.
 
 > Projeto acadêmico de faculdade.
 
+## No ar
+- **App do aluno:** https://carona-campus-aluno.vercel.app
+- **API:** https://caronacampus.onrender.com
+- **Painel administrativo:** https://carona-campus-admin.vercel.app
+
+> A API usa hospedagem gratuita e "dorme" após alguns minutos sem uso: a **primeira** requisição pode levar ~30–60s para responder. Depois, normaliza.
+
 O repositório tem três partes:
 - **front-end** do aluno — na raiz
 - **back-end** (API) — em [`backend/`](backend/)
@@ -13,6 +20,7 @@ O repositório tem três partes:
 - Frontend: React + TypeScript + Vite (Tailwind CSS)
 - Backend: Node.js + Express + TypeScript
 - Banco: PostgreSQL
+- Deploy: Vercel (front-ends), Render (API), Neon (banco)
 
 ## Funcionalidades
 - Login e cadastro com senha e e-mail institucional (`@facens.br`)

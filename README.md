@@ -4,7 +4,10 @@ O acesso é só com e-mail institucional, o que resolve confiança e segurança.
 
 > Projeto acadêmico de faculdade.
 
-O repositório tem duas partes: o **front-end** (na raiz) e o **back-end** (em [`backend/`](backend/)).
+O repositório tem três partes:
+- **front-end** do aluno — na raiz
+- **back-end** (API) — em [`backend/`](backend/)
+- **painel administrativo** — em [`admin/`](admin/)
 
 ## Stack
 - Frontend: React + TypeScript + Vite (Tailwind CSS)
@@ -18,6 +21,7 @@ O repositório tem duas partes: o **front-end** (na raiz) e o **back-end** (em [
 - Mapa com o trajeto até o campus (Leaflet + OpenStreetMap)
 - Divisão do custo de combustível
 - Solicitação de caronas
+- Painel administrativo (estatísticas, usuários e solicitações)
 
 ## Como rodar localmente
 Precisa de Node 20.19+ (ou 22.12+) e do back-end no ar.
@@ -31,3 +35,5 @@ npm run dev
 ```
 
 O site abre em http://localhost:5173 (a API precisa estar rodando em http://localhost:3333).
+
+Para o painel administrativo, veja o [README do admin](admin/README.md).

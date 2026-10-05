@@ -44,6 +44,7 @@ export interface UsuarioAdmin {
   ra: string;
   nome: string;
   email: string;
+  telefone: string | null;
   admin: boolean;
   criado_em: string;
 }

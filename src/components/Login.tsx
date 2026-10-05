@@ -1,28 +1,41 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Route as RouteIcon, Mail, User, Lock } from "lucide-react";
+import { Route as RouteIcon, Mail, User, Lock, Phone } from "lucide-react";
 import { useAuth, emailInstitucional } from "../context/AuthContext";
 import { cn } from "../lib/cn";
- 
+
+// Valida só o FORMATO do telefone (DDD + número). Não verifica se é real.
+function telefoneValido(t: string): boolean {
+  const d = t.replace(/\D/g, "");
+  return d.length >= 10 && d.length <= 13;
+}
+
 export function Login() {
   const { login, registrar } = useAuth();
   const navigate = useNavigate();
   const [modo, setModo] = useState<"login" | "registro">("login");
   const [email, setEmail] = useState("");
   const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
- 
+
   const enviar = async () => {
     setErro("");
     if (!emailInstitucional(email)) {
       setErro("Use seu e-mail institucional no formato RA@facens.br.");
       return;
     }
-    if (modo === "registro" && nome.trim().length < 2) {
-      setErro("Digite seu nome.");
-      return;
+    if (modo === "registro") {
+      if (nome.trim().length < 2) {
+        setErro("Digite seu nome.");
+        return;
+      }
+      if (!telefoneValido(telefone)) {
+        setErro("Digite um telefone válido com DDD (ex.: 11 99999-9999).");
+        return;
+      }
     }
     if (senha.length < 6) {
       setErro("A senha deve ter ao menos 6 caracteres.");
@@ -31,7 +44,7 @@ export function Login() {
     setCarregando(true);
     try {
       if (modo === "login") await login(email, senha);
-      else await registrar(email, nome, senha);
+      else await registrar(email, nome, telefone, senha);
       navigate("/");
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Não foi possível entrar.");
@@ -39,12 +52,12 @@ export function Login() {
       setCarregando(false);
     }
   };
- 
+
   const trocarModo = () => {
     setModo((m) => (m === "login" ? "registro" : "login"));
     setErro("");
   };
- 
+
   return (
     <div className="flex min-h-screen justify-center bg-shell px-3 py-5">
       <div className="relative flex min-h-[812px] w-full max-w-[430px] flex-col overflow-hidden rounded-[32px] bg-canvas px-7 pb-8 pt-14 text-ink shadow-2xl">
@@ -54,7 +67,7 @@ export function Login() {
           </div>
           <span className="font-display text-xl font-bold tracking-tight">CaronaCampus</span>
         </div>
- 
+
         <div className="mt-9 flex-1">
           <h1 className="font-display text-[30px] font-bold leading-[1.1] tracking-tight">
             {modo === "login" ? (
@@ -66,8 +79,8 @@ export function Login() {
           <p className="mt-3 max-w-xs text-[15px] leading-relaxed text-sub">
             Acesso exclusivo para alunos da Facens, com e-mail institucional.
           </p>
- 
-          <div className="mt-7 space-y-3">
+
+          <div className="mt-6 space-y-3">
             <Campo icone={<Mail size={18} />}>
               <input
                 value={email}
@@ -77,18 +90,29 @@ export function Login() {
                 className="flex-1 bg-transparent text-[15px] outline-none"
               />
             </Campo>
- 
+
             {modo === "registro" && (
-              <Campo icone={<User size={18} />}>
-                <input
-                  value={nome}
-                  onChange={(e) => { setNome(e.target.value); setErro(""); }}
-                  placeholder="Seu nome"
-                  className="flex-1 bg-transparent text-[15px] outline-none"
-                />
-              </Campo>
+              <>
+                <Campo icone={<User size={18} />}>
+                  <input
+                    value={nome}
+                    onChange={(e) => { setNome(e.target.value); setErro(""); }}
+                    placeholder="Seu nome"
+                    className="flex-1 bg-transparent text-[15px] outline-none"
+                  />
+                </Campo>
+                <Campo icone={<Phone size={18} />}>
+                  <input
+                    value={telefone}
+                    onChange={(e) => { setTelefone(e.target.value); setErro(""); }}
+                    placeholder="(11) 99999-9999"
+                    inputMode="tel"
+                    className="flex-1 bg-transparent text-[15px] outline-none"
+                  />
+                </Campo>
+              </>
             )}
- 
+
             <Campo icone={<Lock size={18} />}>
               <input
                 type="password"
@@ -99,9 +123,9 @@ export function Login() {
                 className="flex-1 bg-transparent text-[15px] outline-none"
               />
             </Campo>
- 
+
             {erro && <p className="text-[13px] text-accent">{erro}</p>}
- 
+
             <button
               onClick={enviar}
               disabled={carregando}
@@ -110,7 +134,7 @@ export function Login() {
               {carregando ? "Aguarde…" : modo === "login" ? "Entrar" : "Criar conta"}
             </button>
           </div>
- 
+
           <button onClick={trocarModo} className="mt-5 w-full text-[13.5px] text-sub">
             {modo === "login" ? (
               <>Não tem conta? <span className="font-semibold text-brand">Cadastre-se</span></>
@@ -119,13 +143,13 @@ export function Login() {
             )}
           </button>
         </div>
- 
+
         <p className="text-center text-[11.5px] text-sub">Facens · Sorocaba</p>
       </div>
     </div>
   );
 }
- 
+
 function Campo({ icone, children }: { icone: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className={cn("flex items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3")}>

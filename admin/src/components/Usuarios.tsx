@@ -30,6 +30,7 @@ export function Usuarios() {
                 <th className="px-5 py-3 font-semibold">RA</th>
                 <th className="px-5 py-3 font-semibold">Nome</th>
                 <th className="px-5 py-3 font-semibold">E-mail</th>
+                <th className="px-5 py-3 font-semibold">Telefone</th>
                 <th className="px-5 py-3 font-semibold">Tipo</th>
                 <th className="px-5 py-3 font-semibold">Cadastro</th>
               </tr>
@@ -40,6 +41,7 @@ export function Usuarios() {
                   <td className="px-5 py-3 font-mono text-xs">{u.ra}</td>
                   <td className="px-5 py-3 font-semibold">{u.nome}</td>
                   <td className="px-5 py-3 text-sub">{u.email}</td>
+                  <td className="px-5 py-3 text-sub">{u.telefone ?? "—"}</td>
                   <td className="px-5 py-3">
                     {u.admin ? (
                       <span className="rounded-md bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand">admin</span>

@@ -25,11 +25,11 @@ export interface Sessao {
   usuario: { ra: string; nome: string; email: string };
 }
 
-export async function registrar(ra: string, nome: string, email: string, senha: string): Promise<Sessao> {
+export async function registrar(ra: string, nome: string, email: string, telefone: string, senha: string): Promise<Sessao> {
   const resp = await fetch(`${API_URL}/auth/registrar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ra, nome, email, senha }),
+    body: JSON.stringify({ ra, nome, email, telefone, senha }),
   });
   if (!resp.ok) throw await erroDaResposta(resp, "Não foi possível criar a conta");
   return resp.json();

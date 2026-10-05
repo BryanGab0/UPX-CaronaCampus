@@ -1,5 +1,11 @@
 import { Pool } from "pg";
 import "dotenv/config";
 
-// Pool de conexões: reaproveita conexões em vez de abrir uma por requisição.
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const url = process.env.DATABASE_URL ?? "";
+
+const local = url.includes("localhost") || url.includes("127.0.0.1");
+
+export const pool = new Pool({
+  connectionString: url,
+  ssl: local ? false : { rejectUnauthorized: false },
+});

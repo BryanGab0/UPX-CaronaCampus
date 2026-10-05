@@ -1,12 +1,12 @@
 import { Router } from "express";
 import { pool } from "../db.js";
 import { autenticar, souAdmin } from "../middleware/autenticar.js";
- 
+
 export const adminRouter = Router();
- 
+
 // Todas as rotas de admin exigem: token válido E ser administrador.
 adminRouter.use(autenticar, souAdmin);
- 
+
 // GET /admin/estatisticas — contagens gerais.
 adminRouter.get("/estatisticas", async (_req, res) => {
   try {
@@ -29,12 +29,12 @@ adminRouter.get("/estatisticas", async (_req, res) => {
     res.status(500).json({ erro: "falha ao buscar estatísticas" });
   }
 });
- 
+
 // GET /admin/usuarios — lista todos os usuários.
 adminRouter.get("/usuarios", async (_req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT ra, nome, email, admin, criado_em FROM usuarios ORDER BY criado_em DESC",
+      "SELECT ra, nome, email, telefone, admin, criado_em FROM usuarios ORDER BY criado_em DESC",
     );
     res.json(rows);
   } catch (e) {
@@ -42,7 +42,7 @@ adminRouter.get("/usuarios", async (_req, res) => {
     res.status(500).json({ erro: "falha ao listar usuários" });
   }
 });
- 
+
 // GET /admin/solicitacoes — todas as solicitações (com usuário e carona).
 adminRouter.get("/solicitacoes", async (_req, res) => {
   try {

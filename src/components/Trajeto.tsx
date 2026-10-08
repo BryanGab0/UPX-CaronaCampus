@@ -118,8 +118,9 @@ export function Trajeto() {
       const novo: TrajetoType = { papel, endereco, origem, dias, chegada, saida, carro };
       await salvar(novo);
       setSalvo(true);
-    } catch {
-      setErro("Não foi possível salvar. Verifique se a API está rodando.");
+    } catch (e) {
+      console.error(e);
+      setErro("Não foi possível salvar seu trajeto. Verifique sua conexão e tente novamente.");
     } finally {
       setSalvando(false);
     }

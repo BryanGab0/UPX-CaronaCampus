@@ -1,12 +1,12 @@
 import { Link } from "react-router";
 import { MapPin, Clock } from "lucide-react";
 import { cn } from "../lib/cn";
+import { iniciais } from "../lib/formato";
 import { reais } from "../lib/match";
 import type { Resultado } from "../lib/match";
 
 export function RideRow({ resultado }: { resultado: Resultado }) {
   const { carona, compat, custoDia } = resultado;
-  const iniciais = carona.nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
   const cor = compat >= 75 ? "text-good" : compat >= 50 ? "text-brand" : "text-accent";
 
   return (
@@ -14,7 +14,7 @@ export function RideRow({ resultado }: { resultado: Resultado }) {
       to={`/carona/${carona.id}`}
       className="mb-2.5 flex w-full items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 text-left transition active:scale-[.98]"
     >
-      <div className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-canvas text-sm font-bold text-ink">{iniciais}</div>
+      <div className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-canvas text-sm font-bold text-ink">{iniciais(carona.nome)}</div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-[14.5px] font-bold">{carona.nome}</div>
         <div className="mt-0.5 flex items-center gap-2.5 text-xs text-sub">

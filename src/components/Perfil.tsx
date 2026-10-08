@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { LogOut, Mail, Inbox, Check, X, MessageCircle } from "lucide-react";
 import { cn } from "../lib/cn";
+import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { useAuth } from "../context/AuthContext";
 import { usePedidos } from "../hooks/usePedidos";
 import { useAviso } from "../hooks/useAviso";
@@ -10,25 +11,22 @@ import type { Pedido } from "../lib/api";
 import { Carregando, ErroCarga } from "./Estado";
 import { Aviso } from "./Aviso";
 
-const whatsapp = (tel: string, texto: string) => `https://wa.me/55${tel}?text=${encodeURIComponent(texto)}`;
-
 export function Perfil() {
   const { nome, email, sair } = useAuth();
   const navigate = useNavigate();
-  const iniciais = nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
 
   const { pedidos, carregando, erro, recarregar } = usePedidos();
   const { aviso, mostrar } = useAviso();
   const [respondendo, setRespondendo] = useState<number | null>(null); // id do pedido em andamento
 
   const responder = async (p: Pedido, status: "aceita" | "recusada") => {
-    const primeiroNome = p.passageiroNome.split(" ")[0];
+    const primeiro = primeiroNome(p.passageiroNome);
     setRespondendo(p.id);
     try {
       await responderSolicitacao(p.id, status);
       mostrar("ok", status === "aceita"
-        ? `Pedido de ${primeiroNome} aceito! Chame no WhatsApp para combinar.`
-        : `Pedido de ${primeiroNome} recusado.`);
+        ? `Pedido de ${primeiro} aceito! Chame no WhatsApp para combinar.`
+        : `Pedido de ${primeiro} recusado.`);
       recarregar(); // os botões somem quando a lista atualizada chegar
     } catch (e) {
       console.error(e);
@@ -44,7 +42,7 @@ export function Perfil() {
       <h1 className="font-display text-[26px] font-bold tracking-tight">Perfil</h1>
 
       <div className="mt-4 flex items-center gap-3 rounded-[18px] border border-line bg-surface p-4">
-        <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-lg font-bold text-white">{iniciais}</div>
+        <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-lg font-bold text-white">{iniciais(nome)}</div>
         <div className="min-w-0 flex-1">
           <div className="truncate font-bold">{nome}</div>
           <div className="flex items-center gap-1.5 text-xs text-sub"><Mail size={13} className="shrink-0" /> <span className="truncate">{email}</span></div>
@@ -86,7 +84,7 @@ export function Perfil() {
                 </div>
               )}
               {p.status === "aceita" && p.passageiroTelefone && (
-                <a href={whatsapp(p.passageiroTelefone, `Oi ${p.passageiroNome.split(" ")[0]}! Aceitei seu pedido de carona pra Facens. Vamos combinar?`)}
+                <a href={linkWhatsapp(p.passageiroTelefone, `Oi ${primeiroNome(p.passageiroNome)}! Aceitei seu pedido de carona pra Facens. Vamos combinar?`)}
                   target="_blank" rel="noopener noreferrer"
                   className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-good py-2.5 text-xs font-bold text-white transition active:scale-[.98]">
                   <MessageCircle size={15} /> Chamar no WhatsApp

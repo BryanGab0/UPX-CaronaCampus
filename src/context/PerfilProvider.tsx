@@ -17,16 +17,25 @@ const TRAJETO_INICIAL: Trajeto = {
 
 export function PerfilProvider({ children }: { children: ReactNode }) {
   const { autenticado, ra } = useAuth();
-  const [trajeto, setTrajeto] = useState<Trajeto>(TRAJETO_INICIAL);
+  // Guarda o trajeto junto com o RA de quem é dono dele.
+  const [carregado, setCarregado] = useState<{ ra: string; trajeto: Trajeto } | null>(null);
 
   useEffect(() => {
-    if (!autenticado || !ra) { setTrajeto(TRAJETO_INICIAL); return; }
-    buscarTrajeto(ra).then((t) => setTrajeto(t ?? TRAJETO_INICIAL)).catch(() => {});
+    if (!autenticado || !ra) return;
+    let ativo = true; // evita atualizar estado após trocar de usuário/desmontar
+    buscarTrajeto(ra)
+      .then((t) => { if (ativo) setCarregado({ ra, trajeto: t ?? TRAJETO_INICIAL }); })
+      .catch(() => {});
+    return () => { ativo = false; };
   }, [autenticado, ra]);
+
+  // Derivado em vez de "zerado" num efeito: ao sair ou trocar de conta, o trajeto
+  // guardado não é do RA atual e o valor volta sozinho ao inicial.
+  const trajeto = autenticado && carregado?.ra === ra ? carregado.trajeto : TRAJETO_INICIAL;
 
   const salvar = async (t: Trajeto) => {
     if (ra) await salvarTrajeto(ra, t);
-    setTrajeto(t);
+    setCarregado({ ra, trajeto: t });
   };
 
   return <PerfilContext.Provider value={{ trajeto, salvar }}>{children}</PerfilContext.Provider>;

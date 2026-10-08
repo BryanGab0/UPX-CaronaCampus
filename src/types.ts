@@ -33,7 +33,3 @@ export interface Perfil {
   chegada: string;
   dias: DiaSemana[];
 }
-
-// Estatísticas ilustrativas da home.
-export type IconeStat = "wallet" | "leaf" | "car";
-export interface Stat { icone: IconeStat; valor: string; label: string; }

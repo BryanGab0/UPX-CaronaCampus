@@ -57,16 +57,20 @@ function avaliarHorario(perfil: Perfil, carona: Carona) {
   return { diasComuns, difChegadaMin, score: 0.5 * fracaoDias + 0.5 * scoreChegada };
 }
 
+// Litros gastos por dia no trajeto do motorista (ida e volta, em linha reta).
+export function litrosDia(origem: Coord, destino: Coord, consumo: number): number {
+  const kmIda = haversineKm(origem, destino);
+  return (kmIda * 2) / (consumo > 0 ? consumo : 12);
+}
+
 export function avaliar(perfil: Perfil, carona: Carona, destino: Coord): Avaliacao {
   const h = avaliarHorario(perfil, carona);
   const desvioKm = distanciaDaRotaKm(perfil.origem, carona.origem, destino);
   const scoreRota = clamp01(1 - desvioKm / DESVIO_MAX_KM);
   const compat = Math.round(100 * (PESO_HORARIO * h.score + PESO_ROTA * scoreRota));
 
-  // Custo do combustível: ida e volta do motorista, dividido entre 2 (motorista + passageiro).
-  const kmIda = haversineKm(carona.origem, destino);
-  const consumo = carona.consumo > 0 ? carona.consumo : 12;
-  const custoDia = ((kmIda * 2) / consumo) * PRECO_LITRO / 2;
+  // Custo do combustível dividido entre 2 (motorista + passageiro).
+  const custoDia = (litrosDia(carona.origem, destino, carona.consumo) * PRECO_LITRO) / 2;
 
   return { compat, scoreHorario: h.score, scoreRota, diasComuns: h.diasComuns, difChegadaMin: h.difChegadaMin, desvioKm, custoDia };
 }

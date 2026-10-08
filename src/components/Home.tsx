@@ -1,9 +1,13 @@
 import { Bell, Navigation, ChevronRight, Star } from "lucide-react";
+import { useMemo } from "react";
 import { Link } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { usePerfilContext } from "../context/PerfilContext";
 import { useResultados } from "../hooks/useResultados";
 import { usePedidos } from "../hooks/usePedidos";
+import { useSolicitacoes } from "../hooks/useSolicitacoes";
+import { calcularImpacto } from "../lib/impacto";
+import { FACENS } from "../data/mock";
 import { ImpactStats } from "./ImpactStats";
 import { BestRideCard } from "./BestRideCard";
 import { RideRow } from "./RideRow";
@@ -20,7 +24,12 @@ export function Home() {
   const { nome } = useAuth();
   const { trajeto } = usePerfilContext();
   const { resultados, carregando, erro } = useResultados();
-  const { pendentes } = usePedidos();
+  const { pedidos, pendentes } = usePedidos();
+  const { solicitacoes } = useSolicitacoes();
+  const impacto = useMemo(
+    () => calcularImpacto({ solicitacoes, pedidos, resultados, trajeto, destino: FACENS }),
+    [solicitacoes, pedidos, resultados, trajeto],
+  );
   const melhor = resultados[0];
   const outras = resultados.slice(1);
 
@@ -57,7 +66,7 @@ export function Home() {
         </button>
       </div>
 
-      <ImpactStats />
+      <ImpactStats impacto={impacto} />
 
       {carregando ? (
         <Carregando />

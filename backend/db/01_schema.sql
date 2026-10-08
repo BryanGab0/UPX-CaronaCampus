@@ -1,16 +1,33 @@
--- Tabela de caronas oferecidas.
-CREATE TABLE IF NOT EXISTS caronas (
-  id              TEXT PRIMARY KEY,
-  nome            TEXT NOT NULL,
-  bairro          TEXT NOT NULL,
-  origem_lat      DOUBLE PRECISION NOT NULL,
-  origem_lng      DOUBLE PRECISION NOT NULL,
-  carro           TEXT NOT NULL,
-  chegada         TEXT NOT NULL,           -- "HH:MM"
-  dias            TEXT[] NOT NULL,          -- {seg,ter,qua,...}
-  ponto_nome      TEXT NOT NULL,
-  ponto_lat       DOUBLE PRECISION NOT NULL,
-  ponto_lng       DOUBLE PRECISION NOT NULL,
-  ponto_caminhada TEXT NOT NULL,
-  custo_dia       NUMERIC(6,2) NOT NULL
+CREATE TABLE IF NOT EXISTS usuarios (
+  ra          TEXT PRIMARY KEY,
+  nome        TEXT NOT NULL,
+  email       TEXT NOT NULL,
+  senha_hash  TEXT NOT NULL,
+  telefone    TEXT NOT NULL,
+  admin       BOOLEAN NOT NULL DEFAULT false,
+  criado_em   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS trajetos (
+  usuario_ra    TEXT PRIMARY KEY REFERENCES usuarios(ra) ON DELETE CASCADE,
+  papel         TEXT NOT NULL,
+  endereco      TEXT NOT NULL,
+  origem_lat    DOUBLE PRECISION NOT NULL,
+  origem_lng    DOUBLE PRECISION NOT NULL,
+  dias          TEXT[] NOT NULL,
+  chegada       TEXT NOT NULL,
+  saida         TEXT NOT NULL,
+  carro_modelo  TEXT NOT NULL DEFAULT '',
+  carro_lugares INTEGER NOT NULL DEFAULT 4,
+  carro_consumo NUMERIC(5,2) NOT NULL DEFAULT 12,
+  atualizado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS solicitacoes (
+  id            SERIAL PRIMARY KEY,
+  passageiro_ra TEXT NOT NULL REFERENCES usuarios(ra) ON DELETE CASCADE,
+  motorista_ra  TEXT NOT NULL REFERENCES usuarios(ra) ON DELETE CASCADE,
+  status        TEXT NOT NULL DEFAULT 'pendente',
+  criado_em     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (passageiro_ra, motorista_ra)
 );

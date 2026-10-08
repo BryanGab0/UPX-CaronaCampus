@@ -3,26 +3,21 @@ import { pool } from "../db.js";
 import { autenticar, souAdmin } from "../middleware/autenticar.js";
 
 export const adminRouter = Router();
-
-// Todas as rotas de admin exigem: token válido E ser administrador.
 adminRouter.use(autenticar, souAdmin);
 
-// GET /admin/estatisticas — contagens gerais.
 adminRouter.get("/estatisticas", async (_req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT
-        (SELECT count(*) FROM usuarios)     AS usuarios,
-        (SELECT count(*) FROM caronas)      AS caronas,
-        (SELECT count(*) FROM trajetos)     AS trajetos,
+        (SELECT count(*) FROM usuarios) AS usuarios,
+        (SELECT count(*) FROM trajetos WHERE papel = 'motorista') AS motoristas,
+        (SELECT count(*) FROM trajetos) AS trajetos,
         (SELECT count(*) FROM solicitacoes) AS solicitacoes
     `);
     const r = rows[0];
     res.json({
-      usuarios: Number(r.usuarios),
-      caronas: Number(r.caronas),
-      trajetos: Number(r.trajetos),
-      solicitacoes: Number(r.solicitacoes),
+      usuarios: Number(r.usuarios), motoristas: Number(r.motoristas),
+      trajetos: Number(r.trajetos), solicitacoes: Number(r.solicitacoes),
     });
   } catch (e) {
     console.error(e);
@@ -30,7 +25,6 @@ adminRouter.get("/estatisticas", async (_req, res) => {
   }
 });
 
-// GET /admin/usuarios — lista todos os usuários.
 adminRouter.get("/usuarios", async (_req, res) => {
   try {
     const { rows } = await pool.query(
@@ -43,19 +37,20 @@ adminRouter.get("/usuarios", async (_req, res) => {
   }
 });
 
-// GET /admin/solicitacoes — todas as solicitações (com usuário e carona).
 adminRouter.get("/solicitacoes", async (_req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT s.id, s.status, s.criado_em,
-             u.ra AS usuario_ra, u.nome AS usuario_nome,
-             c.nome AS carona_nome, c.bairro AS carona_bairro
+             p.nome AS passageiro_nome, m.nome AS motorista_nome
       FROM solicitacoes s
-      JOIN usuarios u ON u.ra = s.usuario_ra
-      JOIN caronas  c ON c.id = s.carona_id
+      JOIN usuarios p ON p.ra = s.passageiro_ra
+      JOIN usuarios m ON m.ra = s.motorista_ra
       ORDER BY s.criado_em DESC
     `);
-    res.json(rows);
+    res.json(rows.map((r) => ({
+      id: r.id, status: r.status,
+      passageiroNome: r.passageiro_nome, motoristaNome: r.motorista_nome,
+    })));
   } catch (e) {
     console.error(e);
     res.status(500).json({ erro: "falha ao listar solicitações" });

@@ -1,1 +1,0 @@
-ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS senha_hash TEXT;

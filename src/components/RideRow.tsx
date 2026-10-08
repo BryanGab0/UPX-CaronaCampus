@@ -1,14 +1,14 @@
 import { Link } from "react-router";
 import { MapPin, Clock } from "lucide-react";
 import { cn } from "../lib/cn";
+import { reais } from "../lib/match";
 import type { Resultado } from "../lib/match";
 
-// Linha do feed. Recebe o Resultado do algoritmo (carona + compatibilidade calculada)
 export function RideRow({ resultado }: { resultado: Resultado }) {
-  const { carona, compat } = resultado;
+  const { carona, compat, custoDia } = resultado;
   const iniciais = carona.nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
   const cor = compat >= 75 ? "text-good" : compat >= 50 ? "text-brand" : "text-accent";
- 
+
   return (
     <Link
       to={`/carona/${carona.id}`}
@@ -18,13 +18,13 @@ export function RideRow({ resultado }: { resultado: Resultado }) {
       <div className="min-w-0 flex-1">
         <div className="text-[14.5px] font-bold">{carona.nome}</div>
         <div className="mt-0.5 flex items-center gap-2.5 text-xs text-sub">
-          <span className="inline-flex items-center gap-1"><MapPin size={12} />{carona.bairro}</span>
-          <span className="inline-flex items-center gap-1"><Clock size={12} />{carona.chegada}</span>
+          <span className="inline-flex min-w-0 items-center gap-1"><MapPin size={12} className="shrink-0" /><span className="truncate">{carona.endereco}</span></span>
+          <span className="inline-flex shrink-0 items-center gap-1"><Clock size={12} />{carona.chegada}</span>
         </div>
       </div>
       <div className="text-right">
         <div className={cn("font-display text-sm font-bold", cor)}>{compat}%</div>
-        <div className="mt-px text-[11.5px] text-sub">R$ {carona.custoDia}</div>
+        <div className="mt-px text-[11.5px] text-sub">{reais(custoDia)}</div>
       </div>
     </Link>
   );

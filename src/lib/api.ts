@@ -2,33 +2,24 @@ import type { Carona, Trajeto } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333";
 
-// Token JWT atual (definido pelo AuthContext). Enviado nas rotas protegidas.
 let tokenAtual: string | null = null;
-export function definirToken(t: string | null) {
-  tokenAtual = t;
-}
+export function definirToken(t: string | null) { tokenAtual = t; }
 function authHeaders(): Record<string, string> {
   return tokenAtual ? { Authorization: `Bearer ${tokenAtual}` } : {};
 }
-
 async function erroDaResposta(resp: Response, padrao: string): Promise<Error> {
-  try {
-    const d = await resp.json();
-    return new Error(d?.erro ?? padrao);
-  } catch {
-    return new Error(padrao);
-  }
+  try { const d = await resp.json(); return new Error(d?.erro ?? padrao); }
+  catch { return new Error(padrao); }
 }
 
 export interface Sessao {
   token: string;
-  usuario: { ra: string; nome: string; email: string };
+  usuario: { ra: string; nome: string; email: string; admin: boolean };
 }
 
 export async function registrar(ra: string, nome: string, email: string, telefone: string, senha: string): Promise<Sessao> {
   const resp = await fetch(`${API_URL}/auth/registrar`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ra, nome, email, telefone, senha }),
   });
   if (!resp.ok) throw await erroDaResposta(resp, "Não foi possível criar a conta");
@@ -37,22 +28,19 @@ export async function registrar(ra: string, nome: string, email: string, telefon
 
 export async function login(ra: string, senha: string): Promise<Sessao> {
   const resp = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ra, senha }),
   });
   if (!resp.ok) throw await erroDaResposta(resp, "RA ou senha inválidos");
   return resp.json();
 }
 
-// Público (não precisa de token).
+// Caronas = motoristas reais (protegido).
 export async function buscarCaronas(): Promise<Carona[]> {
-  const resp = await fetch(`${API_URL}/caronas`);
+  const resp = await fetch(`${API_URL}/caronas`, { headers: { ...authHeaders() } });
   if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar caronas`);
   return resp.json();
 }
-
-// --- Rotas protegidas: incluem o token ---
 
 export async function buscarTrajeto(ra: string): Promise<Trajeto | null> {
   const resp = await fetch(`${API_URL}/usuarios/${ra}/trajeto`, { headers: { ...authHeaders() } });
@@ -62,32 +50,54 @@ export async function buscarTrajeto(ra: string): Promise<Trajeto | null> {
 
 export async function salvarTrajeto(ra: string, trajeto: Trajeto): Promise<Trajeto> {
   const resp = await fetch(`${API_URL}/usuarios/${ra}/trajeto`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    method: "PUT", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(trajeto),
   });
   if (!resp.ok) throw new Error(`Erro ${resp.status} ao salvar trajeto`);
   return resp.json();
 }
 
-export interface SolicitacaoResumo {
-  caronaId: string;
+// --- Solicitações (lado passageiro) ---
+export interface MinhaSolicitacao {
+  motoristaRa: string;
   status: string;
-  nome: string;
-  bairro: string;
+  motoristaNome: string;
+  endereco: string | null;
+  motoristaTelefone: string | null;
 }
 
-export async function buscarSolicitacoes(ra: string): Promise<SolicitacaoResumo[]> {
+export async function solicitarCarona(ra: string, motoristaRa: string): Promise<void> {
+  const resp = await fetch(`${API_URL}/usuarios/${ra}/solicitacoes`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ motoristaRa }),
+  });
+  if (!resp.ok) throw new Error(`Erro ${resp.status} ao solicitar carona`);
+}
+
+export async function buscarSolicitacoes(ra: string): Promise<MinhaSolicitacao[]> {
   const resp = await fetch(`${API_URL}/usuarios/${ra}/solicitacoes`, { headers: { ...authHeaders() } });
   if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar solicitações`);
   return resp.json();
 }
 
-export async function solicitarCarona(ra: string, caronaId: string): Promise<void> {
-  const resp = await fetch(`${API_URL}/usuarios/${ra}/solicitacoes`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify({ caronaId }),
+// --- Pedidos recebidos (lado motorista) ---
+export interface Pedido {
+  id: number;
+  status: string;
+  passageiroNome: string;
+  passageiroTelefone: string | null;
+}
+
+export async function buscarPedidos(ra: string): Promise<Pedido[]> {
+  const resp = await fetch(`${API_URL}/usuarios/${ra}/pedidos`, { headers: { ...authHeaders() } });
+  if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar pedidos`);
+  return resp.json();
+}
+
+export async function responderSolicitacao(id: number, status: "aceita" | "recusada"): Promise<void> {
+  const resp = await fetch(`${API_URL}/solicitacoes/${id}`, {
+    method: "PATCH", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ status }),
   });
-  if (!resp.ok) throw new Error(`Erro ${resp.status} ao solicitar carona`);
+  if (!resp.ok) throw new Error(`Erro ${resp.status} ao responder solicitação`);
 }

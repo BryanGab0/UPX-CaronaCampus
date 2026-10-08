@@ -1,59 +1,50 @@
 import { useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ChevronLeft, MapPin, Footprints, Fuel, Users, Leaf, Check } from "lucide-react";
+import { ChevronLeft, Fuel, Users, Leaf, Check, Clock, MessageCircle } from "lucide-react";
 import { cn } from "../lib/cn";
 import { FACENS } from "../data/mock";
 import { useResultados } from "../hooks/useResultados";
+import { usePerfilContext } from "../context/PerfilContext";
 import { useAuth } from "../context/AuthContext";
 import { buscarSolicitacoes, solicitarCarona } from "../lib/api";
-import { PESO_HORARIO, PESO_ROTA } from "../lib/match";
+import type { MinhaSolicitacao } from "../lib/api";
+import { PESO_HORARIO, PESO_ROTA, reais } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { MapaRota } from "./MapaRota";
 import { Carregando, ErroCarga } from "./Estado";
- 
-const paraNumero = (v: string) => Number(v.replace(",", "."));
-const reais = (n: number) => `R$ ${n.toFixed(2).replace(".", ",")}`;
- 
+
+const whatsapp = (tel: string, texto: string) => `https://wa.me/55${tel}?text=${encodeURIComponent(texto)}`;
+
 export function Detalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { ra } = useAuth();
+  const { trajeto } = usePerfilContext();
   const { resultados, carregando, erro } = useResultados();
- 
-  const [solicitado, setSolicitado] = useState(false);
-  const [solicitando, setSolicitando] = useState(false);
-  const [erroSolic, setErroSolic] = useState<string | null>(null);
- 
-  // Ao abrir, verifica se o usuário já solicitou ESTA carona.
-  useEffect(() => {
+
+  const [solic, setSolic] = useState<MinhaSolicitacao | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [erroAcao, setErroAcao] = useState<string | null>(null);
+
+  const recarregar = () => {
     if (!ra || !id) return;
-    let ativo = true;
-    buscarSolicitacoes(ra)
-      .then((lista) => { if (ativo && lista.some((s) => s.caronaId === id)) setSolicitado(true); })
-      .catch(() => {});
-    return () => { ativo = false; };
-  }, [ra, id]);
- 
+    buscarSolicitacoes(ra).then((lista) => setSolic(lista.find((s) => s.motoristaRa === id) ?? null)).catch(() => {});
+  };
+  useEffect(recarregar, [ra, id]);
+
   const onSolicitar = async () => {
     if (!ra || !id) return;
-    setSolicitando(true);
-    setErroSolic(null);
-    try {
-      await solicitarCarona(ra, id);
-      setSolicitado(true);
-    } catch {
-      setErroSolic("Não foi possível solicitar. Verifique se a API está rodando.");
-    } finally {
-      setSolicitando(false);
-    }
+    setEnviando(true); setErroAcao(null);
+    try { await solicitarCarona(ra, id); recarregar(); }
+    catch { setErroAcao("Não foi possível solicitar. Verifique a API."); }
+    finally { setEnviando(false); }
   };
- 
+
   if (carregando) return <div className="pt-[46px]"><Carregando /></div>;
   if (erro) return <div className="px-[22px] pt-[46px]"><ErroCarga msg={erro} /></div>;
- 
+
   const resultado = resultados.find((r) => r.carona.id === id);
- 
   if (!resultado) {
     return (
       <div className="grid h-[620px] place-items-center px-10 text-center text-sub">
@@ -64,11 +55,12 @@ export function Detalhe() {
       </div>
     );
   }
- 
-  const { carona, compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm } = resultado;
+
+  const { carona, compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm, custoDia } = resultado;
   const iniciais = carona.nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
-  const mensal = reais(paraNumero(carona.custoDia) * 22);
- 
+  const mensal = reais(custoDia * 22);
+  const status = solic?.status;
+
   return (
     <div className="animate-rise pb-6">
       <div className="flex items-center gap-3 border-b border-line bg-surface px-[22px] pb-3 pt-[44px]">
@@ -76,112 +68,86 @@ export function Detalhe() {
           <ChevronLeft size={19} className="text-sub" />
         </button>
         <div className="grid size-11 place-items-center rounded-[13px] bg-brand text-sm font-bold text-white">{iniciais}</div>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <div className="font-bold">{carona.nome}</div>
-          <div className="text-xs text-sub">motorista · {carona.bairro}</div>
+          <div className="truncate text-xs text-sub">motorista · {carona.endereco}</div>
         </div>
         <CompatRing valor={compat} />
       </div>
- 
+
       <div className="px-[22px]">
         <div className="mt-4 rounded-[18px] border border-line bg-surface p-2">
-          <MapaRota origem={carona.origem} ponto={carona.ponto} destino={FACENS} />
+          <MapaRota voce={trajeto.origem} motorista={carona.origem} destino={FACENS} />
           <div className="flex flex-wrap justify-center gap-4 py-1.5 text-[11px] text-sub">
-            <Legenda className="bg-accent" texto="você / ponto de encontro" />
-            <Legenda className="bg-brand" texto="trajeto de carro" />
+            <Legenda className="bg-accent" texto="você" />
+            <Legenda className="bg-brand" texto="motorista / rota" />
             <Legenda className="bg-ink" texto="Facens" />
           </div>
         </div>
- 
-        <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
-          <div className="flex items-start gap-3">
-            <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent-soft">
-              <MapPin size={17} className="text-accent" />
-            </div>
-            <div>
-              <div className="text-xs text-sub">Ponto de encontro sugerido</div>
-              <div className="font-bold">{carona.ponto.nome}</div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-sub">
-                <Footprints size={13} /> {carona.ponto.caminhada} de caminhada
-              </div>
-            </div>
-          </div>
-        </div>
- 
+
         <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
           <div className="font-display font-bold">Por que esse match?</div>
           <Barra titulo="Compatibilidade de horário" pct={Math.round(scoreHorario * 100)}
             detalhe={`chega ${carona.chegada} · ${difChegadaMin} min de diferença · ${diasComuns.length} dias em comum`} cor="bg-brand" />
           <Barra titulo="Proximidade de rota" pct={Math.round(scoreRota * 100)}
             detalhe={`${desvioKm.toFixed(1)} km fora da sua rota direta até a Facens`} cor="bg-good" />
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {diasComuns.map((d) => (
-              <span key={d} className="rounded-lg bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand">{d}</span>
-            ))}
-          </div>
           <p className="mt-3 text-[11.5px] leading-relaxed text-sub">
-            Nota final = {Math.round(PESO_HORARIO * 100)}% horário + {Math.round(PESO_ROTA * 100)}% rota ={" "}
-            <b className="text-ink">{compat}%</b>
+            Nota final = {Math.round(PESO_HORARIO * 100)}% horário + {Math.round(PESO_ROTA * 100)}% rota = <b className="text-ink">{compat}%</b>
           </p>
         </div>
- 
+
         <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
           <div className="font-display font-bold">Divisão do combustível</div>
           <div className="mt-3 flex gap-2.5">
-            <Metric icone={<Fuel size={16} />} valor={`R$ ${carona.custoDia}`} label="sua parte por dia" destaque />
+            <Metric icone={<Fuel size={16} />} valor={reais(custoDia)} label="sua parte por dia (estimado)" destaque />
             <Metric icone={<Users size={16} />} valor={mensal} label="estimativa no mês" />
           </div>
           <div className="mt-2.5 flex items-center gap-2.5 rounded-xl bg-good-soft px-3.5 py-3">
             <Leaf size={18} className="shrink-0 text-good" />
-            <div className="text-xs text-ink">Dividindo essa carona, é um carro a menos na rua nos dias em comum.</div>
+            <div className="text-xs text-ink">Combinem o ponto de encontro e os detalhes pelo WhatsApp após o aceite.</div>
           </div>
         </div>
- 
-        {solicitado ? (
-          <div className="mt-5 flex items-center justify-center gap-2 rounded-[14px] bg-good-soft py-4 text-sm font-bold text-good">
-            <Check size={18} /> Pedido enviado para {carona.nome.split(" ")[0]}
+
+        {/* Ação / status */}
+        {erroAcao && <p className="mt-5 text-[13px] text-accent">{erroAcao}</p>}
+        {status === "aceita" && solic?.motoristaTelefone ? (
+          <a href={whatsapp(solic.motoristaTelefone, `Oi ${carona.nome.split(" ")[0]}! Topei a carona pra Facens. Vamos combinar o ponto de encontro?`)}
+            target="_blank" rel="noopener noreferrer"
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] bg-good py-4 text-sm font-bold text-white transition active:scale-[.98]">
+            <MessageCircle size={18} /> Chamar {carona.nome.split(" ")[0]} no WhatsApp
+          </a>
+        ) : status === "pendente" ? (
+          <div className="mt-2 flex items-center justify-center gap-2 rounded-[14px] bg-brand-soft py-4 text-sm font-bold text-brand">
+            <Clock size={18} /> Pedido enviado · aguardando o motorista
           </div>
+        ) : status === "recusada" ? (
+          <div className="mt-2 rounded-[14px] bg-canvas py-4 text-center text-sm font-bold text-sub">Pedido recusado</div>
         ) : (
-          <>
-            {erroSolic && <p className="mt-5 text-[13px] text-accent">{erroSolic}</p>}
-            <button
-              onClick={onSolicitar}
-              disabled={solicitando}
-              className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erroSolic ? "mt-3" : "mt-5")}
-            >
-              {solicitando ? "Enviando…" : "Solicitar carona"}
-            </button>
-          </>
+          <button onClick={onSolicitar} disabled={enviando}
+            className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erroAcao ? "mt-3" : "mt-5")}>
+            {enviando ? "Enviando…" : "Solicitar carona"}
+          </button>
+        )}
+        {status === "aceita" && (
+          <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-good"><Check size={14} /> Carona aceita!</div>
         )}
       </div>
     </div>
   );
 }
- 
+
 function Legenda({ className, texto }: { className: string; texto: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className={cn("size-2.5 rounded-full", className)} />
-      {texto}
-    </span>
-  );
+  return <span className="inline-flex items-center gap-1.5"><span className={cn("size-2.5 rounded-full", className)} />{texto}</span>;
 }
- 
 function Barra({ titulo, pct, detalhe, cor }: { titulo: string; pct: number; detalhe: string; cor: string }) {
   return (
     <div className="mt-3">
-      <div className="flex justify-between text-[13px] font-semibold">
-        <span>{titulo}</span>
-        <span className="font-display">{pct}%</span>
-      </div>
-      <div className="mt-1.5 h-[7px] overflow-hidden rounded-full bg-canvas">
-        <div className={cn("h-full rounded-full", cor)} style={{ width: `${pct}%` }} />
-      </div>
+      <div className="flex justify-between text-[13px] font-semibold"><span>{titulo}</span><span className="font-display">{pct}%</span></div>
+      <div className="mt-1.5 h-[7px] overflow-hidden rounded-full bg-canvas"><div className={cn("h-full rounded-full", cor)} style={{ width: `${pct}%` }} /></div>
       <div className="mt-1.5 text-[11.5px] text-sub">{detalhe}</div>
     </div>
   );
 }
- 
 function Metric({ icone, valor, label, destaque }: { icone: ReactNode; valor: string; label: string; destaque?: boolean }) {
   return (
     <div className={cn("flex-1 rounded-[13px] p-3.5", destaque ? "bg-brand-soft" : "bg-canvas")}>

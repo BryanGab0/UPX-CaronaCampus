@@ -6,14 +6,14 @@ import { ImpactStats } from "./ImpactStats";
 import { BestRideCard } from "./BestRideCard";
 import { RideRow } from "./RideRow";
 import { Carregando, ErroCarga } from "./Estado";
- 
+
 export function Home() {
   const { nome } = useAuth();
   const { trajeto } = usePerfilContext();
   const { resultados, carregando, erro } = useResultados();
   const melhor = resultados[0];
   const outras = resultados.slice(1);
- 
+
   return (
     <div className="animate-rise">
       <div className="px-[22px] pb-[18px] pt-[46px]">
@@ -30,25 +30,31 @@ export function Home() {
             <div className="grid size-10 place-items-center rounded-xl bg-brand text-sm font-bold text-white">{nome[0]}</div>
           </div>
         </div>
- 
+
         <button className="mt-4 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3 text-left transition active:scale-[.98]">
           <div className="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-brand-soft">
             <Navigation size={16} className="text-brand" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-[11.5px] text-sub">seu trajeto</div>
-            <div className="truncate text-[13.5px] font-semibold">{trajeto.bairro} → Facens</div>
+            <div className="truncate text-[13.5px] font-semibold">
+              {trajeto.endereco ? `${trajeto.endereco} → Facens` : "Cadastre seu trajeto"}
+            </div>
           </div>
           <ChevronRight size={18} className="text-sub" />
         </button>
       </div>
- 
+
       <ImpactStats />
- 
+
       {carregando ? (
         <Carregando />
       ) : erro ? (
         <div className="px-[22px]"><ErroCarga msg={erro} /></div>
+      ) : resultados.length === 0 ? (
+        <p className="mx-[22px] mt-4 rounded-[18px] border border-line bg-surface p-6 text-center text-sm text-sub">
+          Nenhum motorista disponível ainda. Assim que alguém oferecer carona, aparece aqui.
+        </p>
       ) : (
         <>
           <div className="px-[22px] pb-2 pt-[22px]">
@@ -58,15 +64,11 @@ export function Home() {
             </div>
             {melhor && <BestRideCard resultado={melhor} />}
           </div>
- 
           <div className="flex items-center justify-between px-[22px] pb-2 pt-[18px]">
             <span className="text-sm font-bold">Outras compatíveis</span>
-            <button className="text-xs font-semibold text-brand">ver todas</button>
           </div>
           <div className="px-4">
-            {outras.map((r) => (
-              <RideRow key={r.carona.id} resultado={r} />
-            ))}
+            {outras.map((r) => <RideRow key={r.carona.id} resultado={r} />)}
           </div>
         </>
       )}

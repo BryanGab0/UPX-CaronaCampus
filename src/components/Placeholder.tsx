@@ -1,6 +1,6 @@
 import { Compass } from "lucide-react";
 
-// Telas ainda não desenhadas - só para a navegação não ficar "morta"
+// Telas ainda não desenhadas — só para a navegação não ficar "morta".
 export function Placeholder({ titulo }: { titulo: string }) {
   return (
     <div className="animate-rise grid h-[620px] place-items-center px-10 text-center">

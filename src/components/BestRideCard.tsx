@@ -1,39 +1,37 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { Car, Clock, Footprints, Wallet } from "lucide-react";
+import { Car, Clock, Wallet, MapPin, Navigation } from "lucide-react";
+import { reais } from "../lib/match";
 import type { Resultado } from "../lib/match";
-import { RouteLine } from "./RouteLine";
 import { CompatRing } from "./CompatRing";
- 
-// Card em destaque. Recebe o melhor Resultado do ranking (calculado no Home).
+
 export function BestRideCard({ resultado }: { resultado: Resultado }) {
   const navigate = useNavigate();
-  const { carona, compat } = resultado;
+  const { carona, compat, custoDia } = resultado;
   const iniciais = carona.nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
- 
+
   return (
     <div className="relative overflow-hidden rounded-[22px] bg-linear-to-br from-brand to-brand-dark p-5 text-white shadow-[0_18px_40px_rgba(47,75,255,.27)]">
       <div className="absolute -right-10 -top-10 size-40 rounded-full bg-white/10" />
- 
       <div className="relative flex items-center gap-3">
         <div className="grid size-[50px] place-items-center rounded-[15px] bg-white/20 text-[17px] font-bold">{iniciais}</div>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <div className="text-[16.5px] font-bold">{carona.nome}</div>
-          <div className="mt-px flex items-center gap-1.5 text-xs opacity-85">
-            <Car size={13} /> {carona.carro} · {carona.bairro}
-          </div>
+          <div className="mt-px flex items-center gap-1.5 text-xs opacity-85"><Car size={13} /> {carona.carro}</div>
         </div>
         <CompatRing valor={compat} light />
       </div>
- 
-      <RouteLine origem="Você" ponto={carona.ponto.nome} destino="Facens" />
- 
+
+      <div className="relative mt-3 flex items-center gap-1.5 text-xs opacity-90">
+        <MapPin size={13} className="shrink-0" /> <span className="truncate">{carona.endereco}</span>
+        <Navigation size={13} className="ml-1 shrink-0" /> Facens
+      </div>
+
       <div className="relative mt-4 flex gap-2">
         <Pill icone={<Clock size={13} />} texto={`chega ${carona.chegada}`} />
-        <Pill icone={<Footprints size={13} />} texto={carona.ponto.caminhada} />
-        <Pill icone={<Wallet size={13} />} texto={`R$ ${carona.custoDia}/dia`} />
+        <Pill icone={<Wallet size={13} />} texto={`${reais(custoDia)}/dia`} />
       </div>
- 
+
       <button
         onClick={() => navigate(`/carona/${carona.id}`)}
         className="relative mt-4 w-full rounded-[13px] bg-white py-3.5 text-sm font-bold text-brand transition active:scale-[.98]"
@@ -43,12 +41,11 @@ export function BestRideCard({ resultado }: { resultado: Resultado }) {
     </div>
   );
 }
- 
+
 function Pill({ icone, texto }: { icone: ReactNode; texto: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[9px] bg-white/15 px-2.5 py-1.5 text-[11.5px] font-semibold">
-      {icone}
-      {texto}
+      {icone}{texto}
     </span>
   );
 }

@@ -3,7 +3,7 @@
 import type { Coord, Stat } from "../types";
 
 // Destino fixo de todos os trajetos.
-export const FACENS: Coord = { lat: -23.47097531229756, lng: -47.42845107751073 }; // Facens
+export const FACENS: Coord = { lat: -23.4703, lng: -47.4294 }; // Facens (Alto da Boa Vista)
 
 export const stats: Stat[] = [
   { icone: "wallet", valor: "R$ 214", label: "economia no mês" },

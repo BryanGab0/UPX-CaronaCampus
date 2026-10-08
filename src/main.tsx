@@ -5,7 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { PerfilProvider } from "./context/PerfilContext";
 import App from "./App";
 import "./index.css";
- 
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>

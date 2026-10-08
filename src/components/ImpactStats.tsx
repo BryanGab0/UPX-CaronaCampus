@@ -2,10 +2,8 @@ import { Wallet, Leaf, Car } from "lucide-react";
 import { stats } from "../data/mock";
 import type { IconeStat } from "../types";
 
-// Mapa de chave -> ícone (mantém o mock como dado puro, sem JSX).
 const ICONES: Record<IconeStat, typeof Wallet> = { wallet: Wallet, leaf: Leaf, car: Car };
 
-// Faixa de impacto no topo da home (economia, CO2, caronas).
 export function ImpactStats() {
   return (
     <div className="flex gap-2.5 px-[22px]">

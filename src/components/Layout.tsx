@@ -1,6 +1,8 @@
 import { Outlet } from "react-router";
 import { BottomNav } from "./BottomNav";
 
+// Casca visual compartilhada por todas as telas: moldura + navegação.
+// O <Outlet/> é substituído pela tela da rota atual.
 export function Layout() {
   return (
     <div className="flex min-h-screen justify-center bg-shell px-3 py-5">

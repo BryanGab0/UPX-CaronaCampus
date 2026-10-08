@@ -17,6 +17,10 @@ body { font-family: var(--font-sans); background: var(--color-canvas); color: va
 @media (min-width: 40rem) and (min-height: 30rem) { body { background: var(--color-shell); } }
 /* iOS dá zoom ao focar campo com fonte < 16px; em telas de toque força 16px. */
 @media (pointer: coarse) { input, select, textarea { font-size: 16px; } }
+/* No Safari do iOS, campos de data/hora têm largura mínima própria e ignoram
+   o w-full, saindo da tela. Tirar a aparência nativa faz respeitar a largura. */
+input[type="time"], input[type="date"] { -webkit-appearance: none; appearance: none; min-width: 0; display: block; }
+input[type="time"]::-webkit-date-and-time-value, input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }

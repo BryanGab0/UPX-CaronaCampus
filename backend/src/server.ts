@@ -10,6 +10,9 @@ import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
  
 const app = express();
+// No Render a API fica atrás de um proxy: sem isto, todos os acessos teriam o IP do proxy
+// e o limite de tentativas valeria para todos os usuários juntos.
+app.set("trust proxy", 1);
 app.use(cors({ origin: CORS_ORIGINS }));
 app.use(express.json());
  

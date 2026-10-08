@@ -5,6 +5,7 @@ import type { SignOptions } from "jsonwebtoken";
 import { pool } from "../db.js";
 import { autenticar } from "../middleware/autenticar.js";
 import type { ReqAuth } from "../middleware/autenticar.js";
+import { limiteLogin, limiteRegistro } from "../middleware/limite.js";
 import { JWT_SECRET as SEGREDO } from "../config.js";
 
 const OPCOES: SignOptions = { expiresIn: "7d" };
@@ -17,7 +18,7 @@ function gerarToken(ra: string) {
 }
 
 // POST /auth/registrar — cria a conta guardando o HASH da senha.
-authRouter.post("/auth/registrar", async (req, res) => {
+authRouter.post("/auth/registrar", limiteRegistro, async (req, res) => {
   const { ra, nome, email, senha, telefone } = req.body ?? {};
   if (!ra || !nome || !email || !senha || !telefone) {
     res.status(400).json({ erro: "campos obrigatórios: ra, nome, email, senha, telefone" });
@@ -54,7 +55,7 @@ authRouter.post("/auth/registrar", async (req, res) => {
 });
 
 // POST /auth/login — confere a senha contra o hash e devolve o token.
-authRouter.post("/auth/login", async (req, res) => {
+authRouter.post("/auth/login", limiteLogin, async (req, res) => {
   const { ra, senha } = req.body ?? {};
   if (!ra || !senha) {
     res.status(400).json({ erro: "ra e senha são obrigatórios" });

@@ -1,8 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 import { buscarTrajeto, salvarTrajeto } from "../lib/api";
 import type { Trajeto } from "../types";
+import { PerfilContext } from "./PerfilContext";
 
 const TRAJETO_INICIAL: Trajeto = {
   papel: "passageiro",
@@ -13,13 +14,6 @@ const TRAJETO_INICIAL: Trajeto = {
   saida: "18:00",
   carro: { modelo: "", lugares: 4, consumo: 12 },
 };
-
-interface PerfilContextValue {
-  trajeto: Trajeto;
-  salvar: (t: Trajeto) => Promise<void>;
-}
-
-const PerfilContext = createContext<PerfilContextValue | null>(null);
 
 export function PerfilProvider({ children }: { children: ReactNode }) {
   const { autenticado, ra } = useAuth();
@@ -36,10 +30,4 @@ export function PerfilProvider({ children }: { children: ReactNode }) {
   };
 
   return <PerfilContext.Provider value={{ trajeto, salvar }}>{children}</PerfilContext.Provider>;
-}
-
-export function usePerfilContext() {
-  const ctx = useContext(PerfilContext);
-  if (!ctx) throw new Error("usePerfilContext deve ser usado dentro de PerfilProvider");
-  return ctx;
 }

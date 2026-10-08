@@ -27,7 +27,14 @@ export function MapaRota({ voce, motorista, destino }: { voce: Coord; motorista:
   useEffect(() => {
     if (!ref.current) return;
     let ativo = true;
-    const map = L.map(ref.current, { zoomControl: false });
+    // O mapa fica dentro de uma tela que rola: no celular, arrastar com 1 dedo
+    // rolaria o mapa em vez da página, e no desktop a roda do mouse dava zoom.
+    // Zoom continua funcionando com pinça (toque) e duplo clique.
+    const map = L.map(ref.current, {
+      zoomControl: false,
+      dragging: !L.Browser.mobile,
+      scrollWheelZoom: false,
+    });
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap", maxZoom: 19,
     }).addTo(map);
@@ -53,7 +60,7 @@ export function MapaRota({ voce, motorista, destino }: { voce: Coord; motorista:
     return () => { ativo = false; map.remove(); };
   }, [voce.lat, voce.lng, motorista.lat, motorista.lng, destino.lat, destino.lng]);
 
-  return <div ref={ref} className="h-52 w-full overflow-hidden rounded-[14px]" />;
+  return <div ref={ref} className="isolate h-52 w-full overflow-hidden rounded-[14px]" />;
 }
 
 function pino(cor: string, size: number) {

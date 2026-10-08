@@ -7,6 +7,13 @@ import { BestRideCard } from "./BestRideCard";
 import { RideRow } from "./RideRow";
 import { Carregando, ErroCarga } from "./Estado";
 
+// Saudação conforme o horário local do aparelho.
+function saudacao(hora = new Date().getHours()) {
+  if (hora >= 5 && hora < 12) return "Bom dia";
+  if (hora >= 12 && hora < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
 export function Home() {
   const { nome } = useAuth();
   const { trajeto } = usePerfilContext();
@@ -19,7 +26,7 @@ export function Home() {
       <div className="px-[22px] pb-[18px] pt-[46px]">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-sm text-sub">Bom dia,</div>
+            <div className="text-sm text-sub">{saudacao()},</div>
             <h1 className="truncate font-display text-[27px] font-bold tracking-tight">{nome.split(" ")[0]}</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2.5">

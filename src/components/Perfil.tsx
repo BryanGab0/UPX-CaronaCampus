@@ -1,31 +1,19 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { LogOut, Mail, Inbox, Check, X, MessageCircle } from "lucide-react";
 import { cn } from "../lib/cn";
 import { useAuth } from "../context/AuthContext";
-import { buscarPedidos, responderSolicitacao } from "../lib/api";
-import type { Pedido } from "../lib/api";
+import { usePedidos } from "../hooks/usePedidos";
+import { responderSolicitacao } from "../lib/api";
 import { Carregando, ErroCarga } from "./Estado";
 
 const whatsapp = (tel: string, texto: string) => `https://wa.me/55${tel}?text=${encodeURIComponent(texto)}`;
 
 export function Perfil() {
-  const { nome, email, ra, sair } = useAuth();
+  const { nome, email, sair } = useAuth();
   const navigate = useNavigate();
   const iniciais = nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
 
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
-
-  const recarregar = () => {
-    if (!ra) return;
-    buscarPedidos(ra)
-      .then((l) => { setPedidos(l); setErro(null); })
-      .catch((e: unknown) => setErro(e instanceof Error ? e.message : "Falha"))
-      .finally(() => setCarregando(false));
-  };
-  useEffect(recarregar, [ra]);
+  const { pedidos, carregando, erro, recarregar } = usePedidos();
 
   const responder = async (id: number, status: "aceita" | "recusada") => {
     try { await responderSolicitacao(id, status); recarregar(); } catch { /* ignora */ }
@@ -53,7 +41,7 @@ export function Perfil() {
       {carregando ? (
         <Carregando />
       ) : erro ? (
-        <ErroCarga msg={erro} />
+        <ErroCarga titulo="Não foi possível carregar seus pedidos" onTentar={recarregar} />
       ) : pedidos.length === 0 ? (
         <p className="mt-3 rounded-[18px] border border-line bg-surface p-6 text-center text-sm text-sub">
           Nenhum pedido ainda.

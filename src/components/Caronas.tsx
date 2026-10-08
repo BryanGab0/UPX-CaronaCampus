@@ -13,7 +13,7 @@ const ORDENS: { id: Ordem; label: string }[] = [
 ];
 
 export function Caronas() {
-  const { resultados, carregando, erro } = useResultados();
+  const { resultados, carregando, erro, recarregar } = useResultados();
   const [busca, setBusca] = useState("");
   const [ordem, setOrdem] = useState<Ordem>("compat");
 
@@ -53,7 +53,7 @@ export function Caronas() {
       {carregando ? (
         <Carregando />
       ) : erro ? (
-        <ErroCarga msg={erro} />
+        <ErroCarga onTentar={recarregar} />
       ) : (
         <div className="mt-4">
           {lista.length === 0 ? (

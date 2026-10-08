@@ -23,7 +23,7 @@ function saudacao(hora = new Date().getHours()) {
 export function Home() {
   const { nome } = useAuth();
   const { trajeto } = usePerfilContext();
-  const { resultados, carregando, erro } = useResultados();
+  const { resultados, carregando, erro, recarregar } = useResultados();
   const { pedidos, pendentes } = usePedidos();
   const { solicitacoes } = useSolicitacoes();
   const impacto = useMemo(
@@ -71,7 +71,7 @@ export function Home() {
       {carregando ? (
         <Carregando />
       ) : erro ? (
-        <div className="px-[22px]"><ErroCarga msg={erro} /></div>
+        <div className="px-[22px]"><ErroCarga onTentar={recarregar} /></div>
       ) : resultados.length === 0 ? (
         <p className="mx-[22px] mt-4 rounded-[18px] border border-line bg-surface p-6 text-center text-sm text-sub">
           Nenhum motorista disponível ainda. Assim que alguém oferecer carona, aparece aqui.

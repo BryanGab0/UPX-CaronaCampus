@@ -21,7 +21,7 @@ export function Detalhe() {
   const navigate = useNavigate();
   const { ra } = useAuth();
   const { trajeto } = usePerfilContext();
-  const { resultados, carregando, erro } = useResultados();
+  const { resultados, carregando, erro, recarregar: recarregarCaronas } = useResultados();
 
   const [solic, setSolic] = useState<MinhaSolicitacao | null>(null);
   const [enviando, setEnviando] = useState(false);
@@ -37,12 +37,12 @@ export function Detalhe() {
     if (!ra || !id) return;
     setEnviando(true); setErroAcao(null);
     try { await solicitarCarona(ra, id); recarregar(); }
-    catch { setErroAcao("Não foi possível solicitar. Verifique a API."); }
+    catch (e) { console.error(e); setErroAcao("Não foi possível enviar o pedido. Tente novamente."); }
     finally { setEnviando(false); }
   };
 
   if (carregando) return <div className="pt-[46px]"><Carregando /></div>;
-  if (erro) return <div className="px-[22px] pt-[46px]"><ErroCarga msg={erro} /></div>;
+  if (erro) return <div className="px-[22px] pt-[46px]"><ErroCarga titulo="Não foi possível carregar esta carona" onTentar={recarregarCaronas} /></div>;
 
   const resultado = resultados.find((r) => r.carona.id === id);
   if (!resultado) {

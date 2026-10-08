@@ -17,12 +17,17 @@ export function usePedidos() {
     let ativo = true; // evita atualizar estado após desmontar o componente
     buscarPedidos(ra)
       .then((dados) => { if (ativo) { setPedidos(dados); setErro(null); } })
-      .catch((e: unknown) => { if (ativo) setErro(e instanceof Error ? e.message : "Falha ao carregar"); })
+      .catch((e: unknown) => {
+        console.error(e);
+        if (ativo) setErro(e instanceof Error ? e.message : "Falha ao carregar");
+      })
       .finally(() => { if (ativo) setCarregando(false); });
     return () => { ativo = false; };
   }, [ra, versao]);
 
-  const recarregar = () => { setCarregando(true); setVersao((v) => v + 1); };
+  // Só mostra o "carregando" ao tentar de novo após um erro; depois de aceitar/recusar,
+  // a lista atual continua na tela enquanto a nova chega (sem piscar).
+  const recarregar = () => { if (erro) setCarregando(true); setVersao((v) => v + 1); };
   const pendentes = pedidos.filter((p) => p.status === "pendente").length;
 
   return { pedidos, pendentes, carregando, erro, recarregar };

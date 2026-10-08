@@ -68,8 +68,8 @@ export function Login() {
   };
 
   return (
-    <div className="flex min-h-screen justify-center bg-shell px-3 py-5">
-      <div className="relative flex min-h-[812px] w-full max-w-[430px] flex-col overflow-hidden rounded-[32px] bg-canvas px-7 pb-8 pt-14 text-ink shadow-2xl">
+    <div className="flex min-h-dvh justify-center bg-canvas sm:bg-shell sm:px-3 sm:py-5">
+      <div className="relative flex min-h-dvh w-full flex-col overflow-hidden bg-canvas px-7 pb-8 pt-14 text-ink sm:min-h-[812px] sm:max-w-[430px] sm:rounded-[32px] sm:shadow-2xl">
         <div className="flex items-center gap-2.5">
           <div className="grid size-11 place-items-center rounded-[13px] bg-brand shadow-[0_8px_20px_rgba(47,75,255,.33)]">
             <RouteIcon size={24} color="#fff" strokeWidth={2.4} />

@@ -1,12 +1,12 @@
 import { Outlet } from "react-router";
 import { BottomNav } from "./BottomNav";
 
-// Casca visual compartilhada por todas as telas: moldura + navegação.
-// O <Outlet/> é substituído pela tela da rota atual.
+// Casca visual. No celular ocupa a tela toda; no desktop (sm+) vira a moldura
+// centralizada com fundo escuro em volta.
 export function Layout() {
   return (
-    <div className="flex min-h-screen justify-center bg-shell px-3 py-5">
-      <div className="relative flex min-h-[812px] w-full max-w-[430px] flex-col overflow-hidden rounded-[32px] bg-canvas text-ink shadow-2xl">
+    <div className="flex min-h-dvh justify-center bg-canvas sm:bg-shell sm:px-3 sm:py-5">
+      <div className="relative flex min-h-dvh w-full flex-col overflow-hidden bg-canvas text-ink sm:min-h-[812px] sm:max-w-[430px] sm:rounded-[32px] sm:shadow-2xl">
         <div className="no-scrollbar flex-1 overflow-y-auto pb-24">
           <Outlet />
         </div>

@@ -28,7 +28,9 @@ O repositório tem três partes:
 - Match de caronas por proximidade e horário (compatibilidade calculada)
 - Mapa com o trajeto até o campus (Leaflet + OpenStreetMap)
 - Divisão do custo de combustível
-- Solicitação de caronas
+- Solicitação de caronas, com aceite ou recusa pelo motorista
+- Aviso de pedidos pendentes na tela inicial
+- Impacto estimado das caronas aceitas (economia de combustível e CO₂ evitado no mês)
 - Painel administrativo (estatísticas, usuários e solicitações)
 
 ## Como rodar localmente

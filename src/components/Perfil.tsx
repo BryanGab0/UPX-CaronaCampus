@@ -1,10 +1,14 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { LogOut, Mail, Inbox, Check, X, MessageCircle } from "lucide-react";
 import { cn } from "../lib/cn";
 import { useAuth } from "../context/AuthContext";
 import { usePedidos } from "../hooks/usePedidos";
+import { useAviso } from "../hooks/useAviso";
 import { responderSolicitacao } from "../lib/api";
+import type { Pedido } from "../lib/api";
 import { Carregando, ErroCarga } from "./Estado";
+import { Aviso } from "./Aviso";
 
 const whatsapp = (tel: string, texto: string) => `https://wa.me/55${tel}?text=${encodeURIComponent(texto)}`;
 
@@ -14,9 +18,23 @@ export function Perfil() {
   const iniciais = nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
 
   const { pedidos, carregando, erro, recarregar } = usePedidos();
+  const { aviso, mostrar } = useAviso();
+  const [respondendo, setRespondendo] = useState<number | null>(null); // id do pedido em andamento
 
-  const responder = async (id: number, status: "aceita" | "recusada") => {
-    try { await responderSolicitacao(id, status); recarregar(); } catch { /* ignora */ }
+  const responder = async (p: Pedido, status: "aceita" | "recusada") => {
+    const primeiroNome = p.passageiroNome.split(" ")[0];
+    setRespondendo(p.id);
+    try {
+      await responderSolicitacao(p.id, status);
+      mostrar("ok", status === "aceita"
+        ? `Pedido de ${primeiroNome} aceito! Chame no WhatsApp para combinar.`
+        : `Pedido de ${primeiroNome} recusado.`);
+      recarregar(); // os botões somem quando a lista atualizada chegar
+    } catch (e) {
+      console.error(e);
+      mostrar("erro", "Não foi possível responder o pedido. Tente novamente.");
+      setRespondendo(null);
+    }
   };
 
   const onSair = () => { sair(); navigate("/login"); };
@@ -37,6 +55,7 @@ export function Perfil() {
         <Inbox size={16} className="text-brand" /> Pedidos recebidos
       </div>
       <p className="mt-0.5 text-xs text-sub">Pedidos de carona que você recebeu como motorista.</p>
+      <Aviso aviso={aviso} />
 
       {carregando ? (
         <Carregando />
@@ -56,12 +75,12 @@ export function Perfil() {
               </div>
               {p.status === "pendente" && (
                 <div className="mt-3 flex gap-2">
-                  <button onClick={() => responder(p.id, "aceita")}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-good py-2.5 text-xs font-bold text-white transition active:scale-[.98]">
+                  <button onClick={() => responder(p, "aceita")} disabled={respondendo === p.id}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-good py-2.5 text-xs font-bold text-white transition active:scale-[.98] disabled:opacity-60">
                     <Check size={15} /> Aceitar
                   </button>
-                  <button onClick={() => responder(p.id, "recusada")}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2.5 text-xs font-bold text-sub transition active:scale-[.98]">
+                  <button onClick={() => responder(p, "recusada")} disabled={respondendo === p.id}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2.5 text-xs font-bold text-sub transition active:scale-[.98] disabled:opacity-60">
                     <X size={15} /> Recusar
                   </button>
                 </div>

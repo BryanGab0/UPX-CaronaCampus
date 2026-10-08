@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { pool } from "./db.js";
+import { CORS_ORIGINS } from "./config.js";
 import { caronasRouter } from "./routes/caronas.js";
 import { usuariosRouter } from "./routes/usuarios.js";
 import { solicitacoesRouter } from "./routes/solicitacoes.js";
@@ -9,7 +10,7 @@ import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
  
 const app = express();
-app.use(cors());
+app.use(cors({ origin: CORS_ORIGINS }));
 app.use(express.json());
  
 app.get("/health", async (_req, res) => {

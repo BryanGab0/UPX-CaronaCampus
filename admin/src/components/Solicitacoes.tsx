@@ -23,21 +23,21 @@ export function Solicitacoes() {
       ) : lista.length === 0 ? (
         <p className="mt-6 rounded-2xl border border-line bg-surface p-6 text-center text-sm text-sub">Nenhuma solicitação ainda.</p>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-2xl border border-line bg-surface">
-          <table className="w-full text-left text-sm">
+        <div className="mt-6 overflow-x-auto rounded-2xl border border-line bg-surface">
+          <table className="w-full whitespace-nowrap text-left text-sm">
             <thead className="border-b border-line text-xs uppercase text-sub">
               <tr>
-                <th className="px-5 py-3 font-semibold">Passageiro</th>
-                <th className="px-5 py-3 font-semibold">Motorista</th>
-                <th className="px-5 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 sm:px-5 font-semibold">Passageiro</th>
+                <th className="px-4 py-3 sm:px-5 font-semibold">Motorista</th>
+                <th className="px-4 py-3 sm:px-5 font-semibold">Status</th>
               </tr>
             </thead>
             <tbody>
               {lista.map((s) => (
                 <tr key={s.id} className="border-b border-line last:border-0">
-                  <td className="px-5 py-3 font-semibold">{s.passageiroNome}</td>
-                  <td className="px-5 py-3">{s.motoristaNome}</td>
-                  <td className="px-5 py-3">
+                  <td className="px-4 py-3 sm:px-5 font-semibold">{s.passageiroNome}</td>
+                  <td className="px-4 py-3 sm:px-5">{s.motoristaNome}</td>
+                  <td className="px-4 py-3 sm:px-5">
                     <span className="rounded-md bg-canvas px-2 py-0.5 text-xs font-semibold capitalize text-sub">{s.status}</span>
                   </td>
                 </tr>

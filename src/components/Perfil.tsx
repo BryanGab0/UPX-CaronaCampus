@@ -38,10 +38,10 @@ export function Perfil() {
       <h1 className="font-display text-[26px] font-bold tracking-tight">Perfil</h1>
 
       <div className="mt-4 flex items-center gap-3 rounded-[18px] border border-line bg-surface p-4">
-        <div className="grid size-14 place-items-center rounded-2xl bg-brand text-lg font-bold text-white">{iniciais}</div>
-        <div className="min-w-0">
-          <div className="font-bold">{nome}</div>
-          <div className="flex items-center gap-1.5 truncate text-xs text-sub"><Mail size={13} /> {email}</div>
+        <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-lg font-bold text-white">{iniciais}</div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-bold">{nome}</div>
+          <div className="flex items-center gap-1.5 text-xs text-sub"><Mail size={13} className="shrink-0" /> <span className="truncate">{email}</span></div>
         </div>
       </div>
 
@@ -62,8 +62,8 @@ export function Perfil() {
         <div className="mt-3 space-y-2.5">
           {pedidos.map((p) => (
             <div key={p.id} className="rounded-[16px] border border-line bg-surface p-3.5">
-              <div className="flex items-center justify-between">
-                <div className="font-semibold">{p.passageiroNome}</div>
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 truncate font-semibold">{p.passageiroNome}</div>
                 <StatusTag status={p.status} />
               </div>
               {p.status === "pendente" && (
@@ -100,5 +100,5 @@ export function Perfil() {
 
 function StatusTag({ status }: { status: string }) {
   const cor = status === "aceita" ? "bg-good-soft text-good" : status === "recusada" ? "bg-canvas text-sub" : "bg-brand-soft text-brand";
-  return <span className={cn("rounded-lg px-2.5 py-0.5 text-xs font-semibold capitalize", cor)}>{status}</span>;
+  return <span className={cn("shrink-0 rounded-lg px-2.5 py-0.5 text-xs font-semibold capitalize", cor)}>{status}</span>;
 }

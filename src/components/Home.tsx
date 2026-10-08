@@ -17,12 +17,12 @@ export function Home() {
   return (
     <div className="animate-rise">
       <div className="px-[22px] pb-[18px] pt-[46px]">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
             <div className="text-sm text-sub">Bom dia,</div>
-            <h1 className="font-display text-[27px] font-bold tracking-tight">{nome.split(" ")[0]}</h1>
+            <h1 className="truncate font-display text-[27px] font-bold tracking-tight">{nome.split(" ")[0]}</h1>
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex shrink-0 items-center gap-2.5">
             <button className="relative grid size-10 place-items-center rounded-xl border border-line bg-surface transition active:scale-[.98]">
               <Bell size={18} className="text-sub" />
               <span className="absolute right-2.5 top-2.5 size-[7px] rounded-full border-2 border-surface bg-accent" />
@@ -41,7 +41,7 @@ export function Home() {
               {trajeto.endereco ? `${trajeto.endereco} → Facens` : "Cadastre seu trajeto"}
             </div>
           </div>
-          <ChevronRight size={18} className="text-sub" />
+          <ChevronRight size={18} className="shrink-0 text-sub" />
         </button>
       </div>
 

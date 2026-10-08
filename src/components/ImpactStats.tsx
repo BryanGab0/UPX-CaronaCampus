@@ -6,13 +6,13 @@ const ICONES: Record<IconeStat, typeof Wallet> = { wallet: Wallet, leaf: Leaf, c
 
 export function ImpactStats() {
   return (
-    <div className="flex gap-2.5 px-[22px]">
+    <div className="flex gap-2 px-[22px] min-[360px]:gap-2.5">
       {stats.map((s, i) => {
         const Icone = ICONES[s.icone];
         return (
-          <div key={i} className="flex-1 rounded-[15px] border border-line bg-surface p-3">
+          <div key={i} className="min-w-0 flex-1 rounded-[15px] border border-line bg-surface p-2.5 min-[360px]:p-3">
             <Icone size={16} className="mb-1.5 text-brand" />
-            <div className="font-display text-[17px] font-bold tracking-tight">{s.valor}</div>
+            <div className="truncate font-display text-[15px] font-bold tracking-tight min-[360px]:text-[17px]">{s.valor}</div>
             <div className="mt-px text-[10.5px] leading-tight text-sub">{s.label}</div>
           </div>
         );

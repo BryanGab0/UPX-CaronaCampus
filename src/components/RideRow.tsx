@@ -16,13 +16,13 @@ export function RideRow({ resultado }: { resultado: Resultado }) {
     >
       <div className="grid size-11 shrink-0 place-items-center rounded-[13px] bg-canvas text-sm font-bold text-ink">{iniciais}</div>
       <div className="min-w-0 flex-1">
-        <div className="text-[14.5px] font-bold">{carona.nome}</div>
+        <div className="truncate text-[14.5px] font-bold">{carona.nome}</div>
         <div className="mt-0.5 flex items-center gap-2.5 text-xs text-sub">
           <span className="inline-flex min-w-0 items-center gap-1"><MapPin size={12} className="shrink-0" /><span className="truncate">{carona.endereco}</span></span>
           <span className="inline-flex shrink-0 items-center gap-1"><Clock size={12} />{carona.chegada}</span>
         </div>
       </div>
-      <div className="text-right">
+      <div className="shrink-0 text-right">
         <div className={cn("font-display text-sm font-bold", cor)}>{compat}%</div>
         <div className="mt-px text-[11.5px] text-sub">{reais(custoDia)}</div>
       </div>

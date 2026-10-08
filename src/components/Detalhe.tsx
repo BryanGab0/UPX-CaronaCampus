@@ -47,7 +47,7 @@ export function Detalhe() {
   const resultado = resultados.find((r) => r.carona.id === id);
   if (!resultado) {
     return (
-      <div className="grid h-[620px] place-items-center px-10 text-center text-sub">
+      <div className="grid min-h-[60dvh] place-items-center px-10 text-center text-sub">
         <div>
           <p className="text-sm">Carona não encontrada.</p>
           <button onClick={() => navigate("/")} className="mt-3 font-semibold text-brand">Voltar para o início</button>
@@ -64,12 +64,12 @@ export function Detalhe() {
   return (
     <div className="animate-rise pb-6">
       <div className="flex items-center gap-3 border-b border-line bg-surface px-[22px] pb-3 pt-[44px]">
-        <button onClick={() => navigate(-1)} className="grid size-9 place-items-center rounded-xl border border-line transition active:scale-[.98]">
+        <button onClick={() => navigate(-1)} aria-label="Voltar" className="grid size-10 shrink-0 place-items-center rounded-xl border border-line transition active:scale-[.98]">
           <ChevronLeft size={19} className="text-sub" />
         </button>
-        <div className="grid size-11 place-items-center rounded-[13px] bg-brand text-sm font-bold text-white">{iniciais}</div>
+        <div className="hidden size-11 shrink-0 place-items-center rounded-[13px] bg-brand text-sm font-bold text-white min-[360px]:grid">{iniciais}</div>
         <div className="min-w-0 flex-1">
-          <div className="font-bold">{carona.nome}</div>
+          <div className="truncate font-bold">{carona.nome}</div>
           <div className="truncate text-xs text-sub">motorista · {carona.endereco}</div>
         </div>
         <CompatRing valor={compat} />
@@ -113,12 +113,12 @@ export function Detalhe() {
         {status === "aceita" && solic?.motoristaTelefone ? (
           <a href={whatsapp(solic.motoristaTelefone, `Oi ${carona.nome.split(" ")[0]}! Topei a carona pra Facens. Vamos combinar o ponto de encontro?`)}
             target="_blank" rel="noopener noreferrer"
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] bg-good py-4 text-sm font-bold text-white transition active:scale-[.98]">
-            <MessageCircle size={18} /> Chamar {carona.nome.split(" ")[0]} no WhatsApp
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] bg-good px-4 py-4 text-center text-sm font-bold text-white transition active:scale-[.98]">
+            <MessageCircle size={18} className="shrink-0" /> Chamar {carona.nome.split(" ")[0]} no WhatsApp
           </a>
         ) : status === "pendente" ? (
-          <div className="mt-2 flex items-center justify-center gap-2 rounded-[14px] bg-brand-soft py-4 text-sm font-bold text-brand">
-            <Clock size={18} /> Pedido enviado · aguardando o motorista
+          <div className="mt-2 flex items-center justify-center gap-2 rounded-[14px] bg-brand-soft px-4 py-4 text-center text-sm font-bold text-brand">
+            <Clock size={18} className="shrink-0" /> Pedido enviado · aguardando o motorista
           </div>
         ) : status === "recusada" ? (
           <div className="mt-2 rounded-[14px] bg-canvas py-4 text-center text-sm font-bold text-sub">Pedido recusado</div>
@@ -150,7 +150,7 @@ function Barra({ titulo, pct, detalhe, cor }: { titulo: string; pct: number; det
 }
 function Metric({ icone, valor, label, destaque }: { icone: ReactNode; valor: string; label: string; destaque?: boolean }) {
   return (
-    <div className={cn("flex-1 rounded-[13px] p-3.5", destaque ? "bg-brand-soft" : "bg-canvas")}>
+    <div className={cn("min-w-0 flex-1 rounded-[13px] p-3.5", destaque ? "bg-brand-soft" : "bg-canvas")}>
       <div className={destaque ? "text-brand" : "text-sub"}>{icone}</div>
       <div className={cn("font-display mt-1.5 text-lg font-bold tracking-tight", destaque && "text-brand")}>{valor}</div>
       <div className="mt-0.5 text-[11px] leading-tight text-sub">{label}</div>

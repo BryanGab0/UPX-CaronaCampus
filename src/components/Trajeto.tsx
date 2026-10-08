@@ -131,13 +131,13 @@ export function Trajeto() {
               value={endereco}
               onChange={(e) => { digitou.current = true; setEndereco(e.target.value); setOrigem(null); limpar(); }}
               placeholder="Digite seu endereço (rua, número, bairro)"
-              className="flex-1 bg-transparent text-sm outline-none"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
-            {buscandoEnd && <Loader2 size={16} className="animate-spin text-sub" />}
+            {buscandoEnd && <Loader2 size={16} className="shrink-0 animate-spin text-sub" />}
           </div>
 
           {sugestoes.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-line bg-surface shadow-lg">
+            <div className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-line bg-surface shadow-lg">
               {sugestoes.map((s, i) => (
                 <button key={i} onClick={() => escolher(s)}
                   className="block w-full border-b border-line px-3.5 py-2.5 text-left text-xs last:border-0 hover:bg-canvas">
@@ -161,7 +161,7 @@ export function Trajeto() {
       </Section>
 
       <Section icone={<CalendarDays size={16} />} titulo="Dias de aula">
-        <div className="flex gap-2">
+        <div className="grid grid-cols-5 gap-1.5 min-[360px]:gap-2">
           {DIAS.map((d) => <Chip key={d} ativo={dias.includes(d)} onClick={() => toggleDia(d)} texto={d} />)}
         </div>
       </Section>
@@ -214,11 +214,11 @@ function Toggle({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void
   return <button onClick={onClick} className={cn("flex-1 rounded-[13px] border px-2.5 py-3 text-[13.5px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand-soft text-brand" : "border-line bg-surface text-sub")}>{texto}</button>;
 }
 function Chip({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; texto: string }) {
-  return <button onClick={onClick} className={cn("rounded-[11px] border px-3.5 py-2 text-[13px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand text-white" : "border-line bg-surface text-sub")}>{texto}</button>;
+  return <button onClick={onClick} className={cn("rounded-[11px] border py-2 text-center text-[13px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand text-white" : "border-line bg-surface text-sub")}>{texto}</button>;
 }
 function TimeField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return <label className="flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="time" value={value} onChange={(e) => onChange(e.target.value)} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
+  return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="time" value={value} onChange={(e) => onChange(e.target.value)} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
 }
 function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return <label className="flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
+  return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="number" inputMode="decimal" value={value} onChange={(e) => onChange(Number(e.target.value))} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
 }

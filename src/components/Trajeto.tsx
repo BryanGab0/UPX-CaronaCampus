@@ -57,22 +57,36 @@ export function Trajeto() {
   const limpar = () => { setSalvo(false); setErro(null); };
   const toggleDia = (d: DiaSemana) => { limpar(); setDias((ds) => ds.includes(d) ? ds.filter((x) => x !== d) : [...ds, d]); };
 
-  // Autocomplete com atraso (debounce) para não disparar busca a cada tecla.
-  const digitou = useRef(false);
-  useEffect(() => {
-    if (!digitou.current) return;
-    if (endereco.trim().length < 3) { setSugestoes([]); return; }
+  // Autocomplete com atraso (debounce): a busca só sai quando a pessoa para de digitar,
+  // respeitando o limite de ~1 requisição/s do Nominatim.
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const buscaAtual = useRef(0); // respostas de buscas antigas são descartadas
+  useEffect(() => () => clearTimeout(timer.current), []); // cancela a busca pendente ao sair da tela
+
+  const cancelarBusca = () => {
+    clearTimeout(timer.current);
+    buscaAtual.current++;
+    setBuscandoEnd(false);
+  };
+
+  const digitarEndereco = (valor: string) => {
+    setEndereco(valor);
+    setOrigem(null);
+    limpar();
+    cancelarBusca();
+    if (valor.trim().length < 3) { setSugestoes([]); return; }
     setBuscandoEnd(true);
-    const t = setTimeout(async () => {
-      const r = await buscarEnderecos(endereco);
+    const id = buscaAtual.current;
+    timer.current = setTimeout(async () => {
+      const r = await buscarEnderecos(valor).catch(() => []);
+      if (id !== buscaAtual.current) return; // a pessoa já digitou de novo ou escolheu um endereço
       setSugestoes(r);
       setBuscandoEnd(false);
     }, 450);
-    return () => clearTimeout(t);
-  }, [endereco]);
+  };
 
   const escolher = (s: { nome: string; coord: Coord }) => {
-    digitou.current = false;
+    cancelarBusca();
     setEndereco(s.nome);
     setOrigem(s.coord);
     setSugestoes([]);
@@ -85,7 +99,7 @@ export function Trajeto() {
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        digitou.current = false;
+        cancelarBusca();
         setOrigem(c);
         setEndereco(await enderecoDaCoord(c));
         setSugestoes([]);
@@ -129,7 +143,7 @@ export function Trajeto() {
             <MapPin size={18} className="shrink-0 text-sub" />
             <input
               value={endereco}
-              onChange={(e) => { digitou.current = true; setEndereco(e.target.value); setOrigem(null); limpar(); }}
+              onChange={(e) => digitarEndereco(e.target.value)}
               placeholder="Digite seu endereço (rua, número, bairro)"
               className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />

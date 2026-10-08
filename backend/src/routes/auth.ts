@@ -5,8 +5,8 @@ import type { SignOptions } from "jsonwebtoken";
 import { pool } from "../db.js";
 import { autenticar } from "../middleware/autenticar.js";
 import type { ReqAuth } from "../middleware/autenticar.js";
+import { JWT_SECRET as SEGREDO } from "../config.js";
 
-const SEGREDO = process.env.JWT_SECRET ?? "dev-secret";
 const OPCOES: SignOptions = { expiresIn: "7d" };
 
 export const authRouter = Router();

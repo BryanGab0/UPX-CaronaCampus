@@ -1,8 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { pool } from "../db.js";
- 
-const SEGREDO = process.env.JWT_SECRET ?? "dev-secret";
+import { JWT_SECRET as SEGREDO } from "../config.js";
  
 export interface ReqAuth extends Request {
   usuarioRa?: string;

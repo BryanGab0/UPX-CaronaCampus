@@ -1,7 +1,9 @@
 import { Bell, Navigation, ChevronRight, Star } from "lucide-react";
+import { Link } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { usePerfilContext } from "../context/PerfilContext";
 import { useResultados } from "../hooks/useResultados";
+import { usePedidos } from "../hooks/usePedidos";
 import { ImpactStats } from "./ImpactStats";
 import { BestRideCard } from "./BestRideCard";
 import { RideRow } from "./RideRow";
@@ -18,6 +20,7 @@ export function Home() {
   const { nome } = useAuth();
   const { trajeto } = usePerfilContext();
   const { resultados, carregando, erro } = useResultados();
+  const { pendentes } = usePedidos();
   const melhor = resultados[0];
   const outras = resultados.slice(1);
 
@@ -30,10 +33,12 @@ export function Home() {
             <h1 className="truncate font-display text-[27px] font-bold tracking-tight">{nome.split(" ")[0]}</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2.5">
-            <button className="relative grid size-10 place-items-center rounded-xl border border-line bg-surface transition active:scale-[.98]">
+            {/* Leva aos pedidos recebidos (no Perfil); a bolinha só aparece se houver pedido pendente. */}
+            <Link to="/perfil" aria-label={pendentes > 0 ? `Pedidos recebidos: ${pendentes} pendente(s)` : "Pedidos recebidos"}
+              className="relative grid size-10 place-items-center rounded-xl border border-line bg-surface transition active:scale-[.98]">
               <Bell size={18} className="text-sub" />
-              <span className="absolute right-2.5 top-2.5 size-[7px] rounded-full border-2 border-surface bg-accent" />
-            </button>
+              {pendentes > 0 && <span className="absolute right-2.5 top-2.5 size-[7px] rounded-full border-2 border-surface bg-accent" />}
+            </Link>
             <div className="grid size-10 place-items-center rounded-xl bg-brand text-sm font-bold text-white">{nome[0]}</div>
           </div>
         </div>

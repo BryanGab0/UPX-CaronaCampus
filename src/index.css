@@ -8,7 +8,15 @@
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-display: "Space Grotesk", system-ui, sans-serif;
 }
-body { font-family: var(--font-sans); background: var(--color-shell); color: var(--color-ink); -webkit-font-smoothing: antialiased; }
+/* "desk:" = tela larga E alta o bastante para a moldura de celular.
+   Só a largura (sm:) pegava celular deitado e espremia a moldura. */
+@custom-variant desk (@media (min-width: 40rem) and (min-height: 30rem));
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { font-family: var(--font-sans); background: var(--color-canvas); color: var(--color-ink); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+@media (min-width: 40rem) and (min-height: 30rem) { body { background: var(--color-shell); } }
+/* iOS dá zoom ao focar campo com fonte < 16px; em telas de toque força 16px. */
+@media (pointer: coarse) { input, select, textarea { font-size: 16px; } }
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }

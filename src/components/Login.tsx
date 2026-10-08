@@ -68,8 +68,8 @@ export function Login() {
   };
 
   return (
-    <div className="flex min-h-dvh justify-center bg-canvas sm:bg-shell sm:px-3 sm:py-5">
-      <div className="relative flex min-h-dvh w-full flex-col overflow-hidden bg-canvas px-7 pb-8 pt-14 text-ink sm:min-h-[812px] sm:max-w-[430px] sm:rounded-[32px] sm:shadow-2xl">
+    <div className="flex min-h-dvh justify-center bg-canvas desk:bg-shell desk:px-3 desk:py-5">
+      <div className="relative flex min-h-dvh w-full flex-col overflow-hidden bg-canvas px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(3.5rem+env(safe-area-inset-top))] text-ink min-[380px]:px-7 desk:min-h-[812px] desk:max-w-[430px] desk:rounded-[32px] desk:pb-8 desk:pt-14 desk:shadow-2xl">
         <div className="flex items-center gap-2.5">
           <div className="grid size-11 place-items-center rounded-[13px] bg-brand shadow-[0_8px_20px_rgba(47,75,255,.33)]">
             <RouteIcon size={24} color="#fff" strokeWidth={2.4} />
@@ -96,7 +96,7 @@ export function Login() {
                 onChange={(e) => { setEmail(e.target.value); setErro(""); }}
                 placeholder="RA@facens.br"
                 inputMode="email"
-                className="flex-1 bg-transparent text-[15px] outline-none"
+                className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
               />
             </Campo>
 
@@ -107,7 +107,7 @@ export function Login() {
                     value={nome}
                     onChange={(e) => { setNome(e.target.value); setErro(""); }}
                     placeholder="Seu nome"
-                    className="flex-1 bg-transparent text-[15px] outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
                   />
                 </Campo>
                 <Campo icone={<Phone size={18} />}>
@@ -116,7 +116,7 @@ export function Login() {
                     onChange={(e) => { setTelefone(formatarTelefone(e.target.value)); setErro(""); }}
                     placeholder="(11) 99999-9999"
                     inputMode="tel"
-                    className="flex-1 bg-transparent text-[15px] outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
                   />
                 </Campo>
               </>
@@ -129,7 +129,7 @@ export function Login() {
                 onChange={(e) => { setSenha(e.target.value); setErro(""); }}
                 onKeyDown={(e) => e.key === "Enter" && enviar()}
                 placeholder="Senha"
-                className="flex-1 bg-transparent text-[15px] outline-none"
+                className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
               />
             </Campo>
 
@@ -162,7 +162,7 @@ export function Login() {
 function Campo({ icone, children }: { icone: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className={cn("flex items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3")}>
-      <span className="text-sub">{icone}</span>
+      <span className="shrink-0 text-sub">{icone}</span>
       {children}
     </div>
   );

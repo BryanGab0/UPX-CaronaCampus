@@ -13,7 +13,7 @@ const ITENS = [
 // o próprio NavLink informa (isActive) se a rota dele é a atual.
 export function BottomNav() {
   return (
-    <div className="absolute inset-x-0 bottom-0 flex border-t border-line bg-white/90 px-3 pb-[22px] pt-2.5 backdrop-blur-md">
+    <nav className="absolute inset-x-0 bottom-0 flex border-t border-line bg-white/90 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur-md desk:pb-[22px]">
       {ITENS.map(({ to, icone: Icone, label, end }) => (
         <NavLink
           key={to}
@@ -31,6 +31,6 @@ export function BottomNav() {
           )}
         </NavLink>
       ))}
-    </div>
+    </nav>
   );
 }

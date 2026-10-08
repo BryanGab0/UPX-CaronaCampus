@@ -12,7 +12,7 @@ export function Carregando() {
 export function ErroCarga({ msg }: { msg: string }) {
   return (
     <div className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-sub">
-      <AlertTriangle size={18} className="text-accent" />
+      <AlertTriangle size={18} className="shrink-0 text-accent" />
       {msg}. Verifique se a API está rodando (localhost:3333).
     </div>
   );

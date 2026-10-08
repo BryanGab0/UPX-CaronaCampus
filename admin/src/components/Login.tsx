@@ -26,8 +26,8 @@ export function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-8 shadow-xl">
+    <div className="flex min-h-dvh items-center justify-center p-4">
+      <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6 shadow-xl sm:p-8">
         <div className="flex items-center gap-2.5">
           <div className="grid size-10 place-items-center rounded-xl bg-brand">
             <ShieldCheck size={22} color="#fff" />
@@ -40,23 +40,23 @@ export function Login() {
 
         <div className="mt-7 space-y-3">
           <div className="flex items-center gap-2.5 rounded-xl border border-line px-3.5 py-3">
-            <Mail size={18} className="text-sub" />
+            <Mail size={18} className="shrink-0 text-sub" />
             <input
               value={email}
               onChange={(e) => { setEmail(e.target.value); setErro(""); }}
               placeholder="RA@facens.br"
-              className="flex-1 bg-transparent text-sm outline-none"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
           </div>
           <div className="flex items-center gap-2.5 rounded-xl border border-line px-3.5 py-3">
-            <Lock size={18} className="text-sub" />
+            <Lock size={18} className="shrink-0 text-sub" />
             <input
               type="password"
               value={senha}
               onChange={(e) => { setSenha(e.target.value); setErro(""); }}
               onKeyDown={(e) => e.key === "Enter" && enviar()}
               placeholder="Senha"
-              className="flex-1 bg-transparent text-sm outline-none"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
           </div>
 

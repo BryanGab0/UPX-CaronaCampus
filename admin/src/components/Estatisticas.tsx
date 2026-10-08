@@ -29,9 +29,9 @@ export function Estatisticas() {
       ) : !dados ? (
         <Carregando />
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {cards.map((c) => (
-            <div key={c.label} className="rounded-2xl border border-line bg-surface p-5">
+            <div key={c.label} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
               <div className="text-brand">{c.icone}</div>
               <div className="font-display mt-3 text-3xl font-bold tracking-tight">{c.valor}</div>
               <div className="mt-1 text-sm text-sub">{c.label}</div>

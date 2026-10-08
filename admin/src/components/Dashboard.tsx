@@ -19,17 +19,26 @@ export function Dashboard() {
   const [view, setView] = useState<View>("estatisticas");
 
   return (
-    <div className="flex h-screen">
-      {/* Barra lateral */}
-      <aside className="flex w-60 flex-col border-r border-line bg-surface p-4">
-        <div className="flex items-center gap-2.5 px-2 py-2">
-          <div className="grid size-9 place-items-center rounded-lg bg-brand">
-            <ShieldCheck size={19} color="#fff" />
+    <div className="flex h-dvh flex-col md:flex-row">
+      {/* Barra lateral no desktop; no celular vira um cabeçalho com abas que rolam de lado */}
+      <aside className="flex shrink-0 flex-col border-b border-line bg-surface px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] md:w-60 md:border-b-0 md:border-r md:p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 px-2 py-2">
+            <div className="grid size-9 place-items-center rounded-lg bg-brand">
+              <ShieldCheck size={19} color="#fff" />
+            </div>
+            <span className="font-display font-bold">Admin</span>
           </div>
-          <span className="font-display font-bold">Admin</span>
+          <button
+            onClick={sair}
+            aria-label="Sair"
+            className="grid size-10 place-items-center rounded-xl text-sub transition hover:bg-canvas md:hidden"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
 
-        <nav className="mt-6 flex-1 space-y-1">
+        <nav className="no-scrollbar -mx-3 mt-1 flex gap-1 overflow-x-auto px-3 md:mx-0 md:mt-6 md:block md:flex-1 md:space-y-1 md:px-0">
           {ITENS.map(({ id, icone: Icone, label }) => {
             const ativo = view === id;
             return (
@@ -37,7 +46,7 @@ export function Dashboard() {
                 key={id}
                 onClick={() => setView(id)}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition",
+                  "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold transition md:w-full md:gap-3 md:py-2.5",
                   ativo ? "bg-brand-soft text-brand" : "text-sub hover:bg-canvas",
                 )}
               >
@@ -47,7 +56,7 @@ export function Dashboard() {
           })}
         </nav>
 
-        <div className="border-t border-line pt-3">
+        <div className="hidden border-t border-line pt-3 md:block">
           <div className="px-3 pb-2 text-xs text-sub">
             <div className="truncate font-semibold text-ink">{usuario?.nome}</div>
             <div className="truncate">{usuario?.email}</div>
@@ -62,7 +71,7 @@ export function Dashboard() {
       </aside>
 
       {/* Conteúdo */}
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6 lg:p-8">
         {view === "estatisticas" && <Estatisticas />}
         {view === "usuarios" && <Usuarios />}
         {view === "solicitacoes" && <Solicitacoes />}

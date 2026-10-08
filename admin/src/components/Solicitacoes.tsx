@@ -5,11 +5,14 @@ import { Carregando, ErroCarga } from "./Estado";
 
 export function Solicitacoes() {
   const [lista, setLista] = useState<SolicitacaoAdmin[] | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState(false);
+  const [versao, setVersao] = useState(0);
 
   useEffect(() => {
-    buscarSolicitacoes().then(setLista).catch((e) => setErro(e instanceof Error ? e.message : "Falha"));
-  }, []);
+    buscarSolicitacoes().then(setLista).catch((e: unknown) => { console.error(e); setErro(true); });
+  }, [versao]);
+
+  const tentar = () => { setErro(false); setVersao((v) => v + 1); };
 
   return (
     <div>
@@ -17,7 +20,7 @@ export function Solicitacoes() {
       <p className="mt-1 text-sm text-sub">{lista ? `${lista.length} no total` : "Carregando…"}</p>
 
       {erro ? (
-        <div className="mt-6"><ErroCarga msg={erro} /></div>
+        <div className="mt-6"><ErroCarga onTentar={tentar} /></div>
       ) : !lista ? (
         <Carregando />
       ) : lista.length === 0 ? (

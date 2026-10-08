@@ -6,11 +6,14 @@ import { Carregando, ErroCarga } from "./Estado";
 
 export function Estatisticas() {
   const [dados, setDados] = useState<Est | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState(false);
+  const [versao, setVersao] = useState(0);
 
   useEffect(() => {
-    buscarEstatisticas().then(setDados).catch((e) => setErro(e instanceof Error ? e.message : "Falha"));
-  }, []);
+    buscarEstatisticas().then(setDados).catch((e: unknown) => { console.error(e); setErro(true); });
+  }, [versao]);
+
+  const tentar = () => { setErro(false); setVersao((v) => v + 1); };
 
   const cards = [
     { icone: <Users size={20} />, label: "Usuários", valor: dados?.usuarios },
@@ -25,7 +28,7 @@ export function Estatisticas() {
       <p className="mt-1 text-sm text-sub">Visão geral do sistema.</p>
 
       {erro ? (
-        <div className="mt-6"><ErroCarga msg={erro} /></div>
+        <div className="mt-6"><ErroCarga onTentar={tentar} /></div>
       ) : !dados ? (
         <Carregando />
       ) : (

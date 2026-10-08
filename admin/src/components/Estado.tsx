@@ -1,4 +1,4 @@
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, RotateCw } from "lucide-react";
 
 export function Carregando() {
   return (
@@ -9,11 +9,21 @@ export function Carregando() {
   );
 }
 
-export function ErroCarga({ msg }: { msg: string }) {
+// Mensagem para quem usa o painel: o detalhe técnico do erro fica só no console.
+export function ErroCarga({ titulo = "Não foi possível carregar os dados", onTentar }: { titulo?: string; onTentar?: () => void }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm text-sub">
+    <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 text-sm sm:flex-row sm:items-center">
       <AlertTriangle size={18} className="shrink-0 text-accent" />
-      {msg}. Verifique se a API está rodando (localhost:3333).
+      <div className="min-w-0 flex-1">
+        <div className="font-semibold">{titulo}</div>
+        <div className="text-sub">Verifique sua conexão. O servidor pode levar alguns segundos para responder após ficar parado.</div>
+      </div>
+      {onTentar && (
+        <button onClick={onTentar}
+          className="flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand px-3.5 py-2 text-xs font-bold text-white transition active:scale-[.98]">
+          <RotateCw size={14} /> Tentar novamente
+        </button>
+      )}
     </div>
   );
 }

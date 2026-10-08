@@ -7,11 +7,14 @@ const data = (iso: string) => new Date(iso).toLocaleDateString("pt-BR");
 
 export function Usuarios() {
   const [lista, setLista] = useState<UsuarioAdmin[] | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState(false);
+  const [versao, setVersao] = useState(0);
 
   useEffect(() => {
-    buscarUsuarios().then(setLista).catch((e) => setErro(e instanceof Error ? e.message : "Falha"));
-  }, []);
+    buscarUsuarios().then(setLista).catch((e: unknown) => { console.error(e); setErro(true); });
+  }, [versao]);
+
+  const tentar = () => { setErro(false); setVersao((v) => v + 1); };
 
   return (
     <div>
@@ -19,7 +22,7 @@ export function Usuarios() {
       <p className="mt-1 text-sm text-sub">{lista ? `${lista.length} cadastrados` : "Carregando…"}</p>
 
       {erro ? (
-        <div className="mt-6"><ErroCarga msg={erro} /></div>
+        <div className="mt-6"><ErroCarga onTentar={tentar} /></div>
       ) : !lista ? (
         <Carregando />
       ) : (

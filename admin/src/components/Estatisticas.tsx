@@ -14,7 +14,7 @@ export function Estatisticas() {
 
   const cards = [
     { icone: <Users size={20} />, label: "Usuários", valor: dados?.usuarios },
-    { icone: <Car size={20} />, label: "Caronas", valor: dados?.caronas },
+    { icone: <Car size={20} />, label: "Motoristas", valor: dados?.motoristas },
     { icone: <Route size={20} />, label: "Trajetos", valor: dados?.trajetos },
     { icone: <Inbox size={20} />, label: "Solicitações", valor: dados?.solicitacoes },
   ];

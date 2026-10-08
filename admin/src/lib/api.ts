@@ -29,7 +29,7 @@ export async function login(ra: string, senha: string): Promise<Sessao> {
 
 export interface Estatisticas {
   usuarios: number;
-  caronas: number;
+  motoristas: number;
   trajetos: number;
   solicitacoes: number;
 }
@@ -58,11 +58,8 @@ export async function buscarUsuarios(): Promise<UsuarioAdmin[]> {
 export interface SolicitacaoAdmin {
   id: number;
   status: string;
-  criado_em: string;
-  usuario_ra: string;
-  usuario_nome: string;
-  carona_nome: string;
-  carona_bairro: string;
+  passageiroNome: string;
+  motoristaNome: string;
 }
 
 export async function buscarSolicitacoes(): Promise<SolicitacaoAdmin[]> {

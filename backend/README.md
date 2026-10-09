@@ -64,6 +64,7 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - Erros em produção vão para o Sentry (`src/instrument.ts`, carregado com `--import` antes da API). O envio é restrito: sem corpo das requisições (senha, telefone), cabeçalhos (token), IP, query string, variáveis locais nem o `detail` dos erros do Postgres.
 
 ## Endpoints
+- `GET  /ping`                       — a API está no ar (não consulta o banco; usado pelo monitor de uptime)
 - `GET  /health`                     — saúde da API e do banco
 - `GET  /caronas`                    — lista as caronas (público)
 - `POST /auth/registrar`             — cria conta (ra, nome, email, senha) e devolve token

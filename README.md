@@ -34,6 +34,7 @@ O repositório tem três partes:
 - Aviso de pedidos pendentes na tela inicial
 - Impacto estimado das caronas aceitas (economia de combustível e CO₂ evitado no mês)
 - Painel administrativo (estatísticas, usuários e solicitações)
+- Instalável na tela inicial do celular (PWA), abrindo em tela cheia
 
 ## Como rodar localmente
 Precisa de Node 20.19+ (ou 22.12+) e do back-end no ar.

@@ -12,10 +12,12 @@ import { ErroCarga, EsqueletoLista, EstadoVazio } from "./Estado";
 import { usePerfilContext } from "../context/PerfilContext";
 import { Aviso } from "./Aviso";
 import { Denunciar } from "./Denunciar";
+import { Notificacoes } from "./Notificacoes";
+import { desativarPush } from "../lib/push";
 import { Estrelas, NotaMedia } from "./Estrelas";
 
 export function Perfil() {
-  const { nome, email, sair } = useAuth();
+  const { nome, email, ra, sair } = useAuth();
   const navigate = useNavigate();
 
   const { pedidos, carregando, erro, recarregar } = usePedidos();
@@ -48,7 +50,12 @@ export function Perfil() {
     }
   };
 
-  const onSair = () => { sair(); navigate("/login"); };
+  // Ao sair, o aparelho para de receber avisos desta conta (melhor esforço: não impede a saída).
+  const onSair = async () => {
+    await desativarPush(ra).catch((e) => console.error(e));
+    sair();
+    navigate("/login");
+  };
 
   return (
     <div className="animate-rise px-[22px] pt-[46px]">
@@ -125,6 +132,8 @@ export function Perfil() {
           ))}
         </div>
       )}
+
+      <Notificacoes onAviso={mostrar} />
 
       <Link to="/privacidade"
         className="mt-5 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-4 py-3.5 text-sm font-semibold transition active:scale-[.98]">

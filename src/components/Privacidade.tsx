@@ -29,6 +29,7 @@ export function Privacidade() {
           <Item><b>Cadastro:</b> RA, nome, e-mail no formato da Facens e telefone. A senha é guardada embaralhada (hash), e nem a administração consegue lê-la.</Item>
           <Item><b>Trajeto:</b> endereço de saída com a localização no mapa, dias, horários, se você vai como motorista ou passageiro e, para motoristas, modelo, lugares e consumo do carro.</Item>
           <Item><b>Uso do app:</b> pedidos de carona e respostas, notas das avaliações e denúncias.</Item>
+          <Item><b>Notificações:</b> só se você ativar no Perfil. Guardamos o endereço que o seu navegador cria para receber os avisos (novo pedido, pedido aceito ou recusado). Ao desativar ou sair da conta, ele é apagado.</Item>
           <Item><b>No seu aparelho:</b> o login fica salvo no navegador por até 7 dias, para você não precisar entrar toda vez.</Item>
         </Secao>
 
@@ -42,6 +43,7 @@ export function Privacidade() {
         <Secao titulo="Serviços de terceiros">
           <Item><b>Mapas e endereços:</b> o OpenStreetMap recebe o texto que você digita na busca de endereço e as coordenadas do mapa; o OSRM recebe os pontos para traçar a rota.</Item>
           <Item><b>Localização (GPS):</b> só é usada quando você toca em “usar minha localização”, para preencher o endereço. Não acompanhamos onde você está.</Item>
+          <Item><b>Avisos (push):</b> as notificações passam, criptografadas, pelo serviço de push do seu navegador (Google, Apple ou Mozilla), que as entrega ao aparelho.</Item>
           <Item><b>WhatsApp:</b> a conversa acontece fora do app, conforme as regras do WhatsApp.</Item>
           <Item><b>Hospedagem:</b> o app e o banco de dados ficam em provedores de nuvem (Vercel, Render e Neon).</Item>
         </Secao>

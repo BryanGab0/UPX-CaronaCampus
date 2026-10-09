@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { LogOut, Mail, Inbox, Check, X, MessageCircle } from "lucide-react";
+import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag } from "lucide-react";
 import { cn } from "../lib/cn";
 import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +10,7 @@ import { responderSolicitacao } from "../lib/api";
 import type { Pedido } from "../lib/api";
 import { Carregando, ErroCarga } from "./Estado";
 import { Aviso } from "./Aviso";
+import { Denunciar } from "./Denunciar";
 
 export function Perfil() {
   const { nome, email, sair } = useAuth();
@@ -18,6 +19,7 @@ export function Perfil() {
   const { pedidos, carregando, erro, recarregar } = usePedidos();
   const { aviso, mostrar } = useAviso();
   const [respondendo, setRespondendo] = useState<number | null>(null); // id do pedido em andamento
+  const [denunciado, setDenunciado] = useState<Pedido | null>(null);
 
   const responder = async (p: Pedido, status: "aceita" | "recusada") => {
     const primeiro = primeiroNome(p.passageiroNome);
@@ -90,6 +92,10 @@ export function Perfil() {
                   <MessageCircle size={15} /> Chamar no WhatsApp
                 </a>
               )}
+              <button onClick={() => setDenunciado(p)}
+                className="mt-2.5 flex items-center gap-1 text-[11px] font-semibold text-sub transition active:scale-[.98]">
+                <Flag size={12} /> Denunciar
+              </button>
             </div>
           ))}
         </div>
@@ -99,6 +105,12 @@ export function Perfil() {
         className="mt-5 flex w-full items-center justify-center gap-2 rounded-[14px] border border-line bg-surface py-4 text-sm font-bold text-sub transition active:scale-[.98]">
         <LogOut size={17} /> Sair
       </button>
+
+      {denunciado && (
+        <Denunciar denunciadoRa={denunciado.passageiroRa} denunciadoNome={denunciado.passageiroNome}
+          onFechar={() => setDenunciado(null)}
+          onEnviada={() => { setDenunciado(null); mostrar("ok", "Denúncia enviada. A administração vai analisar."); }} />
+      )}
     </div>
   );
 }

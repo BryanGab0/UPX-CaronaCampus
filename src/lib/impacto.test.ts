@@ -22,7 +22,7 @@ const trajeto = (extra: Partial<Trajeto> = {}): Trajeto => ({
 const solicitacao = (status: string): MinhaSolicitacao => ({
   motoristaRa: "222", status, motoristaNome: "Motorista", endereco: "Rua B", motoristaTelefone: null,
 });
-const pedido = (id: number, status: string): Pedido => ({ id, status, passageiroNome: "Ana", passageiroTelefone: null });
+const pedido = (id: number, status: string): Pedido => ({ id, status, passageiroRa: "100", passageiroNome: "Ana", passageiroTelefone: null });
 
 const perfilDe = (t: Trajeto) => ({ origem: t.origem, chegada: t.chegada, dias: t.dias });
 

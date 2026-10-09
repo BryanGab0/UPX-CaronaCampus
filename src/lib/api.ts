@@ -95,6 +95,7 @@ export async function buscarSolicitacoes(ra: string): Promise<MinhaSolicitacao[]
 export interface Pedido {
   id: number;
   status: string;
+  passageiroRa: string;
   passageiroNome: string;
   passageiroTelefone: string | null;
 }
@@ -111,4 +112,17 @@ export async function responderSolicitacao(id: number, status: "aceita" | "recus
     body: JSON.stringify({ status }),
   });
   if (!resp.ok) throw await falha(resp, "ao responder solicitação");
+}
+
+// --- Denúncias ---
+export type MotivoDenuncia = "comportamento" | "seguranca" | "perfil_falso" | "nao_compareceu" | "outro";
+
+export async function denunciar(ra: string, denunciadoRa: string, motivo: MotivoDenuncia, descricao: string): Promise<void> {
+  const resp = await fetch(`${API_URL}/usuarios/${ra}/denuncias`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ denunciadoRa, motivo, descricao }),
+  });
+  // As mensagens de validação da API já são escritas para o usuário (ex.: denúncia repetida).
+  if (resp.status === 403) throw await falha(resp, "ao denunciar");
+  if (!resp.ok) throw await erroDaResposta(resp, "Não foi possível enviar a denúncia. Tente novamente.");
 }

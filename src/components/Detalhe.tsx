@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ChevronLeft, Fuel, Users, Leaf, Check, Clock, MessageCircle } from "lucide-react";
+import { ChevronLeft, Fuel, Users, Leaf, Check, Clock, MessageCircle, Flag } from "lucide-react";
 import { cn } from "../lib/cn";
 import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { FACENS } from "../data/mock";
@@ -13,7 +13,10 @@ import type { MinhaSolicitacao } from "../lib/api";
 import { PESO_HORARIO, PESO_ROTA, reais } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { MapaRota } from "./MapaRota";
+import { useAviso } from "../hooks/useAviso";
 import { Carregando, ErroCarga } from "./Estado";
+import { Aviso } from "./Aviso";
+import { Denunciar } from "./Denunciar";
 
 export function Detalhe() {
   const { id } = useParams();
@@ -25,6 +28,8 @@ export function Detalhe() {
   const [solic, setSolic] = useState<MinhaSolicitacao | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
+  const [denunciando, setDenunciando] = useState(false);
+  const { aviso, mostrar } = useAviso();
 
   const recarregar = () => {
     if (!ra || !id) return;
@@ -129,7 +134,18 @@ export function Detalhe() {
         {status === "aceita" && (
           <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-good"><Check size={14} /> Carona aceita!</div>
         )}
+
+        <Aviso aviso={aviso} />
+        <button onClick={() => setDenunciando(true)}
+          className="mx-auto mt-6 flex items-center gap-1.5 text-xs font-semibold text-sub transition active:scale-[.98]">
+          <Flag size={13} /> Denunciar este motorista
+        </button>
       </div>
+
+      {denunciando && (
+        <Denunciar denunciadoRa={carona.id} denunciadoNome={carona.nome} onFechar={() => setDenunciando(false)}
+          onEnviada={() => { setDenunciando(false); mostrar("ok", "Denúncia enviada. A administração vai analisar."); }} />
+      )}
     </div>
   );
 }

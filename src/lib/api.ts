@@ -140,3 +140,26 @@ export async function avaliar(solicitacaoId: number, nota: number): Promise<void
   });
   if (!resp.ok) throw await falha(resp, "ao avaliar");
 }
+
+// --- Notificações push ---
+export async function buscarChavePush(): Promise<string> {
+  const resp = await fetch(`${API_URL}/notificacoes/chave`);
+  if (!resp.ok) throw await falha(resp, "ao buscar a chave de notificações");
+  return (await resp.json()).chave;
+}
+
+export async function salvarInscricao(ra: string, inscricao: PushSubscriptionJSON): Promise<void> {
+  const resp = await fetch(`${API_URL}/usuarios/${ra}/inscricoes`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(inscricao),
+  });
+  if (!resp.ok) throw await falha(resp, "ao ativar as notificações");
+}
+
+export async function removerInscricao(ra: string, endpoint: string): Promise<void> {
+  const resp = await fetch(`${API_URL}/usuarios/${ra}/inscricoes`, {
+    method: "DELETE", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ endpoint }),
+  });
+  if (!resp.ok) throw await falha(resp, "ao desativar as notificações");
+}

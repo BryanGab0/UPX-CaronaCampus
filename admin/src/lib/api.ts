@@ -78,3 +78,32 @@ export async function buscarSolicitacoes(): Promise<SolicitacaoAdmin[]> {
   if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar solicitações`);
   return resp.json();
 }
+
+// --- Denúncias (moderação) ---
+export interface DenunciaAdmin {
+  id: number;
+  motivo: string;
+  descricao: string;
+  status: "aberta" | "resolvida";
+  criadoEm: string;
+  denuncianteRa: string;
+  denuncianteNome: string;
+  denunciadoRa: string;
+  denunciadoNome: string;
+  denunciadoBloqueado: boolean;
+}
+
+export async function buscarDenuncias(): Promise<DenunciaAdmin[]> {
+  const resp = await fetch(`${API_URL}/admin/denuncias`, { headers: { ...authHeaders() } });
+  if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar denúncias`);
+  return resp.json();
+}
+
+export async function alterarStatusDenuncia(id: number, status: "aberta" | "resolvida"): Promise<void> {
+  const resp = await fetch(`${API_URL}/admin/denuncias/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ status }),
+  });
+  if (!resp.ok) throw new Error(`Erro ${resp.status} ao atualizar denúncia`);
+}

@@ -49,3 +49,9 @@ npm run dev
 O site abre em http://localhost:5173 (a API precisa estar rodando em http://localhost:3333).
 
 Para o painel administrativo, veja o [README do admin](admin/README.md).
+
+## Qualidade
+- `npm run lint` — ESLint (cobre app, admin e API)
+- `npm test` — testes do app (algoritmo de compatibilidade, impacto estimado e formatadores), com Vitest
+- `npm test` em `backend/` — testes da API (autenticação, permissões, aceite/recusa, limite de tentativas e migrações)
+- A cada push na `main` e em cada Pull Request, o GitHub Actions roda lint, checagem de tipos, testes e build dos três projetos.

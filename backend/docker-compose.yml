@@ -10,8 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      # scripts .sql aqui rodam automaticamente na criação do banco
-      - ./db:/docker-entrypoint-initdb.d
+      # As tabelas são criadas pelas migrações (npm run migrar), não pelo Docker.
       - carona_pgdata:/var/lib/postgresql/data
 
 volumes:

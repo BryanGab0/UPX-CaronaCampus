@@ -21,18 +21,18 @@ const trajeto = (extra: Partial<Trajeto> = {}): Trajeto => ({
 });
 
 const solicitacao = (status: string): MinhaSolicitacao => ({
-  id: 1, motoristaRa: "222", status, motoristaNome: "Motorista", endereco: "Rua B", motoristaTelefone: null, minhaNota: null,
+  id: 1, motoristaRa: "222", status, motoristaNome: "Motorista", endereco: "Rua B", motoristaTelefone: null, minhaNota: null, canceladoPor: null,
 });
-const pedido = (id: number, status: string): Pedido => ({ id, status, passageiroRa: "100", passageiroNome: "Ana", passageiroTelefone: null, minhaNota: null, passageiroMedia: null, passageiroAvaliacoes: 0 });
+const pedido = (id: number, status: string): Pedido => ({ id, status, passageiroRa: "100", passageiroNome: "Ana", passageiroTelefone: null, minhaNota: null, passageiroMedia: null, passageiroAvaliacoes: 0, canceladoPor: null });
 
 const perfilDe = (t: Trajeto) => ({ origem: t.origem, chegada: t.chegada, dias: t.dias });
 
 describe("calcularImpacto", () => {
-  it("é zero sem caronas aceitas", () => {
+  it("é zero sem caronas aceitas (pendentes, recusadas e canceladas não contam)", () => {
     const t = trajeto();
     const r = calcularImpacto({
-      solicitacoes: [solicitacao("pendente"), solicitacao("recusada")],
-      pedidos: [pedido(1, "pendente")],
+      solicitacoes: [solicitacao("pendente"), solicitacao("recusada"), solicitacao("cancelada")],
+      pedidos: [pedido(1, "pendente"), pedido(2, "cancelada")],
       resultados: ranquear(perfilDe(t), [motorista], FACENS),
       trajeto: t, destino: FACENS,
     });

@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router";
-import { ChevronLeft, Fuel, Users, Leaf, Check, Clock, MessageCircle, Flag } from "lucide-react";
+import { ChevronLeft, Fuel, Users, Leaf, Check, Clock, MessageCircle, Flag, X } from "lucide-react";
 import { cn } from "../lib/cn";
 import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { FACENS } from "../data/mock";
 import { useResultados } from "../hooks/useResultados";
 import { usePerfilContext } from "../context/PerfilContext";
 import { useAuth } from "../context/AuthContext";
-import { avaliar, buscarSolicitacoes, solicitarCarona } from "../lib/api";
+import { avaliar, buscarSolicitacoes, cancelarSolicitacao, solicitarCarona } from "../lib/api";
 import type { MinhaSolicitacao } from "../lib/api";
 import { PESO_HORARIO, PESO_ROTA, reais } from "../lib/match";
 import { CompatRing } from "./CompatRing";
@@ -17,6 +17,7 @@ import { useAviso } from "../hooks/useAviso";
 import { Carregando, ErroCarga } from "./Estado";
 import { Aviso } from "./Aviso";
 import { Denunciar } from "./Denunciar";
+import { Confirmar } from "./Confirmar";
 import { Estrelas, NotaMedia } from "./Estrelas";
 
 export function Detalhe() {
@@ -30,6 +31,7 @@ export function Detalhe() {
   const [enviando, setEnviando] = useState(false);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
   const [denunciando, setDenunciando] = useState(false);
+  const [cancelando, setCancelando] = useState(false); // folha de confirmação aberta
   const { aviso, mostrar } = useAviso();
   const [avaliando, setAvaliando] = useState(false);
 
@@ -45,6 +47,16 @@ export function Detalhe() {
     try { await solicitarCarona(ra, id); recarregar(); }
     catch (e) { console.error(e); setErroAcao("Não foi possível enviar o pedido. Tente novamente."); }
     finally { setEnviando(false); }
+  };
+
+  // Lança o erro para a folha de confirmação mostrar (ex.: o motorista respondeu nesse meio-tempo).
+  const onCancelar = async () => {
+    if (!solic) return;
+    const desistiu = solic.status === "aceita";
+    await cancelarSolicitacao(solic.id);
+    setCancelando(false);
+    recarregar();
+    mostrar("ok", desistiu ? "Você desistiu da carona. O motorista foi avisado." : "Pedido cancelado.");
   };
 
   const onAvaliar = async (nota: number) => {
@@ -133,19 +145,35 @@ export function Detalhe() {
             <MessageCircle size={18} className="shrink-0" /> Chamar {primeiroNome(carona.nome)} no WhatsApp
           </a>
         ) : status === "pendente" ? (
-          <div className="mt-2 flex items-center justify-center gap-2 rounded-[14px] bg-brand-soft px-4 py-4 text-center text-sm font-bold text-brand">
-            <Clock size={18} className="shrink-0" /> Pedido enviado · aguardando o motorista
-          </div>
+          <>
+            <div className="mt-2 flex items-center justify-center gap-2 rounded-[14px] bg-brand-soft px-4 py-4 text-center text-sm font-bold text-brand">
+              <Clock size={18} className="shrink-0" /> Pedido enviado · aguardando o motorista
+            </div>
+            <BotaoCancelar texto="Cancelar pedido" onClick={() => setCancelando(true)} />
+          </>
         ) : status === "recusada" ? (
           <div className="mt-2 rounded-[14px] bg-canvas py-4 text-center text-sm font-bold text-sub">Pedido recusado</div>
         ) : (
-          <button onClick={onSolicitar} disabled={enviando}
-            className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erroAcao ? "mt-3" : "mt-5")}>
-            {enviando ? "Enviando…" : "Solicitar carona"}
-          </button>
+          <>
+            {/* Cancelado: explica o que houve; dá para pedir de novo. */}
+            {status === "cancelada" && (
+              <p className={cn("text-center text-[13px] text-sub", erroAcao ? "mt-2" : "mt-5")}>
+                {solic?.canceladoPor === "motorista"
+                  ? `${primeiroNome(carona.nome)} desfez o aceite. Se quiser, peça de novo.`
+                  : "Você cancelou este pedido. Pode pedir de novo quando quiser."}
+              </p>
+            )}
+            <button onClick={onSolicitar} disabled={enviando}
+              className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erroAcao || status === "cancelada" ? "mt-3" : "mt-5")}>
+              {enviando ? "Enviando…" : "Solicitar carona"}
+            </button>
+          </>
         )}
         {status === "aceita" && (
-          <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-good-ink"><Check size={14} /> Carona aceita!</div>
+          <>
+            <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-good-ink"><Check size={14} /> Carona aceita!</div>
+            <BotaoCancelar texto="Desistir da carona" onClick={() => setCancelando(true)} />
+          </>
         )}
         {status === "aceita" && solic && (
           <div className="mt-4 flex flex-col items-center rounded-[18px] border border-line bg-surface p-4">
@@ -162,11 +190,28 @@ export function Detalhe() {
         </button>
       </div>
 
+      {cancelando && solic && (
+        <Confirmar
+          titulo={solic.status === "aceita" ? "Desistir da carona?" : "Cancelar o pedido?"}
+          texto={solic.status === "aceita"
+            ? `${primeiroNome(carona.nome)} recebe um aviso e o telefone de cada um deixa de aparecer no app. Se já tinham combinado algo, avise pelo WhatsApp antes.`
+            : `O pedido para ${primeiroNome(carona.nome)} deixa de aguardar resposta. Você pode pedir de novo depois.`}
+          acao={solic.status === "aceita" ? "Desistir" : "Cancelar pedido"}
+          onConfirmar={onCancelar} onFechar={() => setCancelando(false)} />
+      )}
       {denunciando && (
         <Denunciar denunciadoRa={carona.id} denunciadoNome={carona.nome} onFechar={() => setDenunciando(false)}
           onEnviada={() => { setDenunciando(false); mostrar("ok", "Denúncia enviada. A administração vai analisar."); }} />
       )}
     </div>
+  );
+}
+
+function BotaoCancelar({ texto, onClick }: { texto: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="mx-auto mt-3 flex items-center gap-1.5 text-xs font-semibold text-sub transition active:scale-[.98]">
+      <X size={13} /> {texto}
+    </button>
   );
 }
 

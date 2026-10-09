@@ -47,6 +47,7 @@ export function Dashboard() {
               <button
                 key={id}
                 onClick={() => setView(id)}
+                aria-current={ativo ? "page" : undefined}
                 className={cn(
                   "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold transition md:w-full md:gap-3 md:py-2.5",
                   ativo ? "bg-brand-soft text-brand" : "text-sub hover:bg-canvas",

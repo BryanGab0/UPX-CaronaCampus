@@ -1,9 +1,11 @@
 @import "tailwindcss";
 @theme {
   --color-canvas: #F3F5F9; --color-surface: #FFFFFF;
-  --color-ink: #161A22; --color-sub: #6A7382; --color-line: #E6EAF1;
+  --color-ink: #161A22; --color-sub: #5C6573; --color-line: #E6EAF1;
   --color-brand: #2F4BFF; --color-brand-soft: #EAEEFF;
   --color-accent: #FF7A45; --color-good: #12B886;
+  /* versões escuras para texto e botões com texto branco (contraste >= 4,5:1) */
+  --color-accent-ink: #C2410C; --color-good-ink: #0F7A5A;
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-display: "Space Grotesk", system-ui, sans-serif;
 }
@@ -13,3 +15,8 @@ body { font-family: var(--font-sans); background: var(--color-canvas); color: va
 @media (pointer: coarse) { input, select, textarea { font-size: 16px; } }
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Acessibilidade: contorno visível ao navegar pelo teclado (Tab). */
+@layer base {
+  :focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+}

@@ -65,27 +65,27 @@ export function Denuncias() {
         <p className="mt-6 rounded-2xl border border-line bg-surface p-6 text-center text-sm text-sub">Nenhuma denúncia recebida.</p>
       ) : (
         <>
-          {erroAcao && <p role="alert" className="mt-4 text-sm font-semibold text-accent">{erroAcao}</p>}
+          {erroAcao && <p role="alert" className="mt-4 text-sm font-semibold text-accent-ink">{erroAcao}</p>}
           <div className="mt-6 space-y-3">
             {lista.map((d) => (
               <article key={d.id} className={cn("rounded-2xl border border-line bg-surface p-4 sm:p-5", d.status === "resolvida" && "opacity-60")}>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-md bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand">{MOTIVOS[d.motivo] ?? d.motivo}</span>
-                  <span className={cn("text-xs font-semibold", d.status === "aberta" ? "text-accent" : "text-good")}>{d.status}</span>
+                  <span className={cn("text-xs font-semibold", d.status === "aberta" ? "text-accent-ink" : "text-good-ink")}>{d.status}</span>
                   <span className="ml-auto text-xs text-sub">{dataHora(d.criadoEm)}</span>
                 </div>
 
                 <p className="mt-3 text-sm">
                   <b>{d.denuncianteNome}</b> <span className="text-sub">({d.denuncianteRa})</span> denunciou{" "}
                   <b>{d.denunciadoNome}</b> <span className="text-sub">({d.denunciadoRa})</span>
-                  {d.denunciadoBloqueado && <span className="ml-2 text-xs font-semibold text-accent">bloqueado</span>}
+                  {d.denunciadoBloqueado && <span className="ml-2 text-xs font-semibold text-accent-ink">bloqueado</span>}
                 </p>
                 {d.descricao && <p className="mt-2 whitespace-pre-line break-words rounded-xl bg-canvas p-3 text-sm text-sub">{d.descricao}</p>}
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button onClick={() => alternarBloqueio(d)} disabled={alterando === d.id}
                     className={cn("rounded-lg px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50",
-                      d.denunciadoBloqueado ? "border border-line text-sub hover:border-ink hover:text-ink" : "bg-accent text-white hover:opacity-90")}>
+                      d.denunciadoBloqueado ? "border border-line text-sub hover:border-ink hover:text-ink" : "bg-accent-ink text-white hover:opacity-90")}>
                     {d.denunciadoBloqueado ? `Desbloquear ${d.denunciadoNome}` : `Bloquear ${d.denunciadoNome}`}
                   </button>
                   <button onClick={() => alternarStatus(d)} disabled={alterando === d.id}

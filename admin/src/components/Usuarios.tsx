@@ -46,7 +46,7 @@ export function Usuarios() {
         <Carregando />
       ) : (
         <>
-        {erroAcao && <p role="alert" className="mt-4 text-sm font-semibold text-accent">{erroAcao}</p>}
+        {erroAcao && <p role="alert" className="mt-4 text-sm font-semibold text-accent-ink">{erroAcao}</p>}
         <div className="mt-6 overflow-x-auto rounded-2xl border border-line bg-surface">
           <table className="w-full whitespace-nowrap text-left text-sm">
             <thead className="border-b border-line text-xs uppercase text-sub">
@@ -77,7 +77,7 @@ export function Usuarios() {
                   <td className="px-4 py-3 sm:px-5 text-sub">{data(u.criado_em)}</td>
                   <td className="px-4 py-3 sm:px-5">
                     <div className="flex items-center gap-3">
-                      <span className={cn("text-xs font-semibold", u.bloqueado ? "text-accent" : "text-good")}>
+                      <span className={cn("text-xs font-semibold", u.bloqueado ? "text-accent-ink" : "text-good-ink")}>
                         {u.bloqueado ? "bloqueado" : "ativo"}
                       </span>
                       {!u.admin && (

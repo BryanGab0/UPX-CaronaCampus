@@ -2,6 +2,7 @@ import { Router } from "express";
 import { pool } from "../db.js";
 import { autenticar, mesmoUsuario } from "../middleware/autenticar.js";
 import type { ReqAuth } from "../middleware/autenticar.js";
+import { SQL_MEDIAS } from "./avaliacoes.js";
 
 export const solicitacoesRouter = Router();
 
@@ -48,19 +49,21 @@ solicitacoesRouter.post("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, 
 solicitacoesRouter.get("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT s.motorista_ra, s.status, s.criado_em, m.nome AS motorista_nome,
+      `SELECT s.id, s.motorista_ra, s.status, s.criado_em, m.nome AS motorista_nome,
               t.endereco AS motorista_endereco,
-              CASE WHEN s.status = 'aceita' THEN m.telefone ELSE NULL END AS motorista_telefone
+              CASE WHEN s.status = 'aceita' THEN m.telefone ELSE NULL END AS motorista_telefone,
+              a.nota AS minha_nota
        FROM solicitacoes s
        JOIN usuarios m ON m.ra = s.motorista_ra
        LEFT JOIN trajetos t ON t.usuario_ra = s.motorista_ra
+       LEFT JOIN avaliacoes a ON a.solicitacao_id = s.id AND a.avaliador_ra = $1
        WHERE s.passageiro_ra = $1
        ORDER BY s.criado_em DESC`,
       [req.params.ra],
     );
     res.json(rows.map((r) => ({
-      motoristaRa: r.motorista_ra, status: r.status, motoristaNome: r.motorista_nome,
-      endereco: r.motorista_endereco, motoristaTelefone: r.motorista_telefone,
+      id: r.id, motoristaRa: r.motorista_ra, status: r.status, motoristaNome: r.motorista_nome,
+      endereco: r.motorista_endereco, motoristaTelefone: r.motorista_telefone, minhaNota: r.minha_nota,
     })));
   } catch (e) {
     console.error(e);
@@ -73,16 +76,20 @@ solicitacoesRouter.get("/usuarios/:ra/pedidos", autenticar, mesmoUsuario, async 
   try {
     const { rows } = await pool.query(
       `SELECT s.id, s.status, s.criado_em, p.ra AS passageiro_ra, p.nome AS passageiro_nome,
-              CASE WHEN s.status = 'aceita' THEN p.telefone ELSE NULL END AS passageiro_telefone
+              CASE WHEN s.status = 'aceita' THEN p.telefone ELSE NULL END AS passageiro_telefone,
+              a.nota AS minha_nota, md.media AS passageiro_media, COALESCE(md.total, 0) AS passageiro_avaliacoes
        FROM solicitacoes s
        JOIN usuarios p ON p.ra = s.passageiro_ra
+       LEFT JOIN avaliacoes a ON a.solicitacao_id = s.id AND a.avaliador_ra = $1
+       LEFT JOIN (${SQL_MEDIAS}) md ON md.avaliado_ra = s.passageiro_ra
        WHERE s.motorista_ra = $1
        ORDER BY s.criado_em DESC`,
       [req.params.ra],
     );
     res.json(rows.map((r) => ({
       id: r.id, status: r.status, passageiroRa: r.passageiro_ra, passageiroNome: r.passageiro_nome,
-      passageiroTelefone: r.passageiro_telefone,
+      passageiroTelefone: r.passageiro_telefone, minhaNota: r.minha_nota,
+      passageiroMedia: r.passageiro_media, passageiroAvaliacoes: r.passageiro_avaliacoes,
     })));
   } catch (e) {
     console.error(e);

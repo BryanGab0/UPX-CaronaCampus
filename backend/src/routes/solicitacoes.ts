@@ -12,7 +12,25 @@ solicitacoesRouter.post("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, 
     res.status(400).json({ erro: "motoristaRa é obrigatório" });
     return;
   }
+  if (String(motoristaRa) === req.params.ra) {
+    res.status(400).json({ erro: "não é possível pedir carona para si mesmo" });
+    return;
+  }
   try {
+    // O destinatário precisa existir e oferecer carona (trajeto como motorista).
+    const alvo = await pool.query(
+      `SELECT t.papel FROM usuarios u LEFT JOIN trajetos t ON t.usuario_ra = u.ra WHERE u.ra = $1`,
+      [motoristaRa],
+    );
+    if (alvo.rows.length === 0) {
+      res.status(404).json({ erro: "motorista não encontrado" });
+      return;
+    }
+    if (alvo.rows[0].papel !== "motorista") {
+      res.status(400).json({ erro: "este usuário não oferece carona" });
+      return;
+    }
+
     const { rows } = await pool.query(
       `INSERT INTO solicitacoes (passageiro_ra, motorista_ra) VALUES ($1, $2)
        ON CONFLICT (passageiro_ra, motorista_ra) DO UPDATE SET status = solicitacoes.status

@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import type { SignOptions } from "jsonwebtoken";
 import { pool } from "../db.js";
-import { autenticar } from "../middleware/autenticar.js";
+import { autenticar, RESPOSTA_BLOQUEADO } from "../middleware/autenticar.js";
 import type { ReqAuth } from "../middleware/autenticar.js";
 import { limiteLogin, limiteRegistro } from "../middleware/limite.js";
 import { JWT_SECRET as SEGREDO } from "../config.js";
@@ -63,13 +63,18 @@ authRouter.post("/auth/login", limiteLogin, async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      "SELECT ra, nome, email, senha_hash, admin FROM usuarios WHERE ra = $1",
+      "SELECT ra, nome, email, senha_hash, admin, bloqueado FROM usuarios WHERE ra = $1",
       [ra],
     );
     const u = rows[0];
     // bcrypt.compare confere a senha digitada contra o hash guardado.
     if (!u || !u.senha_hash || !(await bcrypt.compare(String(senha), u.senha_hash))) {
       res.status(401).json({ erro: "RA ou senha inválidos" });
+      return;
+    }
+    // Só depois de conferir a senha: não revela a terceiros que a conta está bloqueada.
+    if (u.bloqueado) {
+      res.status(403).json(RESPOSTA_BLOQUEADO);
       return;
     }
     res.json({ token: gerarToken(ra), usuario: { ra: u.ra, nome: u.nome, email: u.email, admin: u.admin } });

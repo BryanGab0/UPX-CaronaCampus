@@ -5,7 +5,7 @@ import type { ReqAuth } from "../middleware/autenticar.js";
 
 export const caronasRouter = Router();
 
-// Caronas = usuários com trajeto papel='motorista' (exceto o próprio usuário).
+// Caronas = usuários com trajeto papel='motorista' (exceto o próprio usuário e contas bloqueadas).
 caronasRouter.get("/caronas", autenticar, async (req: ReqAuth, res) => {
   try {
     const { rows } = await pool.query(
@@ -13,7 +13,7 @@ caronasRouter.get("/caronas", autenticar, async (req: ReqAuth, res) => {
               t.dias, t.chegada, t.carro_modelo, t.carro_consumo
        FROM trajetos t
        JOIN usuarios u ON u.ra = t.usuario_ra
-       WHERE t.papel = 'motorista' AND u.ra <> $1`,
+       WHERE t.papel = 'motorista' AND u.ra <> $1 AND NOT u.bloqueado`,
       [req.usuarioRa],
     );
     res.json(rows.map((r) => ({

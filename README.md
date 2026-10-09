@@ -38,6 +38,8 @@ O repositório tem três partes:
 - Página de privacidade (LGPD) explicando quais dados são usados e quem vê o quê
 - Painel administrativo: estatísticas, usuários (com bloqueio de conta), solicitações e denúncias
 - Instalável na tela inicial do celular (PWA), abrindo em tela cheia
+- Notificações push: o motorista é avisado de pedidos novos e o passageiro, do aceite ou da recusa (ativadas no Perfil; no iPhone, com o app instalado)
+- Acessibilidade: contraste AA, navegação por teclado e rótulos para leitores de tela
 
 ## Como rodar localmente
 Precisa de Node 20.19+ (ou 22.12+) e do back-end no ar.
@@ -56,6 +58,6 @@ Para o painel administrativo, veja o [README do admin](admin/README.md).
 
 ## Qualidade
 - `npm run lint` — ESLint (cobre app, admin e API)
-- `npm test` — testes do app (algoritmo de compatibilidade, impacto estimado e formatadores), com Vitest
-- `npm test` em `backend/` — testes da API (autenticação, permissões, aceite/recusa, limite de tentativas e migrações)
+- `npm test` — testes do app e do admin (compatibilidade, impacto estimado, formatadores, busca e paginação), com Vitest
+- `npm test` em `backend/` — testes da API (autenticação, permissões, aceite/recusa, moderação, avaliações, notificações, limite de tentativas e migrações)
 - A cada push na `main` e em cada Pull Request, o GitHub Actions roda lint, checagem de tipos, testes e build dos três projetos.

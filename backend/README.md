@@ -29,6 +29,8 @@ Definidas no `.env` (modelo em `.env.example`):
 | `PORT` | Porta da API (padrão 3333) |
 | `JWT_SECRET` | Segredo que assina os tokens. **Obrigatória**: sem ela a API não sobe |
 | `CORS_ORIGINS` | Sites que podem chamar a API, separados por vírgula (padrão: `localhost:5173` e `5174`) |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Chaves das notificações push (opcionais: sem elas a API funciona, só não envia avisos). Gerar com `npx web-push generate-vapid-keys` |
+| `VAPID_SUBJECT` | Contato do remetente das notificações (padrão: `mailto:caronacampus.contato@gmail.com`) |
 
 A API sobe em http://localhost:3333.
 Teste rápido: acesse http://localhost:3333/health → deve responder `{"status":"ok","db":"ok"}`.
@@ -57,6 +59,7 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - Limite de tentativas por IP: 10 logins com falha a cada 15 min e 5 cadastros por hora (resposta 429).
 - Moderação: o admin bloqueia contas (`PATCH /admin/usuarios/:ra/bloqueio`). A cada requisição, o `autenticar` confere no banco se a conta existe e não está bloqueada; conta bloqueada não faz login e some da lista de caronas.
 - Telefone só é exposto às duas partes de um pedido aceito.
+- Notificações push (Web Push/VAPID) para pedido novo e para aceite/recusa; contas bloqueadas não recebem, e aparelhos que cancelaram a inscrição (404/410) são removidos automaticamente.
 
 ## Endpoints
 - `GET  /health`                     — saúde da API e do banco
@@ -75,4 +78,5 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - `solicitacoes` — pedidos de carona do passageiro ao motorista, com status `pendente`, `aceita` ou `recusada` (chaves estrangeiras → `usuarios`)
 - `denuncias` — denúncia de um usuário contra outro (motivo, descrição, status `aberta`/`resolvida`; uma aberta por par)
 - `avaliacoes` — nota de 1 a 5 que cada lado dá ao outro em um pedido aceito (uma por lado; a média é calculada na consulta)
+- `inscricoes_push` — aparelhos inscritos para receber notificações (endereço e chaves do navegador)
 - `migracoes` — controle de quais migrações já foram aplicadas

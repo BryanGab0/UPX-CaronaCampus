@@ -24,6 +24,8 @@ docker compose exec db psql -U carona -d caronacampus -c "UPDATE usuarios SET ad
 ```
 
 ## Telas
+Todas as listas têm busca (sem diferenciar acentos), filtros com contagem e paginação de 20 em 20.
+
 - **Estatísticas** — totais de usuários, caronas, trajetos e solicitações
 - **Usuários** — lista dos cadastrados (marca quem é admin), com bloquear/desbloquear conta
 - **Solicitações** — todos os pedidos de carona

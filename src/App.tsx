@@ -7,6 +7,7 @@ import { Trajeto } from "./components/Trajeto";
 import { Caronas } from "./components/Caronas";
 import { Detalhe } from "./components/Detalhe";
 import { Perfil } from "./components/Perfil";
+import { Privacidade } from "./components/Privacidade";
 
 export default function App() {
   const { autenticado } = useAuth();
@@ -14,6 +15,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/privacidade" element={<Privacidade />} /> {/* pública: abre com ou sem login */}
 
       {/* Rotas protegidas: sem estar logado, redireciona para /login */}
       <Route element={autenticado ? <Layout /> : <Navigate to="/login" replace />}>

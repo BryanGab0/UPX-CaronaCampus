@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag, ShieldCheck, ChevronRight } from "lucide-react";
 import { cn } from "../lib/cn";
 import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { useAuth } from "../context/AuthContext";
@@ -119,8 +119,15 @@ export function Perfil() {
         </div>
       )}
 
+      <Link to="/privacidade"
+        className="mt-5 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-4 py-3.5 text-sm font-semibold transition active:scale-[.98]">
+        <ShieldCheck size={17} className="shrink-0 text-brand" />
+        <span className="flex-1">Privacidade e uso dos dados</span>
+        <ChevronRight size={17} className="shrink-0 text-sub" />
+      </Link>
+
       <button onClick={onSair}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-[14px] border border-line bg-surface py-4 text-sm font-bold text-sub transition active:scale-[.98]">
+        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-[14px] border border-line bg-surface py-4 text-sm font-bold text-sub transition active:scale-[.98]">
         <LogOut size={17} /> Sair
       </button>
 

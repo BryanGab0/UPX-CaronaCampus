@@ -1,27 +1,8 @@
-import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 import { usePersistedState } from "../hooks/usePersistedState";
 import { login as apiLogin, registrar as apiRegistrar, definirToken } from "../lib/api";
 import type { Sessao } from "../lib/api";
-
-export const DOMINIO_FACENS = "facens.br";
-
-export function emailInstitucional(email: string): boolean {
-  const re = new RegExp(`^\\d+@${DOMINIO_FACENS.replace(".", "\\.")}$`, "i");
-  return re.test(email.trim());
-}
-
-interface AuthContextValue {
-  autenticado: boolean;
-  nome: string;
-  email: string;
-  ra: string;
-  login: (email: string, senha: string) => Promise<void>;
-  registrar: (email: string, nome: string, telefone: string, senha: string) => Promise<void>;
-  sair: () => void;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext } from "./AuthContext";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessao, setSessao] = usePersistedState<Sessao | null>("carona:sessao", null);
@@ -58,10 +39,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth deve ser usado dentro de AuthProvider");
-  return ctx;
 }

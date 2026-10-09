@@ -1,0 +1,34 @@
+// Monta a API (rotas e middlewares) sem abrir porta: o server.ts sobe o servidor
+// e os testes usam o app direto com o supertest.
+import express from "express";
+import cors from "cors";
+import "dotenv/config";
+import { pool } from "./db.js";
+import { CORS_ORIGINS } from "./config.js";
+import { caronasRouter } from "./routes/caronas.js";
+import { usuariosRouter } from "./routes/usuarios.js";
+import { solicitacoesRouter } from "./routes/solicitacoes.js";
+import { authRouter } from "./routes/auth.js";
+import { adminRouter } from "./routes/admin.js";
+ 
+export const app = express();
+// No Render a API fica atrás de um proxy: sem isto, todos os acessos teriam o IP do proxy
+// e o limite de tentativas valeria para todos os usuários juntos.
+app.set("trust proxy", 1);
+app.use(cors({ origin: CORS_ORIGINS }));
+app.use(express.json());
+ 
+app.get("/health", async (_req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ status: "ok", db: "ok" });
+  } catch {
+    res.status(500).json({ status: "erro", db: "off" });
+  }
+});
+ 
+app.use(caronasRouter);
+app.use(usuariosRouter);
+app.use(solicitacoesRouter);
+app.use(authRouter);
+app.use("/admin", adminRouter);

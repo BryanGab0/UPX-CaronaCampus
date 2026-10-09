@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ChevronLeft, Fuel, Users, Leaf, Check, Clock, MessageCircle } from "lucide-react";
 import { cn } from "../lib/cn";
+import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { FACENS } from "../data/mock";
 import { useResultados } from "../hooks/useResultados";
 import { usePerfilContext } from "../context/PerfilContext";
@@ -13,8 +14,6 @@ import { PESO_HORARIO, PESO_ROTA, reais } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { MapaRota } from "./MapaRota";
 import { Carregando, ErroCarga } from "./Estado";
-
-const whatsapp = (tel: string, texto: string) => `https://wa.me/55${tel}?text=${encodeURIComponent(texto)}`;
 
 export function Detalhe() {
   const { id } = useParams();
@@ -57,7 +56,6 @@ export function Detalhe() {
   }
 
   const { carona, compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm, custoDia } = resultado;
-  const iniciais = carona.nome.split(" ").slice(0, 2).map((n) => n[0]).join("");
   const mensal = reais(custoDia * 22);
   const status = solic?.status;
 
@@ -67,7 +65,7 @@ export function Detalhe() {
         <button onClick={() => navigate(-1)} aria-label="Voltar" className="grid size-10 shrink-0 place-items-center rounded-xl border border-line transition active:scale-[.98]">
           <ChevronLeft size={19} className="text-sub" />
         </button>
-        <div className="hidden size-11 shrink-0 place-items-center rounded-[13px] bg-brand text-sm font-bold text-white min-[360px]:grid">{iniciais}</div>
+        <div className="hidden size-11 shrink-0 place-items-center rounded-[13px] bg-brand text-sm font-bold text-white min-[360px]:grid">{iniciais(carona.nome)}</div>
         <div className="min-w-0 flex-1">
           <div className="truncate font-bold">{carona.nome}</div>
           <div className="truncate text-xs text-sub">motorista · {carona.endereco}</div>
@@ -111,10 +109,10 @@ export function Detalhe() {
         {/* Ação / status */}
         {erroAcao && <p className="mt-5 text-[13px] text-accent">{erroAcao}</p>}
         {status === "aceita" && solic?.motoristaTelefone ? (
-          <a href={whatsapp(solic.motoristaTelefone, `Oi ${carona.nome.split(" ")[0]}! Topei a carona pra Facens. Vamos combinar o ponto de encontro?`)}
+          <a href={linkWhatsapp(solic.motoristaTelefone, `Oi ${primeiroNome(carona.nome)}! Topei a carona pra Facens. Vamos combinar o ponto de encontro?`)}
             target="_blank" rel="noopener noreferrer"
             className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] bg-good px-4 py-4 text-center text-sm font-bold text-white transition active:scale-[.98]">
-            <MessageCircle size={18} className="shrink-0" /> Chamar {carona.nome.split(" ")[0]} no WhatsApp
+            <MessageCircle size={18} className="shrink-0" /> Chamar {primeiroNome(carona.nome)} no WhatsApp
           </a>
         ) : status === "pendente" ? (
           <div className="mt-2 flex items-center justify-center gap-2 rounded-[14px] bg-brand-soft px-4 py-4 text-center text-sm font-bold text-brand">

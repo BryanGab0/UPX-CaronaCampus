@@ -6,6 +6,7 @@ import { usePerfilContext } from "../context/PerfilContext";
 import { useResultados } from "../hooks/useResultados";
 import { usePedidos } from "../hooks/usePedidos";
 import { useSolicitacoes } from "../hooks/useSolicitacoes";
+import { primeiroNome } from "../lib/formato";
 import { calcularImpacto } from "../lib/impacto";
 import { FACENS } from "../data/mock";
 import { ImpactStats } from "./ImpactStats";
@@ -39,7 +40,7 @@ export function Home() {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="text-sm text-sub">{saudacao()},</div>
-            <h1 className="truncate font-display text-[27px] font-bold tracking-tight">{nome.split(" ")[0]}</h1>
+            <h1 className="truncate font-display text-[27px] font-bold tracking-tight">{primeiroNome(nome)}</h1>
           </div>
           <div className="flex shrink-0 items-center gap-2.5">
             {/* Leva aos pedidos recebidos (no Perfil); a bolinha só aparece se houver pedido pendente. */}

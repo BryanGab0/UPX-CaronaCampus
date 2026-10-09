@@ -2,7 +2,7 @@
 [![CI](https://github.com/BryanGab0/UPX-CaronaCampus/actions/workflows/ci.yml/badge.svg)](https://github.com/BryanGab0/UPX-CaronaCampus/actions/workflows/ci.yml)
 
 Plataforma de **carona universitária** exclusiva para a comunidade da Facens (Sorocaba).
-O acesso é só com e-mail institucional, o que resolve confiança e segurança.
+O cadastro é restrito ao formato de e-mail da Facens (`RA@facens.br`), e a confiança entre os usuários vem da moderação: o administrador pode bloquear contas, e o telefone só é revelado depois que o motorista aceita o pedido.
 
 > Projeto acadêmico de faculdade.
 

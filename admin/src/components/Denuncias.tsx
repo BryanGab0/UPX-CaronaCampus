@@ -1,8 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { alterarBloqueio, alterarStatusDenuncia, buscarDenuncias } from "../lib/api";
 import type { DenunciaAdmin } from "../lib/api";
 import { cn } from "../lib/cn";
+import { combina, paginar } from "../lib/filtro";
 import { Carregando, ErroCarga } from "./Estado";
+import { BarraFiltros, Busca, Opcoes, Paginacao, SemResultado } from "./Filtros";
+
+type Situacao = "todas" | "aberta" | "resolvida";
+const SITUACOES: { id: Situacao; texto: string }[] = [
+  { id: "todas", texto: "Todas" }, { id: "aberta", texto: "Em aberto" }, { id: "resolvida", texto: "Resolvidas" },
+];
+const daSituacao = (d: DenunciaAdmin, s: Situacao) => s === "todas" || d.status === s;
 
 const MOTIVOS: Record<string, string> = {
   comportamento: "Comportamento inadequado",
@@ -28,6 +36,17 @@ export function Denuncias() {
 
   const tentar = () => { setErro(false); setVersao((v) => v + 1); };
   const abertas = lista?.filter((d) => d.status === "aberta").length ?? 0;
+
+  const [busca, setBusca] = useState("");
+  const [situacao, setSituacao] = useState<Situacao>("todas");
+  const [pagina, setPagina] = useState(1);
+  const limpar = () => { setBusca(""); setSituacao("todas"); setPagina(1); };
+  const filtrada = useMemo(
+    () => (lista ?? []).filter((d) => daSituacao(d, situacao)
+      && combina([d.denuncianteNome, d.denuncianteRa, d.denunciadoNome, d.denunciadoRa, MOTIVOS[d.motivo], d.descricao], busca)),
+    [lista, situacao, busca],
+  );
+  const pag = paginar(filtrada, pagina);
 
   // Executa a ação e recarrega a lista (o bloqueio afeta todas as denúncias da mesma pessoa).
   const agir = async (d: DenunciaAdmin, acao: () => Promise<void>, falhou: string) => {
@@ -55,7 +74,7 @@ export function Denuncias() {
   return (
     <div>
       <h1 className="font-display text-2xl font-bold tracking-tight">Denúncias</h1>
-      <p className="mt-1 text-sm text-sub">{lista ? `${abertas} em aberto · ${lista.length} no total` : "Carregando…"}</p>
+      <p className="mt-1 text-sm text-sub">{lista ? `${abertas} em aberto · ${lista.length} no total` : erro ? "" : "Carregando…"}</p>
 
       {erro ? (
         <div className="mt-6"><ErroCarga onTentar={tentar} /></div>
@@ -66,8 +85,14 @@ export function Denuncias() {
       ) : (
         <>
           {erroAcao && <p role="alert" className="mt-4 text-sm font-semibold text-accent-ink">{erroAcao}</p>}
-          <div className="mt-6 space-y-3">
-            {lista.map((d) => (
+          <BarraFiltros>
+            <Busca valor={busca} onChange={(v) => { setBusca(v); setPagina(1); }} placeholder="Buscar denúncia" rotulo="Buscar por nome, RA, motivo ou descrição" />
+            <Opcoes rotulo="Filtrar denúncias" valor={situacao} onChange={(v) => { setSituacao(v); setPagina(1); }}
+              opcoes={SITUACOES.map((o) => ({ ...o, total: lista.filter((d) => daSituacao(d, o.id)).length }))} />
+          </BarraFiltros>
+          {filtrada.length === 0 ? <SemResultado onLimpar={limpar} /> : (
+          <div className="mt-4 space-y-3">
+            {pag.itens.map((d) => (
               <article key={d.id} className={cn("rounded-2xl border border-line bg-surface p-4 sm:p-5", d.status === "resolvida" && "opacity-60")}>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-md bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand">{MOTIVOS[d.motivo] ?? d.motivo}</span>
@@ -96,6 +121,8 @@ export function Denuncias() {
               </article>
             ))}
           </div>
+          )}
+          <Paginacao pagina={pag} total={filtrada.length} onMudar={setPagina} />
         </>
       )}
     </div>

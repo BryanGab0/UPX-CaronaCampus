@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
 import { Search } from "lucide-react";
+import { usePerfilContext } from "../context/PerfilContext";
 import { cn } from "../lib/cn";
 import { useResultados } from "../hooks/useResultados";
 import { RideRow } from "./RideRow";
-import { Carregando, ErroCarga } from "./Estado";
+import { ErroCarga, EsqueletoLista, EstadoVazio, SemMotoristas, SemTrajeto } from "./Estado";
 
 type Ordem = "compat" | "custo" | "horario";
 const ORDENS: { id: Ordem; label: string }[] = [
@@ -14,6 +15,7 @@ const ORDENS: { id: Ordem; label: string }[] = [
 
 export function Caronas() {
   const { resultados, carregando, erro, recarregar } = useResultados();
+  const { trajeto, pronto, temTrajeto } = usePerfilContext();
   const [busca, setBusca] = useState("");
   const [ordem, setOrdem] = useState<Ordem>("compat");
 
@@ -31,7 +33,7 @@ export function Caronas() {
   return (
     <div className="animate-rise px-[22px] pt-[46px]">
       <h1 className="font-display text-[26px] font-bold tracking-tight">Caronas</h1>
-      <p className="mt-1 text-sm text-sub">{carregando ? "buscando…" : `${resultados.length} compatíveis com o seu trajeto`}</p>
+      <p className="mt-1 text-sm text-sub">{carregando || !pronto ? "buscando…" : !temTrajeto ? "cadastre seu trajeto para ver as compatíveis" : `${resultados.length} compatíveis com o seu trajeto`}</p>
 
       <div className="mt-4 flex items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3">
         <Search size={18} className="shrink-0 text-sub" />
@@ -50,14 +52,20 @@ export function Caronas() {
         ))}
       </div>
 
-      {carregando ? (
-        <Carregando />
+      {carregando || !pronto ? (
+        <EsqueletoLista quantidade={4} className="mt-4" />
       ) : erro ? (
         <ErroCarga onTentar={recarregar} />
+      ) : !temTrajeto ? (
+        <SemTrajeto className="mt-4" />
+      ) : resultados.length === 0 ? (
+        <SemMotoristas souMotorista={trajeto.papel === "motorista"} className="mt-4" />
       ) : (
         <div className="mt-4">
           {lista.length === 0 ? (
-            <p className="py-16 text-center text-sm text-sub">Nenhuma carona encontrada.</p>
+            <EstadoVazio icone={<Search size={22} />} titulo={`Nada encontrado para “${busca.trim()}”`}
+              texto="Tente outro nome ou bairro, ou limpe a busca para ver todas as caronas."
+              acao={{ texto: "Limpar busca", onClick: () => setBusca("") }} />
           ) : (
             lista.map((r) => <RideRow key={r.carona.id} resultado={r} />)
           )}

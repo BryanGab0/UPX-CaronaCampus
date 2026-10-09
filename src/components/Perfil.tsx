@@ -8,7 +8,8 @@ import { usePedidos } from "../hooks/usePedidos";
 import { useAviso } from "../hooks/useAviso";
 import { avaliar, responderSolicitacao } from "../lib/api";
 import type { Pedido } from "../lib/api";
-import { Carregando, ErroCarga } from "./Estado";
+import { ErroCarga, EsqueletoLista, EstadoVazio } from "./Estado";
+import { usePerfilContext } from "../context/PerfilContext";
 import { Aviso } from "./Aviso";
 import { Denunciar } from "./Denunciar";
 import { Estrelas, NotaMedia } from "./Estrelas";
@@ -18,6 +19,7 @@ export function Perfil() {
   const navigate = useNavigate();
 
   const { pedidos, carregando, erro, recarregar } = usePedidos();
+  const { trajeto } = usePerfilContext();
   const { aviso, mostrar } = useAviso();
   const [respondendo, setRespondendo] = useState<number | null>(null); // id do pedido em andamento
   const [denunciado, setDenunciado] = useState<Pedido | null>(null);
@@ -67,13 +69,18 @@ export function Perfil() {
       <Aviso aviso={aviso} />
 
       {carregando ? (
-        <Carregando />
+        <EsqueletoLista quantidade={2} texto="Carregando pedidos…" className="mt-3" />
       ) : erro ? (
         <ErroCarga titulo="Não foi possível carregar seus pedidos" onTentar={recarregar} />
       ) : pedidos.length === 0 ? (
-        <p className="mt-3 rounded-[18px] border border-line bg-surface p-6 text-center text-sm text-sub">
-          Nenhum pedido ainda.
-        </p>
+        trajeto.papel === "motorista" ? (
+          <EstadoVazio className="mt-3" icone={<Inbox size={22} />} titulo="Nenhum pedido ainda"
+            texto="Quando um passageiro pedir carona, o pedido aparece aqui e o sino da tela inicial avisa." />
+        ) : (
+          <EstadoVazio className="mt-3" icone={<Inbox size={22} />} titulo="Você está como passageiro"
+            texto="Pedidos recebidos aparecem aqui quando você oferece carona. Para pedir a sua, veja as caronas compatíveis."
+            acao={{ texto: "Ver caronas", para: "/caronas" }} />
+        )
       ) : (
         <div className="mt-3 space-y-2.5">
           {pedidos.map((p) => (

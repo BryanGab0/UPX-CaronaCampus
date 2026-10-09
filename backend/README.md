@@ -55,6 +55,8 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - Senhas guardadas com hash bcrypt; login devolve um token JWT válido por 7 dias.
 - CORS liberado só para as origens de `CORS_ORIGINS`.
 - Limite de tentativas por IP: 10 logins com falha a cada 15 min e 5 cadastros por hora (resposta 429).
+- Moderação: o admin bloqueia contas (`PATCH /admin/usuarios/:ra/bloqueio`). A cada requisição, o `autenticar` confere no banco se a conta existe e não está bloqueada; conta bloqueada não faz login e some da lista de caronas.
+- Telefone só é exposto às duas partes de um pedido aceito.
 
 ## Endpoints
 - `GET  /health`                     — saúde da API e do banco
@@ -71,4 +73,6 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - `usuarios` — aluno (ra, nome, email, senha_hash, telefone, admin)
 - `trajetos` — trajeto de cada usuário: papel (motorista/passageiro), endereço, coordenadas, dias e horários (chave estrangeira → `usuarios`)
 - `solicitacoes` — pedidos de carona do passageiro ao motorista, com status `pendente`, `aceita` ou `recusada` (chaves estrangeiras → `usuarios`)
+- `denuncias` — denúncia de um usuário contra outro (motivo, descrição, status `aberta`/`resolvida`; uma aberta por par)
+- `avaliacoes` — nota de 1 a 5 que cada lado dá ao outro em um pedido aceito (uma por lado; a média é calculada na consulta)
 - `migracoes` — controle de quais migrações já foram aplicadas

@@ -25,7 +25,7 @@ O repositório tem três partes:
 - Deploy: Vercel (front-ends), Render (API), Neon (banco)
 
 ## Funcionalidades
-- Login e cadastro com senha e e-mail institucional (`@facens.br`)
+- Login e cadastro com senha e e-mail no formato da Facens (`RA@facens.br`)
 - Cadastro de trajeto (origem, dias e horários)
 - Match de caronas por proximidade e horário (compatibilidade calculada)
 - Mapa com o trajeto até o campus (Leaflet + OpenStreetMap)
@@ -33,7 +33,10 @@ O repositório tem três partes:
 - Solicitação de caronas, com aceite ou recusa pelo motorista
 - Aviso de pedidos pendentes na tela inicial
 - Impacto estimado das caronas aceitas (economia de combustível e CO₂ evitado no mês)
-- Painel administrativo (estatísticas, usuários e solicitações)
+- Avaliação de 1 a 5 estrelas entre passageiro e motorista após o aceite, com a média exibida nos cards
+- Denúncia de motorista ou passageiro, analisada pela administração
+- Página de privacidade (LGPD) explicando quais dados são usados e quem vê o quê
+- Painel administrativo: estatísticas, usuários (com bloqueio de conta), solicitações e denúncias
 - Instalável na tela inicial do celular (PWA), abrindo em tela cheia
 
 ## Como rodar localmente

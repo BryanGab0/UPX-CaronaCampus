@@ -25,5 +25,6 @@ docker compose exec db psql -U carona -d caronacampus -c "UPDATE usuarios SET ad
 
 ## Telas
 - **Estatísticas** — totais de usuários, caronas, trajetos e solicitações
-- **Usuários** — lista dos cadastrados (marca quem é admin)
+- **Usuários** — lista dos cadastrados (marca quem é admin), com bloquear/desbloquear conta
 - **Solicitações** — todos os pedidos de carona
+- **Denúncias** — denúncias dos alunos, com atalhos para bloquear o denunciado e marcar como resolvida

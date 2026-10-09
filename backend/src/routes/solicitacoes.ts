@@ -72,7 +72,7 @@ solicitacoesRouter.get("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, a
 solicitacoesRouter.get("/usuarios/:ra/pedidos", autenticar, mesmoUsuario, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT s.id, s.status, s.criado_em, p.nome AS passageiro_nome,
+      `SELECT s.id, s.status, s.criado_em, p.ra AS passageiro_ra, p.nome AS passageiro_nome,
               CASE WHEN s.status = 'aceita' THEN p.telefone ELSE NULL END AS passageiro_telefone
        FROM solicitacoes s
        JOIN usuarios p ON p.ra = s.passageiro_ra
@@ -81,7 +81,7 @@ solicitacoesRouter.get("/usuarios/:ra/pedidos", autenticar, mesmoUsuario, async 
       [req.params.ra],
     );
     res.json(rows.map((r) => ({
-      id: r.id, status: r.status, passageiroNome: r.passageiro_nome,
+      id: r.id, status: r.status, passageiroRa: r.passageiro_ra, passageiroNome: r.passageiro_nome,
       passageiroTelefone: r.passageiro_telefone,
     })));
   } catch (e) {

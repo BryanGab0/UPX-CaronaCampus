@@ -20,14 +20,14 @@ function formatarTelefone(valor: string): string {
 }
 
 export function Login() {
-  const { login, registrar } = useAuth();
+  const { login, registrar, avisoSaida } = useAuth();
   const navigate = useNavigate();
   const [modo, setModo] = useState<"login" | "registro">("login");
   const [email, setEmail] = useState("");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState("");
+  const [erro, setErro] = useState(avisoSaida ?? "");
   const [carregando, setCarregando] = useState(false);
 
   const enviar = async () => {

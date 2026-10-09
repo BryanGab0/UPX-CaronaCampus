@@ -7,6 +7,17 @@ export function definirToken(t: string | null) { tokenAtual = t; }
 function authHeaders(): Record<string, string> {
   return tokenAtual ? { Authorization: `Bearer ${tokenAtual}` } : {};
 }
+// Conta bloqueada pelo admin: a API responde 403 com "bloqueado" e o AuthProvider encerra a sessão.
+let aoBloquear: (() => void) | null = null;
+export function definirAoBloquear(fn: (() => void) | null) { aoBloquear = fn; }
+async function falha(resp: Response, acao: string): Promise<Error> {
+  if (resp.status === 403) {
+    const d = await resp.json().catch(() => null);
+    if (d?.bloqueado) aoBloquear?.();
+  }
+  return new Error(`Erro ${resp.status} ${acao}`);
+}
+
 async function erroDaResposta(resp: Response, padrao: string): Promise<Error> {
   try { const d = await resp.json(); return new Error(d?.erro ?? padrao); }
   catch { return new Error(padrao); }
@@ -38,13 +49,13 @@ export async function login(ra: string, senha: string): Promise<Sessao> {
 // Caronas = motoristas reais (protegido).
 export async function buscarCaronas(): Promise<Carona[]> {
   const resp = await fetch(`${API_URL}/caronas`, { headers: { ...authHeaders() } });
-  if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar caronas`);
+  if (!resp.ok) throw await falha(resp, "ao buscar caronas");
   return resp.json();
 }
 
 export async function buscarTrajeto(ra: string): Promise<Trajeto | null> {
   const resp = await fetch(`${API_URL}/usuarios/${ra}/trajeto`, { headers: { ...authHeaders() } });
-  if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar trajeto`);
+  if (!resp.ok) throw await falha(resp, "ao buscar trajeto");
   return resp.json();
 }
 
@@ -53,7 +64,7 @@ export async function salvarTrajeto(ra: string, trajeto: Trajeto): Promise<Traje
     method: "PUT", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(trajeto),
   });
-  if (!resp.ok) throw new Error(`Erro ${resp.status} ao salvar trajeto`);
+  if (!resp.ok) throw await falha(resp, "ao salvar trajeto");
   return resp.json();
 }
 
@@ -71,12 +82,12 @@ export async function solicitarCarona(ra: string, motoristaRa: string): Promise<
     method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ motoristaRa }),
   });
-  if (!resp.ok) throw new Error(`Erro ${resp.status} ao solicitar carona`);
+  if (!resp.ok) throw await falha(resp, "ao solicitar carona");
 }
 
 export async function buscarSolicitacoes(ra: string): Promise<MinhaSolicitacao[]> {
   const resp = await fetch(`${API_URL}/usuarios/${ra}/solicitacoes`, { headers: { ...authHeaders() } });
-  if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar solicitações`);
+  if (!resp.ok) throw await falha(resp, "ao buscar solicitações");
   return resp.json();
 }
 
@@ -90,7 +101,7 @@ export interface Pedido {
 
 export async function buscarPedidos(ra: string): Promise<Pedido[]> {
   const resp = await fetch(`${API_URL}/usuarios/${ra}/pedidos`, { headers: { ...authHeaders() } });
-  if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar pedidos`);
+  if (!resp.ok) throw await falha(resp, "ao buscar pedidos");
   return resp.json();
 }
 
@@ -99,5 +110,5 @@ export async function responderSolicitacao(id: number, status: "aceita" | "recus
     method: "PATCH", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ status }),
   });
-  if (!resp.ok) throw new Error(`Erro ${resp.status} ao responder solicitação`);
+  if (!resp.ok) throw await falha(resp, "ao responder solicitação");
 }

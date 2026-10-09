@@ -14,8 +14,11 @@ docker compose up -d
 cp .env.example .env
 
 npm install
+npm run migrar
 npm run dev
 ```
+
+No Windows (CMD), troque `cp` por `copy`.
 
 ## Variáveis de ambiente
 Definidas no `.env` (modelo em `.env.example`):
@@ -30,8 +33,23 @@ Definidas no `.env` (modelo em `.env.example`):
 A API sobe em http://localhost:3333.
 Teste rápido: acesse http://localhost:3333/health → deve responder `{"status":"ok","db":"ok"}`.
 
-> Os scripts em `db/` só rodam na **primeira** criação do banco. para recriar do zero:
-> `docker compose down -v && docker compose up -d`
+## Migrações do banco
+O schema evolui por arquivos SQL numerados em `db/migracoes/` (`001_schema_inicial.sql`, `002_...`).
+`npm run migrar` aplica, em ordem, só os que ainda não rodaram naquele banco, e registra cada um na tabela `migracoes`.
+
+- Cada migração roda numa transação: se der erro, nada dela fica no banco.
+- O `npm start` (usado em produção) roda `npm run migrar` antes de subir a API.
+- Para mudar o schema, **crie um arquivo novo** com o próximo número; nunca edite um que já foi aplicado.
+- Recriar o banco local do zero (apaga os dados): `docker compose down -v`, `docker compose up -d` e `npm run migrar`.
+
+## Testes
+Com o banco do Docker no ar:
+
+```bash
+npm test
+```
+
+Os testes usam um banco separado, `caronacampus_test`, criado e recriado automaticamente a partir das migrações. Eles se recusam a rodar em um banco cujo nome não termine em `_test`.
 
 ## Segurança
 - Senhas guardadas com hash bcrypt; login devolve um token JWT válido por 7 dias.
@@ -50,7 +68,7 @@ Teste rápido: acesse http://localhost:3333/health → deve responder `{"status"
 - `GET  /usuarios/:ra/solicitacoes`  — lista as solicitações (protegida)
 
 ## Tabelas
-- `usuarios` — aluno (ra, nome, email, senha_hash)
-- `caronas` — caronas oferecidas
-- `trajetos` — trajeto de cada usuário (chave estrangeira → `usuarios`)
-- `solicitacoes` — pedidos de carona (chaves estrangeiras → `usuarios` e `caronas`)
+- `usuarios` — aluno (ra, nome, email, senha_hash, telefone, admin)
+- `trajetos` — trajeto de cada usuário: papel (motorista/passageiro), endereço, coordenadas, dias e horários (chave estrangeira → `usuarios`)
+- `solicitacoes` — pedidos de carona do passageiro ao motorista, com status `pendente`, `aceita` ou `recusada` (chaves estrangeiras → `usuarios`)
+- `migracoes` — controle de quais migrações já foram aplicadas

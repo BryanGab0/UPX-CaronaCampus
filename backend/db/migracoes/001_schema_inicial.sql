@@ -1,3 +1,7 @@
+-- Schema inicial (usuarios, trajetos, solicitacoes).
+-- Usa IF NOT EXISTS: em bancos que ja tinham as tabelas (Docker antigo, Neon),
+-- esta migracao so fica registrada como aplicada, sem alterar nada.
+
 CREATE TABLE IF NOT EXISTS usuarios (
   ra          TEXT PRIMARY KEY,
   nome        TEXT NOT NULL,

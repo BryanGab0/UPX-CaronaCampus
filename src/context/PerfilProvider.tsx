@@ -25,18 +25,22 @@ export function PerfilProvider({ children }: { children: ReactNode }) {
     let ativo = true; // evita atualizar estado após trocar de usuário/desmontar
     buscarTrajeto(ra)
       .then((t) => { if (ativo) setCarregado({ ra, trajeto: t ?? TRAJETO_INICIAL }); })
-      .catch(() => {});
+      .catch((e: unknown) => {
+        console.error(e);
+        if (ativo) setCarregado({ ra, trajeto: TRAJETO_INICIAL }); // segue com o inicial; a tela não fica presa carregando
+      });
     return () => { ativo = false; };
   }, [autenticado, ra]);
 
   // Derivado em vez de "zerado" num efeito: ao sair ou trocar de conta, o trajeto
   // guardado não é do RA atual e o valor volta sozinho ao inicial.
-  const trajeto = autenticado && carregado?.ra === ra ? carregado.trajeto : TRAJETO_INICIAL;
+  const pronto = autenticado && carregado?.ra === ra;
+  const trajeto = pronto ? carregado.trajeto : TRAJETO_INICIAL;
 
   const salvar = async (t: Trajeto) => {
     if (ra) await salvarTrajeto(ra, t);
     setCarregado({ ra, trajeto: t });
   };
 
-  return <PerfilContext.Provider value={{ trajeto, salvar }}>{children}</PerfilContext.Provider>;
+  return <PerfilContext.Provider value={{ trajeto, pronto, temTrajeto: trajeto.endereco !== "", salvar }}>{children}</PerfilContext.Provider>;
 }

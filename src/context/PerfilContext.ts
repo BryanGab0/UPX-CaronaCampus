@@ -5,6 +5,8 @@ import type { Trajeto } from "../types";
 
 export interface PerfilContextValue {
   trajeto: Trajeto;
+  pronto: boolean; // false enquanto o trajeto do usuário ainda está sendo buscado
+  temTrajeto: boolean; // o usuário já cadastrou um endereço de saída
   salvar: (t: Trajeto) => Promise<void>;
 }
 

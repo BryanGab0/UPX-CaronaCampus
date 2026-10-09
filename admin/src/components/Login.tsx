@@ -39,16 +39,18 @@ export function Login() {
         </div>
 
         <div className="mt-7 space-y-3">
-          <div className="flex items-center gap-2.5 rounded-xl border border-line px-3.5 py-3">
+          <div className="flex items-center gap-2.5 rounded-xl border border-line px-3.5 py-3 transition focus-within:border-brand">
             <Mail size={18} className="shrink-0 text-sub" />
             <input
               value={email}
               onChange={(e) => { setEmail(e.target.value); setErro(""); }}
               placeholder="RA@facens.br"
+              aria-label="E-mail no formato RA@facens.br"
+              autoComplete="username"
               className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
           </div>
-          <div className="flex items-center gap-2.5 rounded-xl border border-line px-3.5 py-3">
+          <div className="flex items-center gap-2.5 rounded-xl border border-line px-3.5 py-3 transition focus-within:border-brand">
             <Lock size={18} className="shrink-0 text-sub" />
             <input
               type="password"
@@ -56,11 +58,13 @@ export function Login() {
               onChange={(e) => { setSenha(e.target.value); setErro(""); }}
               onKeyDown={(e) => e.key === "Enter" && enviar()}
               placeholder="Senha"
+              aria-label="Senha"
+              autoComplete="current-password"
               className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
           </div>
 
-          {erro && <p className="text-[13px] text-accent">{erro}</p>}
+          {erro && <p role="alert" className="text-[13px] text-accent-ink">{erro}</p>}
 
           <button
             onClick={enviar}

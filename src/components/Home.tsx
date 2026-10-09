@@ -12,7 +12,7 @@ import { FACENS } from "../data/mock";
 import { ImpactStats } from "./ImpactStats";
 import { BestRideCard } from "./BestRideCard";
 import { RideRow } from "./RideRow";
-import { Carregando, ErroCarga } from "./Estado";
+import { ErroCarga, EsqueletoDestaque, EsqueletoLista, SemMotoristas, SemTrajeto } from "./Estado";
 
 // Saudação conforme o horário local do aparelho.
 function saudacao(hora = new Date().getHours()) {
@@ -23,7 +23,7 @@ function saudacao(hora = new Date().getHours()) {
 
 export function Home() {
   const { nome } = useAuth();
-  const { trajeto } = usePerfilContext();
+  const { trajeto, pronto, temTrajeto } = usePerfilContext();
   const { resultados, carregando, erro, recarregar } = useResultados();
   const { pedidos, pendentes } = usePedidos();
   const { solicitacoes } = useSolicitacoes();
@@ -53,7 +53,7 @@ export function Home() {
           </div>
         </div>
 
-        <button className="mt-4 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3 text-left transition active:scale-[.98]">
+        <Link to="/trajeto" className="mt-4 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3 text-left transition active:scale-[.98]">
           <div className="grid size-[34px] shrink-0 place-items-center rounded-[10px] bg-brand-soft">
             <Navigation size={16} className="text-brand" />
           </div>
@@ -64,19 +64,23 @@ export function Home() {
             </div>
           </div>
           <ChevronRight size={18} className="shrink-0 text-sub" />
-        </button>
+        </Link>
       </div>
 
       <ImpactStats impacto={impacto} />
 
-      {carregando ? (
-        <Carregando />
+      {carregando || !pronto ? (
+        <div className="px-[22px] pt-[22px]">
+          <div className="mb-3 h-5" />
+          <EsqueletoDestaque />
+          <EsqueletoLista quantidade={2} className="mt-[46px]" />
+        </div>
       ) : erro ? (
         <div className="px-[22px]"><ErroCarga onTentar={recarregar} /></div>
+      ) : !temTrajeto ? (
+        <SemTrajeto className="mx-[22px] mt-4" />
       ) : resultados.length === 0 ? (
-        <p className="mx-[22px] mt-4 rounded-[18px] border border-line bg-surface p-6 text-center text-sm text-sub">
-          Nenhum motorista disponível ainda. Assim que alguém oferecer carona, aparece aqui.
-        </p>
+        <SemMotoristas souMotorista={trajeto.papel === "motorista"} className="mx-[22px] mt-4" />
       ) : (
         <>
           <div className="px-[22px] pb-2 pt-[22px]">

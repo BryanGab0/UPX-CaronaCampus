@@ -23,10 +23,10 @@ export function Estrelas({ valor, onEscolher, desabilitado }: { valor: number | 
   const [sobre, setSobre] = useState<number | null>(null);
   const mostrada = sobre ?? valor ?? 0;
   return (
-    <div className="flex gap-1" role="radiogroup" aria-label="Sua avaliação" onMouseLeave={() => setSobre(null)}>
+    <div className="flex gap-1" role="group" aria-label="Sua avaliação, de 1 a 5 estrelas" onMouseLeave={() => setSobre(null)}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <button key={n} type="button" role="radio" aria-checked={valor === n} aria-label={`${n} ${n === 1 ? "estrela" : "estrelas"}`}
-          disabled={desabilitado} onClick={() => onEscolher(n)} onMouseEnter={() => setSobre(n)}
+        <button key={n} type="button" aria-pressed={valor === n} aria-label={`Dar ${n} ${n === 1 ? "estrela" : "estrelas"}`}
+          disabled={desabilitado} onClick={() => onEscolher(n)} onMouseEnter={() => setSobre(n)} onFocus={() => setSobre(n)} onBlur={() => setSobre(null)}
           className="grid size-10 place-items-center rounded-xl transition active:scale-[.9] disabled:opacity-50">
           <Star size={26} className={cn("transition", n <= mostrada ? "fill-accent text-accent" : "text-line")} />
         </button>

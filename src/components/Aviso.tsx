@@ -8,7 +8,7 @@ export function Aviso({ aviso }: { aviso: AvisoMsg | null }) {
     <div role="status" aria-live="polite">
       {aviso && (
         <div className={cn("animate-rise mt-3 flex items-center gap-2 rounded-xl px-3.5 py-3 text-xs font-semibold",
-          aviso.tipo === "ok" ? "bg-good-soft text-good" : "bg-accent-soft text-accent")}>
+          aviso.tipo === "ok" ? "bg-good-soft text-good-ink" : "bg-accent-soft text-accent-ink")}>
           {aviso.tipo === "ok" ? <CheckCircle2 size={16} className="shrink-0" /> : <AlertCircle size={16} className="shrink-0" />}
           <span className="min-w-0">{aviso.texto}</span>
         </div>

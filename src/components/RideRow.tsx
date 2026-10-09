@@ -8,7 +8,7 @@ import { NotaMedia } from "./Estrelas";
 
 export function RideRow({ resultado }: { resultado: Resultado }) {
   const { carona, compat, custoDia } = resultado;
-  const cor = compat >= 75 ? "text-good" : compat >= 50 ? "text-brand" : "text-accent";
+  const cor = compat >= 75 ? "text-good-ink" : compat >= 50 ? "text-brand" : "text-accent-ink";
 
   return (
     <Link

@@ -140,12 +140,14 @@ export function Trajeto() {
 
       <Section icone={<MapPin size={16} />} titulo="De onde você sai">
         <div className="relative">
-          <div className="flex items-center gap-2.5 rounded-xl border border-line bg-surface px-3.5 py-3">
+          <div className="flex items-center gap-2.5 rounded-xl border border-line bg-surface px-3.5 py-3 transition focus-within:border-brand">
             <MapPin size={18} className="shrink-0 text-sub" />
             <input
               value={endereco}
               onChange={(e) => digitarEndereco(e.target.value)}
               placeholder="Digite seu endereço (rua, número, bairro)"
+              aria-label="Endereço de saída"
+              autoComplete="street-address"
               className="min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
             {buscandoEnd && <Loader2 size={16} className="shrink-0 animate-spin text-sub" />}
@@ -170,7 +172,7 @@ export function Trajeto() {
         </button>
 
         {origem && (
-          <p className="mt-2 flex items-center gap-1.5 text-xs text-good"><Check size={13} /> endereço definido</p>
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-good-ink"><Check size={13} /> endereço definido</p>
         )}
         <p className="mt-1 flex items-center gap-1.5 text-xs text-sub"><Navigation size={13} /> destino fixo: Facens (Sorocaba)</p>
       </Section>
@@ -201,12 +203,12 @@ export function Trajeto() {
 
       {salvo ? (
         <div className="mt-6 rounded-[14px] bg-good-soft p-4">
-          <div className="flex items-center justify-center gap-2 text-sm font-bold text-good"><Check size={18} /> Trajeto salvo!</div>
-          <button onClick={() => navigate("/")} className="mt-2 w-full text-center text-xs font-semibold text-good">ver caronas</button>
+          <div className="flex items-center justify-center gap-2 text-sm font-bold text-good-ink"><Check size={18} /> Trajeto salvo!</div>
+          <button onClick={() => navigate("/")} className="mt-2 w-full text-center text-xs font-semibold text-good-ink">ver caronas</button>
         </div>
       ) : (
         <>
-          {erro && <p className="mt-6 text-[13px] text-accent">{erro}</p>}
+          {erro && <p role="alert" className="mt-6 text-[13px] text-accent-ink">{erro}</p>}
           <button onClick={onSalvar} disabled={salvando}
             className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erro ? "mt-3" : "mt-6")}>
             {salvando ? "Salvando…" : "Salvar trajeto"}
@@ -226,10 +228,10 @@ function Section({ icone, titulo, children }: { icone: ReactNode; titulo: string
   );
 }
 function Toggle({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; texto: string }) {
-  return <button onClick={onClick} className={cn("flex-1 rounded-[13px] border px-2.5 py-3 text-[13.5px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand-soft text-brand" : "border-line bg-surface text-sub")}>{texto}</button>;
+  return <button onClick={onClick} aria-pressed={ativo} className={cn("flex-1 rounded-[13px] border px-2.5 py-3 text-[13.5px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand-soft text-brand" : "border-line bg-surface text-sub")}>{texto}</button>;
 }
 function Chip({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; texto: string }) {
-  return <button onClick={onClick} className={cn("rounded-[11px] border py-2 text-center text-[13px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand text-white" : "border-line bg-surface text-sub")}>{texto}</button>;
+  return <button onClick={onClick} aria-pressed={ativo} className={cn("rounded-[11px] border py-2 text-center text-[13px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand text-white" : "border-line bg-surface text-sub")}>{texto}</button>;
 }
 function TimeField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="time" value={value} onChange={(e) => onChange(e.target.value)} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;

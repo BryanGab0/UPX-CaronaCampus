@@ -31,6 +31,7 @@ Definidas no `.env` (modelo em `.env.example`):
 | `CORS_ORIGINS` | Sites que podem chamar a API, separados por vírgula (padrão: `localhost:5173` e `5174`) |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Chaves das notificações push (opcionais: sem elas a API funciona, só não envia avisos). Gerar com `npx web-push generate-vapid-keys` |
 | `VAPID_SUBJECT` | Contato do remetente das notificações (padrão: `mailto:caronacampus.contato@gmail.com`) |
+| `SENTRY_DSN` | Registro de erros no Sentry (opcional: sem ela nada é enviado). Endereço em *Settings → Projects → Client Keys (DSN)* |
 
 A API sobe em http://localhost:3333.
 Teste rápido: acesse http://localhost:3333/health → deve responder `{"status":"ok","db":"ok"}`.
@@ -60,8 +61,10 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - Moderação: o admin bloqueia contas (`PATCH /admin/usuarios/:ra/bloqueio`). A cada requisição, o `autenticar` confere no banco se a conta existe e não está bloqueada; conta bloqueada não faz login e some da lista de caronas.
 - Telefone só é exposto às duas partes de um pedido aceito.
 - Notificações push (Web Push/VAPID) para pedido novo e para aceite/recusa; contas bloqueadas não recebem, e aparelhos que cancelaram a inscrição (404/410) são removidos automaticamente.
+- Erros em produção vão para o Sentry (`src/instrument.ts`, carregado com `--import` antes da API). O envio é restrito: sem corpo das requisições (senha, telefone), cabeçalhos (token), IP, query string, variáveis locais nem o `detail` dos erros do Postgres.
 
 ## Endpoints
+- `GET  /ping`                       — a API está no ar (não consulta o banco; usado pelo monitor de uptime)
 - `GET  /health`                     — saúde da API e do banco
 - `GET  /caronas`                    — lista as caronas (público)
 - `POST /auth/registrar`             — cria conta (ra, nome, email, senha) e devolve token

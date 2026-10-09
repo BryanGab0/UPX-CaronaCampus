@@ -21,6 +21,13 @@ app.set("trust proxy", 1);
 app.use(cors({ origin: CORS_ORIGINS }));
 app.use(express.json());
  
+// Para o monitor de uptime (a cada 5 min): mantém o Render acordado sem tocar no banco.
+// O Neon gratuito pausa após 5 min sem uso; se o /health fosse chamado nesse ritmo, o banco
+// nunca pausaria e as horas do plano acabariam no meio do mês.
+app.get("/ping", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 app.get("/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");

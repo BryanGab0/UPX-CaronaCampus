@@ -4,17 +4,23 @@ import { BrowserRouter } from "react-router";
 import { AuthProvider } from "./context/AuthProvider";
 import { PerfilProvider } from "./context/PerfilProvider";
 import App from "./App";
+import { ErroTela } from "./components/ErroTela";
+import { iniciarMonitoramento } from "./lib/monitoramento";
 import "./index.css";
+
+iniciarMonitoramento();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <PerfilProvider>
-          <App />
-        </PerfilProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErroTela>
+      <BrowserRouter>
+        <AuthProvider>
+          <PerfilProvider>
+            <App />
+          </PerfilProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErroTela>
   </StrictMode>,
 );
 

@@ -1,6 +1,6 @@
 import type { Carona, Trajeto } from "../types";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333";
+export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333";
 
 let tokenAtual: string | null = null;
 export function definirToken(t: string | null) { tokenAtual = t; }

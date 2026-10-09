@@ -45,6 +45,7 @@ export function Privacidade() {
           <Item><b>Localização (GPS):</b> só é usada quando você toca em “usar minha localização”, para preencher o endereço. Não acompanhamos onde você está.</Item>
           <Item><b>Avisos (push):</b> as notificações passam, criptografadas, pelo serviço de push do seu navegador (Google, Apple ou Mozilla), que as entrega ao aparelho.</Item>
           <Item><b>WhatsApp:</b> a conversa acontece fora do app, conforme as regras do WhatsApp.</Item>
+          <Item><b>Registro de erros:</b> quando algo falha no app ou no servidor, o Sentry recebe um relatório técnico do erro (o que deu errado e em que tela) para podermos corrigir. O relatório não leva nome, telefone, senha, endereço, localização nem o seu IP, e fica guardado na União Europeia.</Item>
           <Item><b>Hospedagem:</b> o app e o banco de dados ficam em provedores de nuvem (Vercel, Render e Neon).</Item>
         </Secao>
 

@@ -40,6 +40,7 @@ O repositório tem três partes:
 - Instalável na tela inicial do celular (PWA), abrindo em tela cheia
 - Notificações push: o motorista é avisado de pedidos novos e o passageiro, do aceite ou da recusa (ativadas no Perfil; no iPhone, com o app instalado)
 - Acessibilidade: contraste AA, navegação por teclado e rótulos para leitores de tela
+- Tela amigável quando algo dá errado (com botão para recarregar), em vez da página em branco
 
 ## Como rodar localmente
 Precisa de Node 20.19+ (ou 22.12+) e do back-end no ar.
@@ -54,6 +55,8 @@ npm run dev
 
 O site abre em http://localhost:5173 (a API precisa estar rodando em http://localhost:3333).
 
+Opcional: para enviar os erros do app ao Sentry, crie um `.env.local` na raiz (não é versionado) com `VITE_SENTRY_DSN=<DSN do projeto>`. Sem ele, o Sentry nem é baixado.
+
 Para o painel administrativo, veja o [README do admin](admin/README.md).
 
 ## Qualidade
@@ -61,3 +64,4 @@ Para o painel administrativo, veja o [README do admin](admin/README.md).
 - `npm test` — testes do app e do admin (compatibilidade, impacto estimado, formatadores, busca e paginação), com Vitest
 - `npm test` em `backend/` — testes da API (autenticação, permissões, aceite/recusa, moderação, avaliações, notificações, limite de tentativas e migrações)
 - A cada push na `main` e em cada Pull Request, o GitHub Actions roda lint, checagem de tipos, testes e build dos três projetos.
+- Erros em produção (app e API) são registrados no Sentry, sem dados pessoais: nada de nome, telefone, senha, endereço, localização ou IP.

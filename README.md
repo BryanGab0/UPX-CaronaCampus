@@ -11,7 +11,7 @@ O cadastro é restrito ao formato de e-mail da Facens (`RA@facens.br`), e a conf
 - **API:** https://caronacampus.onrender.com
 - **Painel administrativo:** https://carona-campus-admin.vercel.app
 
-> A API usa hospedagem gratuita e "dorme" após alguns minutos sem uso: a **primeira** requisição pode levar ~30–60s para responder. Depois, normaliza.
+> A API usa hospedagem gratuita, que "dorme" após alguns minutos sem uso. Um monitor de uptime a consulta a cada 5 minutos, o que a mantém acordada e avisa se ela cair; se mesmo assim ela estiver dormindo (por exemplo, logo após um deploy), a **primeira** requisição pode levar ~30–60s.
 
 O repositório tem três partes:
 - **front-end** do aluno — na raiz

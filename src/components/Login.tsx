@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Route as RouteIcon, Mail, User, Lock, Phone } from "lucide-react";
 import { useAuth, emailInstitucional } from "../context/AuthContext";
 import { cn } from "../lib/cn";
@@ -20,14 +20,14 @@ function formatarTelefone(valor: string): string {
 }
 
 export function Login() {
-  const { login, registrar } = useAuth();
+  const { login, registrar, avisoSaida } = useAuth();
   const navigate = useNavigate();
   const [modo, setModo] = useState<"login" | "registro">("login");
   const [email, setEmail] = useState("");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState("");
+  const [erro, setErro] = useState(avisoSaida ?? "");
   const [carregando, setCarregando] = useState(false);
 
   const enviar = async () => {
@@ -144,6 +144,12 @@ export function Login() {
             >
               {carregando ? "Aguarde…" : modo === "login" ? "Entrar" : "Criar conta"}
             </button>
+            {modo === "registro" && (
+              <p className="text-center text-[11.5px] leading-snug text-sub">
+                Ao criar a conta, você concorda com o uso dos dados descrito na{" "}
+                <Link to="/privacidade" className="font-semibold text-brand">política de privacidade</Link>.
+              </p>
+            )}
           </div>
 
           <button onClick={trocarModo} className="mt-5 w-full text-[13.5px] text-sub">
@@ -155,7 +161,9 @@ export function Login() {
           </button>
         </div>
 
-        <p className="text-center text-[11.5px] text-sub">Facens · Sorocaba</p>
+        <p className="text-center text-[11.5px] text-sub">
+          Facens · Sorocaba · <Link to="/privacidade" className="font-semibold text-sub underline underline-offset-2">Privacidade</Link>
+        </p>
       </div>
     </div>
   );

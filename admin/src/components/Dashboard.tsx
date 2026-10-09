@@ -1,17 +1,19 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, Inbox, LogOut, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Users, Inbox, Flag, LogOut, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { cn } from "../lib/cn";
 import { Estatisticas } from "./Estatisticas";
 import { Usuarios } from "./Usuarios";
 import { Solicitacoes } from "./Solicitacoes";
+import { Denuncias } from "./Denuncias";
 
-type View = "estatisticas" | "usuarios" | "solicitacoes";
+type View = "estatisticas" | "usuarios" | "solicitacoes" | "denuncias";
 
 const ITENS: { id: View; icone: typeof Users; label: string }[] = [
   { id: "estatisticas", icone: LayoutDashboard, label: "Estatísticas" },
   { id: "usuarios", icone: Users, label: "Usuários" },
   { id: "solicitacoes", icone: Inbox, label: "Solicitações" },
+  { id: "denuncias", icone: Flag, label: "Denúncias" },
 ];
 
 export function Dashboard() {
@@ -75,6 +77,7 @@ export function Dashboard() {
         {view === "estatisticas" && <Estatisticas />}
         {view === "usuarios" && <Usuarios />}
         {view === "solicitacoes" && <Solicitacoes />}
+        {view === "denuncias" && <Denuncias />}
       </main>
     </div>
   );

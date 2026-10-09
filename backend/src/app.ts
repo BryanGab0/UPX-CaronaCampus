@@ -10,6 +10,8 @@ import { usuariosRouter } from "./routes/usuarios.js";
 import { solicitacoesRouter } from "./routes/solicitacoes.js";
 import { authRouter } from "./routes/auth.js";
 import { adminRouter } from "./routes/admin.js";
+import { denunciasRouter } from "./routes/denuncias.js";
+import { avaliacoesRouter } from "./routes/avaliacoes.js";
  
 export const app = express();
 // No Render a API fica atrás de um proxy: sem isto, todos os acessos teriam o IP do proxy
@@ -31,4 +33,6 @@ app.use(caronasRouter);
 app.use(usuariosRouter);
 app.use(solicitacoesRouter);
 app.use(authRouter);
+app.use(denunciasRouter);
+app.use(avaliacoesRouter);
 app.use("/admin", adminRouter);

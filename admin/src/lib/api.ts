@@ -46,6 +46,7 @@ export interface UsuarioAdmin {
   email: string;
   telefone: string | null;
   admin: boolean;
+  bloqueado: boolean;
   criado_em: string;
 }
 
@@ -53,6 +54,16 @@ export async function buscarUsuarios(): Promise<UsuarioAdmin[]> {
   const resp = await fetch(`${API_URL}/admin/usuarios`, { headers: { ...authHeaders() } });
   if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar usuários`);
   return resp.json();
+}
+
+// Bloqueia ou desbloqueia um usuário (moderação).
+export async function alterarBloqueio(ra: string, bloqueado: boolean): Promise<void> {
+  const resp = await fetch(`${API_URL}/admin/usuarios/${ra}/bloqueio`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ bloqueado }),
+  });
+  if (!resp.ok) throw new Error(`Erro ${resp.status} ao alterar bloqueio`);
 }
 
 export interface SolicitacaoAdmin {
@@ -66,4 +77,33 @@ export async function buscarSolicitacoes(): Promise<SolicitacaoAdmin[]> {
   const resp = await fetch(`${API_URL}/admin/solicitacoes`, { headers: { ...authHeaders() } });
   if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar solicitações`);
   return resp.json();
+}
+
+// --- Denúncias (moderação) ---
+export interface DenunciaAdmin {
+  id: number;
+  motivo: string;
+  descricao: string;
+  status: "aberta" | "resolvida";
+  criadoEm: string;
+  denuncianteRa: string;
+  denuncianteNome: string;
+  denunciadoRa: string;
+  denunciadoNome: string;
+  denunciadoBloqueado: boolean;
+}
+
+export async function buscarDenuncias(): Promise<DenunciaAdmin[]> {
+  const resp = await fetch(`${API_URL}/admin/denuncias`, { headers: { ...authHeaders() } });
+  if (!resp.ok) throw new Error(`Erro ${resp.status} ao buscar denúncias`);
+  return resp.json();
+}
+
+export async function alterarStatusDenuncia(id: number, status: "aberta" | "resolvida"): Promise<void> {
+  const resp = await fetch(`${API_URL}/admin/denuncias/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ status }),
+  });
+  if (!resp.ok) throw new Error(`Erro ${resp.status} ao atualizar denúncia`);
 }

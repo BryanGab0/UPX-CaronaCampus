@@ -41,6 +41,19 @@ describe("solicitar carona", () => {
     expect(res.status).toBe(400);
   });
 
+  it("não deixa pedir carona para si mesmo (400)", async () => {
+    const res = await request(app).post("/usuarios/200/solicitacoes").set("Authorization", motorista.auth).send({ motoristaRa: "200" });
+    expect(res.status).toBe(400);
+  });
+
+  it("recusa motorista inexistente (404) e quem não oferece carona (400)", async () => {
+    const inexistente = await request(app).post("/usuarios/100/solicitacoes").set("Authorization", passageiro.auth).send({ motoristaRa: "999" });
+    expect(inexistente.status).toBe(404);
+    // o "terceiro" existe, mas não tem trajeto de motorista
+    const naoMotorista = await request(app).post("/usuarios/100/solicitacoes").set("Authorization", passageiro.auth).send({ motoristaRa: "300" });
+    expect(naoMotorista.status).toBe(400);
+  });
+
   it("não deixa pedir em nome de outro RA (403)", async () => {
     const res = await request(app).post("/usuarios/100/solicitacoes").set("Authorization", terceiro.auth).send({ motoristaRa: "200" });
     expect(res.status).toBe(403);

@@ -1,6 +1,7 @@
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { usePersistedState } from "../hooks/usePersistedState";
-import { login as apiLogin, registrar as apiRegistrar, definirToken } from "../lib/api";
+import { login as apiLogin, registrar as apiRegistrar, definirToken, definirAoBloquear } from "../lib/api";
 import type { Sessao } from "../lib/api";
 import { AuthContext } from "./AuthContext";
 
@@ -11,11 +12,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // com efeitos filhos que fazem requisições logo após o login/recarregar).
   definirToken(sessao?.token ?? null);
 
+  // Se a API avisar que a conta foi bloqueada, encerra a sessão e explica no login.
+  const [avisoSaida, setAvisoSaida] = useState<string | null>(null);
+  definirAoBloquear(() => {
+    definirToken(null);
+    setSessao(null);
+    setAvisoSaida("Sua conta foi bloqueada pela administração.");
+  });
+
   const login = async (email: string, senha: string) => {
     const ra = email.trim().split("@")[0];
     const s = await apiLogin(ra, senha);
     definirToken(s.token);
     setSessao(s);
+    setAvisoSaida(null);
   };
 
   const registrar = async (email: string, nome: string, telefone: string, senha: string) => {
@@ -34,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const u = sessao?.usuario;
   return (
     <AuthContext.Provider
-      value={{ autenticado: sessao !== null, nome: u?.nome ?? "", email: u?.email ?? "", ra: u?.ra ?? "", login, registrar, sair }}
+      value={{ autenticado: sessao !== null, nome: u?.nome ?? "", email: u?.email ?? "", ra: u?.ra ?? "", login, registrar, sair, avisoSaida }}
     >
       {children}
     </AuthContext.Provider>

@@ -10,6 +10,7 @@ const SUL_10KM: Coord = { lat: FACENS.lat - 0.09, lng: FACENS.lng };
 const motorista: Carona = {
   id: "222", nome: "Motorista", endereco: "Rua B", origem: SUL_10KM,
   dias: ["seg", "qua", "sex"], chegada: "08:00", carro: "Carro", consumo: 10,
+  notaMedia: null, totalAvaliacoes: 0,
 };
 
 const trajeto = (extra: Partial<Trajeto> = {}): Trajeto => ({
@@ -20,9 +21,9 @@ const trajeto = (extra: Partial<Trajeto> = {}): Trajeto => ({
 });
 
 const solicitacao = (status: string): MinhaSolicitacao => ({
-  motoristaRa: "222", status, motoristaNome: "Motorista", endereco: "Rua B", motoristaTelefone: null,
+  id: 1, motoristaRa: "222", status, motoristaNome: "Motorista", endereco: "Rua B", motoristaTelefone: null, minhaNota: null,
 });
-const pedido = (id: number, status: string): Pedido => ({ id, status, passageiroNome: "Ana", passageiroTelefone: null });
+const pedido = (id: number, status: string): Pedido => ({ id, status, passageiroRa: "100", passageiroNome: "Ana", passageiroTelefone: null, minhaNota: null, passageiroMedia: null, passageiroAvaliacoes: 0 });
 
 const perfilDe = (t: Trajeto) => ({ origem: t.origem, chegada: t.chegada, dias: t.dias });
 

@@ -3,8 +3,23 @@ import { pool } from "../db.js";
 import { autenticar, mesmoUsuario } from "../middleware/autenticar.js";
 import type { ReqAuth } from "../middleware/autenticar.js";
 import { SQL_MEDIAS } from "./avaliacoes.js";
+import { notificar } from "../notificacoes.js";
 
 export const solicitacoesRouter = Router();
+
+// Avisa o motorista de um pedido novo. Roda depois da resposta e nunca lança erro.
+async function avisarNovoPedido(motoristaRa: string, passageiroRa: string) {
+  try {
+    const p = await pool.query("SELECT nome FROM usuarios WHERE ra = $1", [passageiroRa]);
+    await notificar(motoristaRa, {
+      titulo: "Novo pedido de carona",
+      corpo: `${p.rows[0]?.nome ?? "Um passageiro"} quer ir com você até a Facens.`,
+      url: "/perfil",
+    });
+  } catch (e) {
+    console.error("falha ao avisar o motorista", e);
+  }
+}
 
 // POST — passageiro solicita carona a um motorista.
 solicitacoesRouter.post("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, async (req, res) => {
@@ -35,10 +50,13 @@ solicitacoesRouter.post("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, 
     const { rows } = await pool.query(
       `INSERT INTO solicitacoes (passageiro_ra, motorista_ra) VALUES ($1, $2)
        ON CONFLICT (passageiro_ra, motorista_ra) DO UPDATE SET status = solicitacoes.status
-       RETURNING id, passageiro_ra, motorista_ra, status, criado_em`,
+       RETURNING id, passageiro_ra, motorista_ra, status, criado_em, (xmax = 0) AS novo`,
       [req.params.ra, motoristaRa],
     );
-    res.status(201).json(rows[0]);
+    const { novo, ...pedido } = rows[0]; // "novo": o INSERT criou a linha (não era um pedido repetido)
+    res.status(201).json(pedido);
+
+    if (novo) void avisarNovoPedido(String(motoristaRa), String(req.params.ra));
   } catch (e) {
     console.error(e);
     res.status(500).json({ erro: "falha ao solicitar carona" });
@@ -105,7 +123,11 @@ solicitacoesRouter.patch("/solicitacoes/:id", autenticar, async (req: ReqAuth, r
     return;
   }
   try {
-    const dono = await pool.query("SELECT motorista_ra FROM solicitacoes WHERE id = $1", [req.params.id]);
+    const dono = await pool.query(
+      `SELECT s.motorista_ra, s.passageiro_ra, m.nome AS motorista_nome
+       FROM solicitacoes s JOIN usuarios m ON m.ra = s.motorista_ra WHERE s.id = $1`,
+      [req.params.id],
+    );
     if (dono.rows.length === 0) {
       res.status(404).json({ erro: "solicitação não encontrada" });
       return;
@@ -119,6 +141,11 @@ solicitacoesRouter.patch("/solicitacoes/:id", autenticar, async (req: ReqAuth, r
       [status, req.params.id],
     );
     res.json(rows[0]);
+
+    const { passageiro_ra, motorista_ra, motorista_nome } = dono.rows[0];
+    void notificar(passageiro_ra, status === "aceita"
+      ? { titulo: "Pedido aceito!", corpo: `${motorista_nome} aceitou sua carona. Combine os detalhes pelo WhatsApp.`, url: `/carona/${motorista_ra}` }
+      : { titulo: "Pedido recusado", corpo: `${motorista_nome} não pode levar você desta vez. Veja outras caronas compatíveis.`, url: "/caronas" });
   } catch (e) {
     console.error(e);
     res.status(500).json({ erro: "falha ao atualizar solicitação" });

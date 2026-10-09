@@ -8,7 +8,7 @@ const hash = bcrypt.hashSync(SENHA, 4); // custo baixo: só para os testes rodar
 
 // Esvazia as tabelas entre um teste e outro.
 export async function limparBanco() {
-  await pool.query("TRUNCATE avaliacoes, denuncias, solicitacoes, trajetos, usuarios RESTART IDENTITY CASCADE");
+  await pool.query("TRUNCATE inscricoes_push, avaliacoes, denuncias, solicitacoes, trajetos, usuarios RESTART IDENTITY CASCADE");
 }
 
 // Cria o usuário direto no banco (sem passar pelo /auth/registrar e seu limite)

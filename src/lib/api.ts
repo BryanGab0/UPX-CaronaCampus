@@ -70,11 +70,13 @@ export async function salvarTrajeto(ra: string, trajeto: Trajeto): Promise<Traje
 
 // --- Solicitações (lado passageiro) ---
 export interface MinhaSolicitacao {
+  id: number;
   motoristaRa: string;
   status: string;
   motoristaNome: string;
   endereco: string | null;
   motoristaTelefone: string | null;
+  minhaNota: number | null; // nota que o passageiro deu ao motorista
 }
 
 export async function solicitarCarona(ra: string, motoristaRa: string): Promise<void> {
@@ -98,6 +100,9 @@ export interface Pedido {
   passageiroRa: string;
   passageiroNome: string;
   passageiroTelefone: string | null;
+  minhaNota: number | null;      // nota que o motorista deu ao passageiro
+  passageiroMedia: number | null;
+  passageiroAvaliacoes: number;
 }
 
 export async function buscarPedidos(ra: string): Promise<Pedido[]> {
@@ -125,4 +130,13 @@ export async function denunciar(ra: string, denunciadoRa: string, motivo: Motivo
   // As mensagens de validação da API já são escritas para o usuário (ex.: denúncia repetida).
   if (resp.status === 403) throw await falha(resp, "ao denunciar");
   if (!resp.ok) throw await erroDaResposta(resp, "Não foi possível enviar a denúncia. Tente novamente.");
+}
+
+// --- Avaliações (1 a 5 estrelas, depois do aceite) ---
+export async function avaliar(solicitacaoId: number, nota: number): Promise<void> {
+  const resp = await fetch(`${API_URL}/solicitacoes/${solicitacaoId}/avaliacao`, {
+    method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ nota }),
+  });
+  if (!resp.ok) throw await falha(resp, "ao avaliar");
 }

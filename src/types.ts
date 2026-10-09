@@ -25,6 +25,8 @@ export interface Carona {
   chegada: string;
   carro: string;
   consumo: number;
+  notaMedia: number | null; // média das avaliações recebidas (null = ainda sem avaliação)
+  totalAvaliacoes: number;
 }
 
 // Entrada do algoritmo de match.

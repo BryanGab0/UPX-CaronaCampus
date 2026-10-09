@@ -8,7 +8,7 @@ import { FACENS } from "../data/mock";
 import { useResultados } from "../hooks/useResultados";
 import { usePerfilContext } from "../context/PerfilContext";
 import { useAuth } from "../context/AuthContext";
-import { buscarSolicitacoes, solicitarCarona } from "../lib/api";
+import { avaliar, buscarSolicitacoes, solicitarCarona } from "../lib/api";
 import type { MinhaSolicitacao } from "../lib/api";
 import { PESO_HORARIO, PESO_ROTA, reais } from "../lib/match";
 import { CompatRing } from "./CompatRing";
@@ -17,6 +17,7 @@ import { useAviso } from "../hooks/useAviso";
 import { Carregando, ErroCarga } from "./Estado";
 import { Aviso } from "./Aviso";
 import { Denunciar } from "./Denunciar";
+import { Estrelas, NotaMedia } from "./Estrelas";
 
 export function Detalhe() {
   const { id } = useParams();
@@ -30,6 +31,7 @@ export function Detalhe() {
   const [erroAcao, setErroAcao] = useState<string | null>(null);
   const [denunciando, setDenunciando] = useState(false);
   const { aviso, mostrar } = useAviso();
+  const [avaliando, setAvaliando] = useState(false);
 
   const recarregar = () => {
     if (!ra || !id) return;
@@ -43,6 +45,14 @@ export function Detalhe() {
     try { await solicitarCarona(ra, id); recarregar(); }
     catch (e) { console.error(e); setErroAcao("Não foi possível enviar o pedido. Tente novamente."); }
     finally { setEnviando(false); }
+  };
+
+  const onAvaliar = async (nota: number) => {
+    if (!solic) return;
+    setAvaliando(true);
+    try { await avaliar(solic.id, nota); recarregar(); mostrar("ok", "Avaliação salva. Obrigado!"); }
+    catch (e) { console.error(e); mostrar("erro", "Não foi possível salvar a avaliação. Tente novamente."); }
+    finally { setAvaliando(false); }
   };
 
   if (carregando) return <div className="pt-[46px]"><Carregando /></div>;
@@ -72,7 +82,10 @@ export function Detalhe() {
         </button>
         <div className="hidden size-11 shrink-0 place-items-center rounded-[13px] bg-brand text-sm font-bold text-white min-[360px]:grid">{iniciais(carona.nome)}</div>
         <div className="min-w-0 flex-1">
-          <div className="truncate font-bold">{carona.nome}</div>
+          <div className="flex items-center gap-2">
+            <span className="min-w-0 truncate font-bold">{carona.nome}</span>
+            <NotaMedia media={carona.notaMedia} total={carona.totalAvaliacoes} />
+          </div>
           <div className="truncate text-xs text-sub">motorista · {carona.endereco}</div>
         </div>
         <CompatRing valor={compat} />
@@ -133,6 +146,13 @@ export function Detalhe() {
         )}
         {status === "aceita" && (
           <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-good"><Check size={14} /> Carona aceita!</div>
+        )}
+        {status === "aceita" && solic && (
+          <div className="mt-4 flex flex-col items-center rounded-[18px] border border-line bg-surface p-4">
+            <div className="text-sm font-bold">{solic.minhaNota ? "Sua avaliação" : `Como foi a carona com ${primeiroNome(carona.nome)}?`}</div>
+            <p className="mt-0.5 text-center text-xs text-sub">A nota ajuda outros alunos a escolher com quem ir. Dá para mudar depois.</p>
+            <div className="mt-2"><Estrelas valor={solic.minhaNota} onEscolher={onAvaliar} desabilitado={avaliando} /></div>
+          </div>
         )}
 
         <Aviso aviso={aviso} />

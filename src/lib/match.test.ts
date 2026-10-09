@@ -13,6 +13,7 @@ function carona(extra: Partial<Carona> = {}): Carona {
   return {
     id: "111", nome: "Motorista Teste", endereco: "Rua A", origem: SUL_10KM,
     dias: ["seg", "ter", "qua", "qui", "sex"], chegada: "08:00", carro: "Carro", consumo: 10,
+    notaMedia: null, totalAvaliacoes: 0,
     ...extra,
   };
 }

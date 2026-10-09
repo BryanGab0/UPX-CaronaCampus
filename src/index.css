@@ -1,10 +1,13 @@
 @import "tailwindcss";
 @theme {
   --color-shell: #0E1116; --color-canvas: #F3F5F9; --color-surface: #FFFFFF;
-  --color-ink: #161A22; --color-sub: #6A7382; --color-line: #E6EAF1;
+  --color-ink: #161A22; --color-sub: #5C6573; /* 5,4:1 no canvas (antes 4,4:1) */ --color-line: #E6EAF1;
   --color-brand: #2F4BFF; --color-brand-dark: #1D2ED0; --color-brand-soft: #EAEEFF;
   --color-accent: #FF7A45; --color-accent-soft: #FFEDE4;
-  --color-good: #12B886; --color-good-soft: #E4F8F0;
+  /* "-ink": versões escuras para TEXTO e botões com texto branco (WCAG AA, >= 4,5:1).
+     As vivas (accent/good) ficam só para gráficos: estrelas, bolinhas, barras, ícones decorativos. */
+  --color-accent-ink: #C2410C;
+  --color-good: #12B886; --color-good-soft: #E4F8F0; --color-good-ink: #0F7A5A;
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-display: "Space Grotesk", system-ui, sans-serif;
 }
@@ -26,3 +29,8 @@ input[type="time"]::-webkit-date-and-time-value, input[type="date"]::-webkit-dat
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 .animate-rise { animation: rise .4s cubic-bezier(.2, .8, .2, 1) both; }
 @media (prefers-reduced-motion: reduce) { .animate-rise { animation: none; } }
+
+/* Acessibilidade: contorno visível ao navegar pelo teclado (Tab). */
+@layer base {
+  :focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+}

@@ -125,11 +125,11 @@ export function Detalhe() {
         </div>
 
         {/* Ação / status */}
-        {erroAcao && <p className="mt-5 text-[13px] text-accent">{erroAcao}</p>}
+        {erroAcao && <p role="alert" className="mt-5 text-[13px] text-accent-ink">{erroAcao}</p>}
         {status === "aceita" && solic?.motoristaTelefone ? (
           <a href={linkWhatsapp(solic.motoristaTelefone, `Oi ${primeiroNome(carona.nome)}! Topei a carona pra Facens. Vamos combinar o ponto de encontro?`)}
             target="_blank" rel="noopener noreferrer"
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] bg-good px-4 py-4 text-center text-sm font-bold text-white transition active:scale-[.98]">
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] bg-good-ink px-4 py-4 text-center text-sm font-bold text-white transition active:scale-[.98]">
             <MessageCircle size={18} className="shrink-0" /> Chamar {primeiroNome(carona.nome)} no WhatsApp
           </a>
         ) : status === "pendente" ? (
@@ -145,7 +145,7 @@ export function Detalhe() {
           </button>
         )}
         {status === "aceita" && (
-          <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-good"><Check size={14} /> Carona aceita!</div>
+          <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-good-ink"><Check size={14} /> Carona aceita!</div>
         )}
         {status === "aceita" && solic && (
           <div className="mt-4 flex flex-col items-center rounded-[18px] border border-line bg-surface p-4">

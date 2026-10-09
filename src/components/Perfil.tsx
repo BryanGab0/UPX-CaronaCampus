@@ -95,7 +95,7 @@ export function Perfil() {
               {p.status === "pendente" && (
                 <div className="mt-3 flex gap-2">
                   <button onClick={() => responder(p, "aceita")} disabled={respondendo === p.id}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-good py-2.5 text-xs font-bold text-white transition active:scale-[.98] disabled:opacity-60">
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-good-ink py-2.5 text-xs font-bold text-white transition active:scale-[.98] disabled:opacity-60">
                     <Check size={15} /> Aceitar
                   </button>
                   <button onClick={() => responder(p, "recusada")} disabled={respondendo === p.id}
@@ -107,7 +107,7 @@ export function Perfil() {
               {p.status === "aceita" && p.passageiroTelefone && (
                 <a href={linkWhatsapp(p.passageiroTelefone, `Oi ${primeiroNome(p.passageiroNome)}! Aceitei seu pedido de carona pra Facens. Vamos combinar?`)}
                   target="_blank" rel="noopener noreferrer"
-                  className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-good py-2.5 text-xs font-bold text-white transition active:scale-[.98]">
+                  className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-good-ink py-2.5 text-xs font-bold text-white transition active:scale-[.98]">
                   <MessageCircle size={15} /> Chamar no WhatsApp
                 </a>
               )}
@@ -148,6 +148,6 @@ export function Perfil() {
 }
 
 function StatusTag({ status }: { status: string }) {
-  const cor = status === "aceita" ? "bg-good-soft text-good" : status === "recusada" ? "bg-canvas text-sub" : "bg-brand-soft text-brand";
+  const cor = status === "aceita" ? "bg-good-soft text-good-ink" : status === "recusada" ? "bg-canvas text-sub" : "bg-brand-soft text-brand";
   return <span className={cn("shrink-0 rounded-lg px-2.5 py-0.5 text-xs font-semibold capitalize", cor)}>{status}</span>;
 }

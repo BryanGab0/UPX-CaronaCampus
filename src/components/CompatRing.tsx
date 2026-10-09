@@ -3,7 +3,7 @@ import { cn } from "../lib/cn";
 export function CompatRing({ valor, light = false }: { valor: number; light?: boolean }) {
   const r = 20;
   const circ = 2 * Math.PI * r;
-  const cor = light ? "text-white" : valor >= 75 ? "text-good" : valor >= 50 ? "text-brand" : "text-accent";
+  const cor = light ? "text-white" : valor >= 75 ? "text-good-ink" : valor >= 50 ? "text-brand" : "text-accent-ink";
 
   return (
     <div className={cn("relative grid size-[50px] shrink-0 place-items-center", cor)}>

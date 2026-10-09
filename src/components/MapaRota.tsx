@@ -60,7 +60,7 @@ export function MapaRota({ voce, motorista, destino }: { voce: Coord; motorista:
     return () => { ativo = false; map.remove(); };
   }, [voce.lat, voce.lng, motorista.lat, motorista.lng, destino.lat, destino.lng]);
 
-  return <div ref={ref} className="isolate h-52 w-full overflow-hidden rounded-[14px]" />;
+  return <div ref={ref} role="img" aria-label="Mapa com a sua localização, a do motorista e a rota até a Facens" className="isolate h-52 w-full overflow-hidden rounded-[14px]" />;
 }
 
 function pino(cor: string, size: number) {

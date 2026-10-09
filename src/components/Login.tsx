@@ -97,6 +97,8 @@ export function Login() {
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setErro(""); }}
                 placeholder="RA@facens.br"
+                aria-label="E-mail no formato RA@facens.br"
+                autoComplete="username"
                 inputMode="email"
                 className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
               />
@@ -109,6 +111,8 @@ export function Login() {
                     value={nome}
                     onChange={(e) => { setNome(e.target.value); setErro(""); }}
                     placeholder="Seu nome"
+                    aria-label="Nome"
+                    autoComplete="name"
                     className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
                   />
                 </Campo>
@@ -117,6 +121,8 @@ export function Login() {
                     value={telefone}
                     onChange={(e) => { setTelefone(formatarTelefone(e.target.value)); setErro(""); }}
                     placeholder="(11) 99999-9999"
+                    aria-label="Telefone com DDD"
+                    autoComplete="tel-national"
                     inputMode="tel"
                     className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
                   />
@@ -131,11 +137,13 @@ export function Login() {
                 onChange={(e) => { setSenha(e.target.value); setErro(""); }}
                 onKeyDown={(e) => e.key === "Enter" && enviar()}
                 placeholder="Senha"
+                aria-label="Senha"
+                autoComplete={modo === "login" ? "current-password" : "new-password"}
                 className="min-w-0 flex-1 bg-transparent text-[15px] outline-none"
               />
             </Campo>
 
-            {erro && <p className="text-[13px] text-accent">{erro}</p>}
+            {erro && <p role="alert" className="text-[13px] text-accent-ink">{erro}</p>}
 
             <button
               onClick={enviar}
@@ -171,7 +179,7 @@ export function Login() {
 
 function Campo({ icone, children }: { icone: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className={cn("flex items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3")}>
+    <div className={cn("flex items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3 transition focus-within:border-brand")}>
       <span className="shrink-0 text-sub">{icone}</span>
       {children}
     </div>

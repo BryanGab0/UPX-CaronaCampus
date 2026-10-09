@@ -28,6 +28,10 @@ const inscricao = (n: string) => ({ endpoint: `https://push.exemplo.com/${n}`, k
 const inscrever = (ra: string, quem: { auth: string }, corpo: object) =>
   request(app).post(`/usuarios/${ra}/inscricoes`).set("Authorization", quem.auth).send(corpo);
 const pedir = () => request(app).post("/usuarios/100/solicitacoes").set("Authorization", passageiro.auth).send({ motoristaRa: "200" });
+const responder = (id: number, status: string) =>
+  request(app).patch(`/solicitacoes/${id}`).set("Authorization", motorista.auth).send({ status });
+const cancelar = (id: number, quem: { auth: string }) =>
+  request(app).patch(`/solicitacoes/${id}/cancelamento`).set("Authorization", quem.auth);
 // Destinos e conteúdos enviados (a carga é o JSON da notificação).
 const enviados = () => enviar.mock.calls.map(([sub, carga]) => ({ para: sub.endpoint, ...JSON.parse(carga) }));
 
@@ -71,16 +75,42 @@ describe("quando avisa", () => {
     expect(enviar).toHaveBeenCalledTimes(1);
   });
 
-  it("aceite e recusa avisam o passageiro, levando à tela certa", async () => {
+  it("aceite avisa o passageiro, levando à tela certa", async () => {
     await inscrever("100", passageiro, inscricao("passageiro"));
     const { body } = await pedir();
-    await request(app).patch(`/solicitacoes/${body.id}`).set("Authorization", motorista.auth).send({ status: "aceita" });
+    await responder(body.id, "aceita");
     await vi.waitFor(() => expect(enviar).toHaveBeenCalledTimes(1));
     expect(enviados()[0]).toMatchObject({ titulo: "Pedido aceito!", url: "/carona/200" });
+  });
 
-    await request(app).patch(`/solicitacoes/${body.id}`).set("Authorization", motorista.auth).send({ status: "recusada" });
+  it("recusa avisa o passageiro, levando às outras caronas", async () => {
+    await inscrever("100", passageiro, inscricao("passageiro"));
+    const { body } = await pedir();
+    await responder(body.id, "recusada");
+    await vi.waitFor(() => expect(enviar).toHaveBeenCalledTimes(1));
+    expect(enviados()[0]).toMatchObject({ titulo: "Pedido recusado", url: "/caronas" });
+  });
+
+  it("cancelamento avisa a outra parte, e o pedido refeito avisa o motorista", async () => {
+    await inscrever("100", passageiro, inscricao("passageiro"));
+    await inscrever("200", motorista, inscricao("motorista"));
+    const { body } = await pedir();                       // 1: pedido novo -> motorista
+    await vi.waitFor(() => expect(enviar).toHaveBeenCalledTimes(1));
+    await responder(body.id, "aceita");                   // 2: aceite -> passageiro
     await vi.waitFor(() => expect(enviar).toHaveBeenCalledTimes(2));
-    expect(enviados()[1]).toMatchObject({ titulo: "Pedido recusado", url: "/caronas" });
+
+    await cancelar(body.id, motorista);                   // 3: motorista desfaz -> passageiro
+    await vi.waitFor(() => expect(enviar).toHaveBeenCalledTimes(3));
+    expect(enviados()[2]).toMatchObject({ para: inscricao("passageiro").endpoint, titulo: "Carona desfeita", url: "/caronas" });
+
+    await pedir();                                        // 4: refeito depois de cancelar -> motorista
+    await vi.waitFor(() => expect(enviar).toHaveBeenCalledTimes(4));
+    expect(enviados()[3]).toMatchObject({ para: inscricao("motorista").endpoint, titulo: "Novo pedido de carona" });
+
+    await cancelar(body.id, passageiro);                  // 5: passageiro cancela -> motorista
+    await vi.waitFor(() => expect(enviar).toHaveBeenCalledTimes(5));
+    expect(enviados()[4]).toMatchObject({ para: inscricao("motorista").endpoint, titulo: "Pedido cancelado", url: "/perfil" });
+    expect(enviados()[4].corpo).toContain("Usuario 100");
   });
 
   it("envia para todos os aparelhos da pessoa", async () => {

@@ -13,6 +13,9 @@ export interface Trajeto {
   chegada: string;
   saida: string;
   carro: Carro;
+  // O que os outros alunos veem no lugar da rua (detalhes do Nominatim; vazio em trajetos antigos).
+  bairro?: string | null;
+  cidade?: string | null;
 }
 
 // Carona oferecida = um motorista real (id = RA do motorista).

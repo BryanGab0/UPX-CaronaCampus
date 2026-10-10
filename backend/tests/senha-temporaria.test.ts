@@ -10,12 +10,12 @@ import { limparBanco, criarUsuario, SENHA } from "./utils.js";
 afterAll(() => pool.end());
 
 type Usuario = Awaited<ReturnType<typeof criarUsuario>>;
-let admin: Usuario, aluno: Usuario, outro: Usuario;
+let admin: Usuario, outro: Usuario;
 
 beforeEach(async () => {
   await limparBanco();
   admin = await criarUsuario("1", { admin: true });
-  aluno = await criarUsuario("100");
+  await criarUsuario("100"); // o aluno: os testes entram com a senha (login), não com o token
   outro = await criarUsuario("200");
 });
 

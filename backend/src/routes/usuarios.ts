@@ -5,16 +5,22 @@ import { VAGAS_MAX, VAGAS_MIN, vagasDe } from "../vagas.js";
 
 export const usuariosRouter = Router();
 
+// Bairro e cidade são opcionais (vêm dos detalhes do endereço no Nominatim): texto curto ou null.
+const textoCurto = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim().slice(0, 80) : null);
+
 interface TrajetoRow {
   papel: string; endereco: string; origem_lat: number; origem_lng: number;
   dias: string[]; chegada: string; saida: string;
   carro_modelo: string; carro_lugares: number; carro_consumo: string;
+  bairro: string | null; cidade: string | null;
 }
 
 function mapTrajeto(r: TrajetoRow) {
   return {
     papel: r.papel,
     endereco: r.endereco,
+    bairro: r.bairro,
+    cidade: r.cidade,
     origem: { lat: r.origem_lat, lng: r.origem_lng },
     dias: r.dias,
     chegada: r.chegada,
@@ -61,17 +67,18 @@ usuariosRouter.put("/usuarios/:ra/trajeto", autenticar, mesmoUsuario, async (req
     }
     const { rows } = await banco.query<TrajetoRow>(
       `INSERT INTO trajetos
-         (usuario_ra, papel, endereco, origem_lat, origem_lng, dias, chegada, saida, carro_modelo, carro_lugares, carro_consumo)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         (usuario_ra, papel, endereco, origem_lat, origem_lng, dias, chegada, saida, carro_modelo, carro_lugares, carro_consumo, bairro, cidade)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        ON CONFLICT (usuario_ra) DO UPDATE SET
          papel = EXCLUDED.papel, endereco = EXCLUDED.endereco,
          origem_lat = EXCLUDED.origem_lat, origem_lng = EXCLUDED.origem_lng,
          dias = EXCLUDED.dias, chegada = EXCLUDED.chegada, saida = EXCLUDED.saida,
          carro_modelo = EXCLUDED.carro_modelo, carro_lugares = EXCLUDED.carro_lugares,
-         carro_consumo = EXCLUDED.carro_consumo, atualizado_em = now()
+         carro_consumo = EXCLUDED.carro_consumo, bairro = EXCLUDED.bairro, cidade = EXCLUDED.cidade,
+         atualizado_em = now()
        RETURNING *`,
       [req.params.ra, t.papel, t.endereco, o.lat, o.lng, t.dias, t.chegada, t.saida,
-       carro.modelo ?? "", vagas, carro.consumo ?? 12],
+       carro.modelo ?? "", vagas, carro.consumo ?? 12, textoCurto(t.bairro), textoCurto(t.cidade)],
     );
     await banco.query("COMMIT");
     res.json(mapTrajeto(rows[0]));

@@ -4,6 +4,7 @@ import { Route as RouteIcon, Mail, User, Lock, Phone } from "lucide-react";
 import { useAuth, emailInstitucional } from "../context/AuthContext";
 import { cn } from "../lib/cn";
 import { formatarTelefone, telefoneValido } from "../lib/formato";
+import { CONTATO } from "../lib/contato";
 
 export function Login() {
   const { login, registrar, avisoSaida } = useAuth();
@@ -15,6 +16,7 @@ export function Login() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState(avisoSaida ?? "");
   const [carregando, setCarregando] = useState(false);
+  const [ajudaSenha, setAjudaSenha] = useState(false);
 
   const enviar = async () => {
     setErro("");
@@ -130,6 +132,23 @@ export function Login() {
             </Campo>
 
             {erro && <p role="alert" className="text-[13px] text-accent-ink">{erro}</p>}
+            {modo === "login" && (
+              <div>
+                <button type="button" onClick={() => setAjudaSenha((v) => !v)} aria-expanded={ajudaSenha}
+                  className="text-[13px] font-semibold text-brand">
+                  Esqueci minha senha
+                </button>
+                {/* Sem e-mail utilizável para recuperação: a administração confere a identidade e
+                    gera uma senha temporária, que o app obriga a trocar no primeiro acesso. */}
+                {ajudaSenha && (
+                  <p className="mt-1.5 rounded-xl bg-brand-soft px-3.5 py-3 text-[13px] leading-relaxed text-ink">
+                    Fale com a administração do CaronaCampus pelo e-mail{" "}
+                    <a href={`mailto:${CONTATO}`} className="font-semibold text-brand break-all">{CONTATO}</a>{" "}
+                    informando seu RA. Depois de confirmar que é você, ela envia uma senha temporária; ao entrar com ela, você cria uma nova.
+                  </p>
+                )}
+              </div>
+            )}
 
             <button
               onClick={enviar}

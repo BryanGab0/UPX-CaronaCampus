@@ -33,7 +33,8 @@ async function erroDaResposta(resp: Response, padrao: string): Promise<Error> {
 
 export interface Sessao {
   token: string;
-  usuario: { ra: string; nome: string; email: string; admin: boolean };
+  // senhaTemporaria: entrou com a senha gerada pelo admin; o app só libera definir uma nova.
+  usuario: { ra: string; nome: string; email: string; admin: boolean; senhaTemporaria?: boolean };
 }
 
 export async function registrar(ra: string, nome: string, email: string, telefone: string, senha: string): Promise<Sessao> {

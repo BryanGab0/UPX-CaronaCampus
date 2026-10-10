@@ -18,6 +18,7 @@ export interface AuthContextValue {
   login: (email: string, senha: string) => Promise<void>;
   registrar: (email: string, nome: string, telefone: string, senha: string) => Promise<void>;
   sair: () => void;
+  atualizarSessao: (mudanca: { nome?: string; token?: string }) => void; // após editar o nome ou trocar a senha
   avisoSaida: string | null; // ex.: conta bloqueada; aparece na tela de login
 }
 

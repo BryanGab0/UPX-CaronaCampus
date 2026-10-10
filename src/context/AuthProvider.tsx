@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { usePersistedState } from "../hooks/usePersistedState";
-import { login as apiLogin, registrar as apiRegistrar, definirToken, definirAoBloquear } from "../lib/api";
+import { login as apiLogin, registrar as apiRegistrar, definirToken, definirAoEncerrar } from "../lib/api";
 import type { Sessao } from "../lib/api";
 import { AuthContext } from "./AuthContext";
 
@@ -12,13 +12,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // com efeitos filhos que fazem requisições logo após o login/recarregar).
   definirToken(sessao?.token ?? null);
 
-  // Se a API avisar que a conta foi bloqueada, encerra a sessão e explica no login.
+  // Se a API avisar que a sessão deixou de valer (conta bloqueada, token expirado ou senha
+  // trocada em outro aparelho), encerra a sessão e explica o motivo no login.
   const [avisoSaida, setAvisoSaida] = useState<string | null>(null);
-  definirAoBloquear(() => {
+  definirAoEncerrar((motivo) => {
     definirToken(null);
     setSessao(null);
-    setAvisoSaida("Sua conta foi bloqueada pela administração.");
+    setAvisoSaida(motivo);
   });
+
+  // Depois de editar o nome ou trocar a senha (token novo), a sessão salva acompanha.
+  const atualizarSessao = (mudanca: { nome?: string; token?: string }) => {
+    if (mudanca.token) definirToken(mudanca.token);
+    setSessao((s) => s && {
+      token: mudanca.token ?? s.token,
+      usuario: { ...s.usuario, nome: mudanca.nome ?? s.usuario.nome },
+    });
+  };
 
   const login = async (email: string, senha: string) => {
     const ra = email.trim().split("@")[0];
@@ -44,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const u = sessao?.usuario;
   return (
     <AuthContext.Provider
-      value={{ autenticado: sessao !== null, nome: u?.nome ?? "", email: u?.email ?? "", ra: u?.ra ?? "", login, registrar, sair, avisoSaida }}
+      value={{ autenticado: sessao !== null, nome: u?.nome ?? "", email: u?.email ?? "", ra: u?.ra ?? "", login, registrar, sair, atualizarSessao, avisoSaida }}
     >
       {children}
     </AuthContext.Provider>

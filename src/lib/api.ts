@@ -1,4 +1,5 @@
 import type { Carona, Trajeto } from "../types";
+import type { Avaliacao } from "./match";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333";
 
@@ -47,7 +48,11 @@ export async function login(ra: string, senha: string): Promise<Sessao> {
 }
 
 // Caronas = motoristas reais (protegido).
-export async function buscarCaronas(): Promise<Carona[]> {
+// Carona como vem da API: já com a nota e o detalhamento, ou compat null se quem pede ainda não
+// cadastrou trajeto. A origem do motorista é uma região aproximada (~1 km), não a casa.
+export type CaronaApi = Carona & (Avaliacao | { compat: null });
+
+export async function buscarCaronas(): Promise<CaronaApi[]> {
   const resp = await fetch(`${API_URL}/caronas`, { headers: { ...authHeaders() } });
   if (!resp.ok) throw await falha(resp, "ao buscar caronas");
   return resp.json();

@@ -22,8 +22,8 @@ export interface Trajeto {
 export interface Carona {
   id: string;
   nome: string;
-  endereco: string;
-  origem: Coord;
+  endereco: string;    // só bairro e cidade (a rua fica no servidor)
+  origem: Coord;       // região aproximada (~1 km), não a casa do motorista
   dias: DiaSemana[];
   chegada: string;
   carro: string;
@@ -34,9 +34,3 @@ export interface Carona {
   vagasLivres: number; // vagas − pedidos aceitos (0 = lotado)
 }
 
-// Entrada do algoritmo de match.
-export interface Perfil {
-  origem: Coord;
-  chegada: string;
-  dias: DiaSemana[];
-}

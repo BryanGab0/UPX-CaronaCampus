@@ -20,8 +20,12 @@ async function buscarRota(a: LatLng, b: LatLng): Promise<LatLng[] | null> {
   }
 }
 
-// Mostra: você (origem do passageiro), o motorista e a Facens, com a rota do motorista.
-export function MapaRota({ voce, motorista, destino }: { voce: Coord; motorista: Coord; destino: Coord }) {
+// Raio do círculo da região do motorista: cobre a célula de ~1 km em que a API encaixa a casa dele.
+const RAIO_REGIAO_M = 800;
+
+// Mostra: você (origem do passageiro), a REGIÃO do motorista (a API manda só o centro de uma área
+// de ~1 km, nunca a casa) e a Facens, com uma rota aproximada saindo do centro da região.
+export function MapaRota({ voce, regiaoMotorista, destino }: { voce: Coord; regiaoMotorista: Coord; destino: Coord }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,27 +44,29 @@ export function MapaRota({ voce, motorista, destino }: { voce: Coord; motorista:
     }).addTo(map);
 
     const V: LatLng = [voce.lat, voce.lng];
-    const M: LatLng = [motorista.lat, motorista.lng];
+    const M: LatLng = [regiaoMotorista.lat, regiaoMotorista.lng];
     const F: LatLng = [destino.lat, destino.lng];
 
     let rota = L.polyline([M, F], { color: "#2F4BFF", weight: 4, opacity: 0.45, dashArray: "6 6" }).addTo(map);
 
     L.marker(V, { icon: pino("#FF7A45", 15) }).addTo(map);
-    L.marker(M, { icon: pino("#2F4BFF", 13) }).addTo(map);
+    L.circle(M, { radius: RAIO_REGIAO_M, color: "#2F4BFF", weight: 2, fillOpacity: 0.15 }).addTo(map);
     L.marker(F, { icon: pino("#161A22", 16) }).addTo(map);
-    map.fitBounds(L.latLngBounds([V, M, F]).pad(0.3));
+    // Área do círculo calculada pela coordenada: o getBounds() do círculo só funciona com o mapa já posicionado.
+    const areaRegiao = L.latLng(M).toBounds(RAIO_REGIAO_M * 2);
+    map.fitBounds(L.latLngBounds([V, F]).extend(areaRegiao).pad(0.3));
 
     buscarRota(M, F).then((r) => {
       if (!ativo || !r) return;
       map.removeLayer(rota);
       rota = L.polyline(r, { color: "#2F4BFF", weight: 4 }).addTo(map);
-      map.fitBounds(L.latLngBounds([V, ...r]).pad(0.2));
+      map.fitBounds(L.latLngBounds([V, ...r]).extend(areaRegiao).pad(0.2));
     });
 
     return () => { ativo = false; map.remove(); };
-  }, [voce.lat, voce.lng, motorista.lat, motorista.lng, destino.lat, destino.lng]);
+  }, [voce.lat, voce.lng, regiaoMotorista.lat, regiaoMotorista.lng, destino.lat, destino.lng]);
 
-  return <div ref={ref} role="img" aria-label="Mapa com a sua localização, a do motorista e a rota até a Facens" className="isolate h-52 w-full overflow-hidden rounded-[14px]" />;
+  return <div ref={ref} role="img" aria-label="Mapa com a sua localização, a região aproximada do motorista e a rota até a Facens" className="isolate h-52 w-full overflow-hidden rounded-[14px]" />;
 }
 
 function pino(cor: string, size: number) {

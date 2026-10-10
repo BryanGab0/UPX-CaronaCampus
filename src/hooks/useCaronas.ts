@@ -1,28 +1,32 @@
 import { useEffect, useState } from "react";
 import { buscarCaronas } from "../lib/api";
-import type { Carona } from "../types";
+import type { CaronaApi } from "../lib/api";
+
+interface Estado { chave: string | null; versao: number; caronas: CaronaApi[]; erro: string | null; }
 
 // Busca as caronas da API, expondo carregando/erro além dos dados.
+// `chave` muda quando o trajeto salvo muda (a nota é calculada na API com ele): aí busca de novo.
+// Com `chave` null (trajeto ainda carregando), espera em vez de buscar à toa.
 // `recarregar` busca de novo (ex.: botão "Tentar novamente").
-export function useCaronas() {
-  const [caronas, setCaronas] = useState<Carona[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState<string | null>(null);
+export function useCaronas(chave: string | null) {
   const [versao, setVersao] = useState(0);
+  const [estado, setEstado] = useState<Estado | null>(null);
 
   useEffect(() => {
-    let ativo = true; // evita atualizar estado após desmontar o componente
+    if (chave === null) return;
+    let ativo = true; // evita atualizar estado após desmontar ou após uma busca mais nova
     buscarCaronas()
-      .then((dados) => { if (ativo) { setCaronas(dados); setErro(null); } })
+      .then((caronas) => { if (ativo) setEstado({ chave, versao, caronas, erro: null }); })
       .catch((e: unknown) => {
         console.error(e);
-        if (ativo) setErro(e instanceof Error ? e.message : "Falha ao carregar");
-      })
-      .finally(() => { if (ativo) setCarregando(false); });
+        if (ativo) setEstado({ chave, versao, caronas: [], erro: e instanceof Error ? e.message : "Falha ao carregar" });
+      });
     return () => { ativo = false; };
-  }, [versao]);
+  }, [chave, versao]);
 
-  const recarregar = () => { setCarregando(true); setVersao((v) => v + 1); };
+  // Derivado em vez de um "carregando" ligado num efeito: a resposta só vale para a busca atual.
+  const atual = estado?.chave === chave && estado.versao === versao ? estado : null;
+  const recarregar = () => setVersao((v) => v + 1);
 
-  return { caronas, carregando, erro, recarregar };
+  return { caronas: atual?.caronas ?? [], carregando: atual === null, erro: atual?.erro ?? null, recarregar };
 }

@@ -5,7 +5,7 @@ import { MapPin, CalendarDays, Clock, Car, Users, Navigation, Check, Loader2, Lo
 import { cn } from "../lib/cn";
 import { usePerfilContext } from "../context/PerfilContext";
 import { useAuth } from "../context/AuthContext";
-import { Carregando } from "./Estado";
+import { Carregando, ErroCarga } from "./Estado";
 import type { Trajeto as TrajetoType, DiaSemana, Coord } from "../types";
 
 const DIAS: DiaSemana[] = ["seg", "ter", "qua", "qui", "sex"];
@@ -37,7 +37,7 @@ async function enderecoDaCoord(c: Coord): Promise<string> {
 }
 
 export function Trajeto() {
-  const { trajeto, pronto } = usePerfilContext();
+  const { trajeto, pronto, erro, recarregar } = usePerfilContext();
   const { ra } = useAuth();
 
   return (
@@ -47,8 +47,11 @@ export function Trajeto() {
 
       {/* O formulário só monta com o trajeto já carregado: o estado local nasce dele.
           Antes disso o contexto entrega o trajeto padrão, e salvar sobrescreveria o verdadeiro.
+          Se a busca falhou, também não há trajeto confiável: mostra o erro em vez do formulário.
           A key remonta o formulário ao trocar de conta. */}
-      {pronto ? <FormTrajeto key={ra} trajeto={trajeto} /> : <Carregando texto="Carregando seu trajeto…" />}
+      {erro ? <ErroCarga titulo="Não foi possível carregar seu trajeto" onTentar={recarregar} />
+        : pronto ? <FormTrajeto key={ra} trajeto={trajeto} />
+        : <Carregando texto="Carregando seu trajeto…" />}
     </div>
   );
 }

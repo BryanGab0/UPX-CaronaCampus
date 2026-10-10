@@ -30,7 +30,7 @@ O repositório tem três partes:
 - Match de caronas por proximidade e horário (compatibilidade calculada)
 - Mapa com o trajeto até o campus (Leaflet + OpenStreetMap)
 - Divisão do custo de combustível
-- Solicitação de caronas, com aceite ou recusa pelo motorista
+- Solicitação de caronas, com aceite ou recusa pelo motorista; o passageiro pode cancelar o pedido ou desistir da carona, e o motorista pode desfazer o aceite (a outra parte é avisada)
 - Aviso de pedidos pendentes na tela inicial
 - Impacto estimado das caronas aceitas (economia de combustível e CO₂ evitado no mês)
 - Avaliação de 1 a 5 estrelas entre passageiro e motorista após o aceite, com a média exibida nos cards
@@ -62,6 +62,6 @@ Para o painel administrativo, veja o [README do admin](admin/README.md).
 ## Qualidade
 - `npm run lint` — ESLint (cobre app, admin e API)
 - `npm test` — testes do app e do admin (compatibilidade, impacto estimado, formatadores, busca e paginação), com Vitest
-- `npm test` em `backend/` — testes da API (autenticação, permissões, aceite/recusa, moderação, avaliações, notificações, limite de tentativas e migrações)
+- `npm test` em `backend/` — testes da API (autenticação, permissões, aceite/recusa, cancelamento, moderação, avaliações, notificações, limite de tentativas e migrações)
 - A cada push na `main` e em cada Pull Request, o GitHub Actions roda lint, checagem de tipos, testes e build dos três projetos.
 - Erros em produção (app e API) são registrados no Sentry, sem dados pessoais: nada de nome, telefone, senha, endereço, localização ou IP.

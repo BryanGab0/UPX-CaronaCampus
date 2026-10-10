@@ -17,8 +17,10 @@ const TRAJETO_INICIAL: Trajeto = {
 
 export function PerfilProvider({ children }: { children: ReactNode }) {
   const { autenticado, ra } = useAuth();
-  // Guarda o trajeto junto com o RA de quem é dono dele.
-  const [carregado, setCarregado] = useState<{ ra: string; trajeto: Trajeto } | null>(null);
+  // Guarda o trajeto junto com o RA de quem é dono dele. trajeto null = a busca falhou:
+  // não há trajeto confiável, e entregar o inicial deixaria salvar por cima do verdadeiro.
+  const [carregado, setCarregado] = useState<{ ra: string; trajeto: Trajeto | null } | null>(null);
+  const [tentativa, setTentativa] = useState(0); // incrementar refaz a busca
 
   useEffect(() => {
     if (!autenticado || !ra) return;
@@ -27,20 +29,31 @@ export function PerfilProvider({ children }: { children: ReactNode }) {
       .then((t) => { if (ativo) setCarregado({ ra, trajeto: t ?? TRAJETO_INICIAL }); })
       .catch((e: unknown) => {
         console.error(e);
-        if (ativo) setCarregado({ ra, trajeto: TRAJETO_INICIAL }); // segue com o inicial; a tela não fica presa carregando
+        if (ativo) setCarregado({ ra, trajeto: null }); // as telas mostram o erro com "tentar novamente"
       });
     return () => { ativo = false; };
-  }, [autenticado, ra]);
+  }, [autenticado, ra, tentativa]);
 
   // Derivado em vez de "zerado" num efeito: ao sair ou trocar de conta, o trajeto
   // guardado não é do RA atual e o valor volta sozinho ao inicial.
-  const pronto = autenticado && carregado?.ra === ra;
-  const trajeto = pronto ? carregado.trajeto : TRAJETO_INICIAL;
+  const doRa = autenticado && carregado?.ra === ra ? carregado : null;
+  const pronto = doRa?.trajeto != null;
+  const erro = doRa !== null && doRa.trajeto === null;
+  const trajeto = doRa?.trajeto ?? TRAJETO_INICIAL;
 
   const salvar = async (t: Trajeto) => {
     if (ra) await salvarTrajeto(ra, t);
     setCarregado({ ra, trajeto: t });
   };
 
-  return <PerfilContext.Provider value={{ trajeto, pronto, temTrajeto: trajeto.endereco !== "", salvar }}>{children}</PerfilContext.Provider>;
+  const recarregar = () => {
+    setCarregado(null); // volta a "carregando" enquanto a nova busca não responde
+    setTentativa((n) => n + 1);
+  };
+
+  return (
+    <PerfilContext.Provider value={{ trajeto, pronto, erro, temTrajeto: trajeto.endereco !== "", salvar, recarregar }}>
+      {children}
+    </PerfilContext.Provider>
+  );
 }

@@ -74,11 +74,16 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - `PUT  /usuarios/:ra/trajeto`       — salva/atualiza o trajeto (protegida)
 - `POST /usuarios/:ra/solicitacoes`  — solicita uma carona (protegida)
 - `GET  /usuarios/:ra/solicitacoes`  — lista as solicitações (protegida)
+- `GET  /usuarios/:ra/pedidos`       — pedidos recebidos pelo motorista (protegida)
+- `PATCH /solicitacoes/:id`           — motorista aceita ou recusa um pedido pendente (protegida; 409 se não estiver pendente)
+- `PATCH /solicitacoes/:id/cancelamento` — passageiro cancela (pendente ou aceito) ou motorista desfaz o aceite (protegida; 409 se o status já mudou)
+
+Regras dos pedidos: um por par passageiro/motorista. Depois de cancelado, pedir de novo o reabre como pendente; depois de recusado, não. O telefone das partes só aparece com o pedido aceito, então some se ele for cancelado. As avaliações feitas durante a carona são mantidas.
 
 ## Tabelas
 - `usuarios` — aluno (ra, nome, email, senha_hash, telefone, admin)
 - `trajetos` — trajeto de cada usuário: papel (motorista/passageiro), endereço, coordenadas, dias e horários (chave estrangeira → `usuarios`)
-- `solicitacoes` — pedidos de carona do passageiro ao motorista, com status `pendente`, `aceita` ou `recusada` (chaves estrangeiras → `usuarios`)
+- `solicitacoes` — pedidos de carona do passageiro ao motorista, com status `pendente`, `aceita`, `recusada` ou `cancelada` e quem cancelou (`cancelado_por`) (chaves estrangeiras → `usuarios`)
 - `denuncias` — denúncia de um usuário contra outro (motivo, descrição, status `aberta`/`resolvida`; uma aberta por par)
 - `avaliacoes` — nota de 1 a 5 que cada lado dá ao outro em um pedido aceito (uma por lado; a média é calculada na consulta)
 - `inscricoes_push` — aparelhos inscritos para receber notificações (endereço e chaves do navegador)

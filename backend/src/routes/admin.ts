@@ -68,7 +68,7 @@ adminRouter.patch("/usuarios/:ra/bloqueio", async (req, res) => {
 adminRouter.get("/solicitacoes", async (_req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT s.id, s.status, s.criado_em,
+      SELECT s.id, s.status, s.cancelado_por, s.criado_em,
              p.nome AS passageiro_nome, m.nome AS motorista_nome
       FROM solicitacoes s
       JOIN usuarios p ON p.ra = s.passageiro_ra
@@ -76,7 +76,7 @@ adminRouter.get("/solicitacoes", async (_req, res) => {
       ORDER BY s.criado_em DESC
     `);
     res.json(rows.map((r) => ({
-      id: r.id, status: r.status,
+      id: r.id, status: r.status, canceladoPor: r.cancelado_por,
       passageiroNome: r.passageiro_nome, motoristaNome: r.motorista_nome,
     })));
   } catch (e) {

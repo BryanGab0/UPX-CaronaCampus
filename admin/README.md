@@ -28,5 +28,5 @@ Todas as listas têm busca (sem diferenciar acentos), filtros com contagem e pag
 
 - **Estatísticas** — totais de usuários, caronas, trajetos e solicitações
 - **Usuários** — lista dos cadastrados (marca quem é admin), com bloquear/desbloquear conta
-- **Solicitações** — todos os pedidos de carona
+- **Solicitações** — todos os pedidos de carona (pendentes, aceitos, recusados e cancelados, com quem cancelou)
 - **Denúncias** — denúncias dos alunos, com atalhos para bloquear o denunciado e marcar como resolvida

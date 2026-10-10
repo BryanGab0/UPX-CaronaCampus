@@ -77,6 +77,7 @@ export interface MinhaSolicitacao {
   endereco: string | null;
   motoristaTelefone: string | null;
   minhaNota: number | null; // nota que o passageiro deu ao motorista
+  canceladoPor: QuemCancelou | null;
 }
 
 export async function solicitarCarona(ra: string, motoristaRa: string): Promise<void> {
@@ -93,6 +94,9 @@ export async function buscarSolicitacoes(ra: string): Promise<MinhaSolicitacao[]
   return resp.json();
 }
 
+// Pedido cancelado: o passageiro desistiu ou o motorista desfez o aceite.
+export type QuemCancelou = "passageiro" | "motorista";
+
 // --- Pedidos recebidos (lado motorista) ---
 export interface Pedido {
   id: number;
@@ -103,6 +107,7 @@ export interface Pedido {
   minhaNota: number | null;      // nota que o motorista deu ao passageiro
   passageiroMedia: number | null;
   passageiroAvaliacoes: number;
+  canceladoPor: QuemCancelou | null;
 }
 
 export async function buscarPedidos(ra: string): Promise<Pedido[]> {
@@ -116,7 +121,17 @@ export async function responderSolicitacao(id: number, status: "aceita" | "recus
     method: "PATCH", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ status }),
   });
+  // 409: o passageiro cancelou nesse meio-tempo; a API explica para o usuário.
+  if (resp.status === 409) throw await erroDaResposta(resp, "Este pedido não está mais aguardando resposta.");
   if (!resp.ok) throw await falha(resp, "ao responder solicitação");
+}
+
+// Passageiro cancela (pendente ou aceito) ou motorista desfaz o aceite.
+export async function cancelarSolicitacao(id: number): Promise<void> {
+  const resp = await fetch(`${API_URL}/solicitacoes/${id}/cancelamento`, { method: "PATCH", headers: { ...authHeaders() } });
+  // 409: o pedido mudou nesse meio-tempo (ex.: o outro lado respondeu); a API explica para o usuário.
+  if (resp.status === 409) throw await erroDaResposta(resp, "Este pedido não pode mais ser cancelado.");
+  if (!resp.ok) throw await falha(resp, "ao cancelar solicitação");
 }
 
 // --- Denúncias ---

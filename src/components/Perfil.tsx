@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag, ShieldCheck, ChevronRight } from "lucide-react";
+import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag, ShieldCheck, ChevronRight, Undo2 } from "lucide-react";
 import { cn } from "../lib/cn";
 import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { useAuth } from "../context/AuthContext";
 import { usePedidos } from "../hooks/usePedidos";
 import { useAviso } from "../hooks/useAviso";
-import { avaliar, responderSolicitacao } from "../lib/api";
+import { avaliar, cancelarSolicitacao, responderSolicitacao } from "../lib/api";
 import type { Pedido } from "../lib/api";
 import { ErroCarga, EsqueletoLista, EstadoVazio } from "./Estado";
 import { usePerfilContext } from "../context/PerfilContext";
 import { Aviso } from "./Aviso";
 import { Denunciar } from "./Denunciar";
+import { Confirmar } from "./Confirmar";
 import { Notificacoes } from "./Notificacoes";
 import { desativarPush } from "../lib/push";
 import { Estrelas, NotaMedia } from "./Estrelas";
@@ -26,6 +27,7 @@ export function Perfil() {
   const [respondendo, setRespondendo] = useState<number | null>(null); // id do pedido em andamento
   const [denunciado, setDenunciado] = useState<Pedido | null>(null);
   const [avaliando, setAvaliando] = useState<number | null>(null); // id do pedido sendo avaliado
+  const [desfazendo, setDesfazendo] = useState<Pedido | null>(null); // aceite a desfazer (folha de confirmação)
 
   const onAvaliar = async (p: Pedido, nota: number) => {
     setAvaliando(p.id);
@@ -45,9 +47,19 @@ export function Perfil() {
       recarregar(); // os botões somem quando a lista atualizada chegar
     } catch (e) {
       console.error(e);
-      mostrar("erro", "Não foi possível responder o pedido. Tente novamente.");
+      // Mensagem escrita pela API (ex.: o passageiro cancelou nesse meio-tempo) ou a genérica.
+      mostrar("erro", e instanceof Error && !e.message.startsWith("Erro ") ? e.message : "Não foi possível responder o pedido. Tente novamente.");
       setRespondendo(null);
+      recarregar();
     }
+  };
+
+  // Lança o erro para a folha de confirmação mostrar (ex.: o passageiro cancelou nesse meio-tempo).
+  const onDesfazer = async (p: Pedido) => {
+    await cancelarSolicitacao(p.id);
+    setDesfazendo(null);
+    recarregar();
+    mostrar("ok", `Aceite desfeito. ${primeiroNome(p.passageiroNome)} recebeu um aviso.`);
   };
 
   // Ao sair, o aparelho para de receber avisos desta conta (melhor esforço: não impede a saída).
@@ -124,10 +136,23 @@ export function Perfil() {
                   <Estrelas valor={p.minhaNota} onEscolher={(n) => onAvaliar(p, n)} desabilitado={avaliando === p.id} />
                 </div>
               )}
-              <button onClick={() => setDenunciado(p)}
-                className="mt-2.5 flex items-center gap-1 text-[11px] font-semibold text-sub transition active:scale-[.98]">
-                <Flag size={12} /> Denunciar
-              </button>
+              {p.status === "cancelada" && (
+                <p className="mt-2 text-xs text-sub">
+                  {p.canceladoPor === "motorista" ? "Você desfez o aceite." : `${primeiroNome(p.passageiroNome)} cancelou o pedido.`}
+                </p>
+              )}
+              <div className="mt-2.5 flex items-center justify-between gap-2">
+                <button onClick={() => setDenunciado(p)}
+                  className="flex items-center gap-1 text-[11px] font-semibold text-sub transition active:scale-[.98]">
+                  <Flag size={12} /> Denunciar
+                </button>
+                {p.status === "aceita" && (
+                  <button onClick={() => setDesfazendo(p)}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-sub transition active:scale-[.98]">
+                    <Undo2 size={12} /> Desfazer aceite
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -147,6 +172,11 @@ export function Perfil() {
         <LogOut size={17} /> Sair
       </button>
 
+      {desfazendo && (
+        <Confirmar titulo="Desfazer o aceite?"
+          texto={`${primeiroNome(desfazendo.passageiroNome)} recebe um aviso e o telefone de cada um deixa de aparecer no app. Se já tinham combinado algo, avise pelo WhatsApp antes.`}
+          acao="Desfazer aceite" onConfirmar={() => onDesfazer(desfazendo)} onFechar={() => setDesfazendo(null)} />
+      )}
       {denunciado && (
         <Denunciar denunciadoRa={denunciado.passageiroRa} denunciadoNome={denunciado.passageiroNome}
           onFechar={() => setDenunciado(null)}
@@ -157,6 +187,6 @@ export function Perfil() {
 }
 
 function StatusTag({ status }: { status: string }) {
-  const cor = status === "aceita" ? "bg-good-soft text-good-ink" : status === "recusada" ? "bg-canvas text-sub" : "bg-brand-soft text-brand";
+  const cor = status === "aceita" ? "bg-good-soft text-good-ink" : status === "pendente" ? "bg-brand-soft text-brand" : "bg-canvas text-sub";
   return <span className={cn("shrink-0 rounded-lg px-2.5 py-0.5 text-xs font-semibold capitalize", cor)}>{status}</span>;
 }

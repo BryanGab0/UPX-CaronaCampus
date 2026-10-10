@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { calcularImpacto, SEMANAS_MES, CO2_KG_POR_LITRO } from "./impacto";
-import { ranquear, litrosDia, PRECO_LITRO } from "./match";
+import { litrosDia, PRECO_LITRO } from "./match";
+import type { Resultado } from "./match";
 import type { MinhaSolicitacao, Pedido } from "./api";
 import type { Carona, Coord, Trajeto } from "../types";
 
@@ -25,7 +26,14 @@ const solicitacao = (status: string): MinhaSolicitacao => ({
 });
 const pedido = (id: number, status: string): Pedido => ({ id, status, passageiroRa: "100", passageiroNome: "Ana", passageiroTelefone: null, minhaNota: null, passageiroMedia: null, passageiroAvaliacoes: 0, canceladoPor: null });
 
-const perfilDe = (t: Trajeto) => ({ origem: t.origem, chegada: t.chegada, dias: t.dias });
+// Como a API devolve o motorista para um passageiro com aulas de seg a sex: 3 dias em comum e o
+// combustível já calculado (litrosDia), que o app só soma.
+const LITROS_MOTORISTA = 2.2;
+const resultado: Resultado = {
+  carona: motorista, compat: 90, scoreHorario: 0.8, scoreRota: 1, diasComuns: ["seg", "qua", "sex"],
+  difChegadaMin: 0, desvioKm: 0, litrosDia: LITROS_MOTORISTA, custoDia: (LITROS_MOTORISTA * PRECO_LITRO) / 2,
+  pesos: { horario: 0.55, rota: 0.45 },
+};
 
 describe("calcularImpacto", () => {
   it("é zero sem caronas aceitas (pendentes, recusadas e canceladas não contam)", () => {
@@ -33,20 +41,20 @@ describe("calcularImpacto", () => {
     const r = calcularImpacto({
       solicitacoes: [solicitacao("pendente"), solicitacao("recusada"), solicitacao("cancelada")],
       pedidos: [pedido(1, "pendente"), pedido(2, "cancelada")],
-      resultados: ranquear(perfilDe(t), [motorista], FACENS),
+      resultados: [resultado],
       trajeto: t, destino: FACENS,
     });
     expect(r).toEqual({ caronas: 0, economiaMes: 0, co2Mes: 0 });
   });
 
-  it("como passageiro, usa o trajeto do motorista e só os dias em comum", () => {
+  it("como passageiro, usa o combustível do motorista (vindo da API) e só os dias em comum", () => {
     const t = trajeto();
     const r = calcularImpacto({
       solicitacoes: [solicitacao("aceita")], pedidos: [],
-      resultados: ranquear(perfilDe(t), [motorista], FACENS),
+      resultados: [resultado],
       trajeto: t, destino: FACENS,
     });
-    const litrosMes = litrosDia(SUL_10KM, FACENS, 10) * 3 * SEMANAS_MES; // seg, qua, sex
+    const litrosMes = LITROS_MOTORISTA * 3 * SEMANAS_MES; // seg, qua, sex
     expect(r.caronas).toBe(1);
     expect(r.economiaMes).toBeCloseTo((litrosMes * PRECO_LITRO) / 2, 6);
     expect(r.co2Mes).toBeCloseTo(litrosMes * CO2_KG_POR_LITRO, 6);

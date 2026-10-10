@@ -22,7 +22,7 @@ interface Viagem { litrosDia: number; diasPorSemana: number; }
 interface Entrada {
   solicitacoes: MinhaSolicitacao[]; // enviadas como passageiro
   pedidos: Pedido[];                // recebidos como motorista
-  resultados: Resultado[];          // motoristas ranqueados (origem, consumo, dias em comum)
+  resultados: Resultado[];          // motoristas ranqueados pela API (combustível e dias em comum)
   trajeto: Trajeto;                 // trajeto do próprio usuário
   destino: Coord;
 }
@@ -34,7 +34,7 @@ export function calcularImpacto({ solicitacoes, pedidos, resultados, trajeto, de
   const aceitasPassageiro = solicitacoes.filter((s) => s.status === "aceita");
   for (const s of aceitasPassageiro) {
     const r = resultados.find((x) => x.carona.id === s.motoristaRa);
-    if (r) viagens.push({ litrosDia: litrosDia(r.carona.origem, destino, r.carona.consumo), diasPorSemana: r.diasComuns.length });
+    if (r) viagens.push({ litrosDia: r.litrosDia, diasPorSemana: r.diasComuns.length }); // calculado pela API
   }
 
   // Como motorista: usa o próprio trajeto (o pedido não traz os dias do passageiro).

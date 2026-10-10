@@ -1,18 +1,14 @@
 import { useMemo } from "react";
 import { usePerfilContext } from "../context/PerfilContext";
 import { useCaronas } from "./useCaronas";
-import { ranquear } from "../lib/match";
-import { FACENS } from "../data/mock";
-import type { Perfil } from "../types";
+import { paraResultados } from "../lib/resultados";
 
+// Caronas já ranqueadas pela API, com a nota calculada a partir do trajeto salvo do usuário.
 export function useResultados() {
-  const { trajeto } = usePerfilContext();
-  const { caronas, carregando, erro, recarregar } = useCaronas();
-
-  const resultados = useMemo(() => {
-    const perfil: Perfil = { origem: trajeto.origem, chegada: trajeto.chegada, dias: trajeto.dias };
-    return ranquear(perfil, caronas, FACENS);
-  }, [trajeto, caronas]);
-
+  const { trajeto, pronto } = usePerfilContext();
+  // Ao salvar outro trajeto, a nota muda: a chave faz a lista ser buscada de novo.
+  const chave = pronto ? JSON.stringify([trajeto.origem, trajeto.chegada, trajeto.dias]) : null;
+  const { caronas, carregando, erro, recarregar } = useCaronas(chave);
+  const resultados = useMemo(() => paraResultados(caronas), [caronas]);
   return { resultados, carregando, erro, recarregar };
 }

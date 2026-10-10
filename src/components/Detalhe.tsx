@@ -11,7 +11,7 @@ import { usePerfilContext } from "../context/PerfilContext";
 import { useAuth } from "../context/AuthContext";
 import { avaliar, buscarSolicitacoes, cancelarSolicitacao, solicitarCarona } from "../lib/api";
 import type { MinhaSolicitacao } from "../lib/api";
-import { PESO_HORARIO, PESO_ROTA, reais } from "../lib/match";
+import { reais } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { MapaRota } from "./MapaRota";
 import { useAviso } from "../hooks/useAviso";
@@ -88,7 +88,7 @@ export function Detalhe() {
     );
   }
 
-  const { carona, compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm, custoDia } = resultado;
+  const { carona, compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm, custoDia, pesos } = resultado;
   const mensal = reais(custoDia * 22);
   const status = solic?.status;
 
@@ -111,10 +111,10 @@ export function Detalhe() {
 
       <div className="px-[22px]">
         <div className="mt-4 rounded-[18px] border border-line bg-surface p-2">
-          <MapaRota voce={trajeto.origem} motorista={carona.origem} destino={FACENS} />
+          <MapaRota voce={trajeto.origem} regiaoMotorista={carona.origem} destino={FACENS} />
           <div className="flex flex-wrap justify-center gap-4 py-1.5 text-[11px] text-sub">
             <Legenda className="bg-accent" texto="você" />
-            <Legenda className="bg-brand" texto="motorista / rota" />
+            <Legenda className="bg-brand" texto="região do motorista / rota aproximada" />
             <Legenda className="bg-ink" texto="Facens" />
           </div>
         </div>
@@ -126,7 +126,7 @@ export function Detalhe() {
           <Barra titulo="Proximidade de rota" pct={Math.round(scoreRota * 100)}
             detalhe={`${desvioKm.toFixed(1)} km fora da sua rota direta até a Facens`} cor="bg-good" />
           <p className="mt-3 text-[11.5px] leading-relaxed text-sub">
-            Nota final = {Math.round(PESO_HORARIO * 100)}% horário + {Math.round(PESO_ROTA * 100)}% rota = <b className="text-ink">{compat}%</b>
+            Nota final = {Math.round(pesos.horario * 100)}% horário + {Math.round(pesos.rota * 100)}% rota = <b className="text-ink">{compat}%</b>
           </p>
         </div>
 

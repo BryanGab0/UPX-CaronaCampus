@@ -10,7 +10,7 @@ const carona = (id: string, vagasLivres: number): Carona => ({
 });
 const resultado = (id: string, vagasLivres: number): Resultado => ({
   carona: carona(id, vagasLivres), compat: 80, scoreHorario: 1, scoreRota: 1,
-  diasComuns: ["seg"], difChegadaMin: 0, desvioKm: 0, custoDia: 5,
+  diasComuns: ["seg"], difChegadaMin: 0, desvioKm: 0, custoDia: 5, litrosDia: 1.6, pesos: { horario: 0.55, rota: 0.45 },
 });
 
 describe("vagas", () => {

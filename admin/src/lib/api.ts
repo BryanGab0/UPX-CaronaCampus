@@ -69,6 +69,7 @@ export async function alterarBloqueio(ra: string, bloqueado: boolean): Promise<v
 export interface SolicitacaoAdmin {
   id: number;
   status: string;
+  canceladoPor: "passageiro" | "motorista" | null; // quem cancelou (pedido com status "cancelada")
   passageiroNome: string;
   motoristaNome: string;
 }

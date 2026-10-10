@@ -5,9 +5,10 @@ import { combina, paginar } from "../lib/filtro";
 import { Carregando, ErroCarga } from "./Estado";
 import { BarraFiltros, Busca, Opcoes, Paginacao, SemResultado } from "./Filtros";
 
-type Status = "todas" | "pendente" | "aceita" | "recusada";
+type Status = "todas" | "pendente" | "aceita" | "recusada" | "cancelada";
 const STATUS: { id: Status; texto: string }[] = [
   { id: "todas", texto: "Todas" }, { id: "pendente", texto: "Pendentes" }, { id: "aceita", texto: "Aceitas" }, { id: "recusada", texto: "Recusadas" },
+  { id: "cancelada", texto: "Canceladas" },
 ];
 const doStatus = (s: SolicitacaoAdmin, st: Status) => st === "todas" || s.status === st;
 
@@ -68,6 +69,7 @@ export function Solicitacoes() {
                   <td className="px-4 py-3 sm:px-5">{s.motoristaNome}</td>
                   <td className="px-4 py-3 sm:px-5">
                     <span className="rounded-md bg-canvas px-2 py-0.5 text-xs font-semibold capitalize text-sub">{s.status}</span>
+                    {s.canceladoPor && <span className="ml-2 text-xs text-sub">pelo {s.canceladoPor}</span>}
                   </td>
                 </tr>
               ))}

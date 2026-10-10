@@ -7,33 +7,40 @@ import { usePerfilContext } from "../context/PerfilContext";
 import { useAuth } from "../context/AuthContext";
 import { Carregando, ErroCarga } from "./Estado";
 import type { Trajeto as TrajetoType, DiaSemana, Coord } from "../types";
+import { regiaoDoEndereco } from "../lib/regiao";
+import type { Regiao } from "../lib/regiao";
 import { VAGAS_MAX, VAGAS_MIN } from "../lib/vagas";
 
 const DIAS: DiaSemana[] = ["seg", "ter", "qua", "qui", "sex"];
 
-// Busca endereços no Nominatim (OpenStreetMap), limitado à região de Sorocaba.
-async function buscarEnderecos(q: string): Promise<{ nome: string; coord: Coord }[]> {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=br` +
+interface Sugestao { nome: string; coord: Coord; regiao: Regiao; }
+
+// Busca endereços no Nominatim (OpenStreetMap), limitado à região de Sorocaba, com os detalhes
+// (bairro, cidade) de cada um.
+async function buscarEnderecos(q: string): Promise<Sugestao[]> {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=br` +
     `&viewbox=-47.58,-23.58,-47.38,-23.40&bounded=1&q=${encodeURIComponent(q)}`;
   const resp = await fetch(url, { headers: { "Accept-Language": "pt-BR" } });
   if (!resp.ok) return [];
   const dados = await resp.json();
-  return (dados as { display_name: string; lat: string; lon: string }[]).map((d) => ({
+  return (dados as { display_name: string; lat: string; lon: string; address?: Record<string, string> }[]).map((d) => ({
     nome: d.display_name,
     coord: { lat: Number(d.lat), lng: Number(d.lon) },
+    regiao: regiaoDoEndereco(d.address),
   }));
 }
 
-// Coordenada -> endereço (para o botão "usar minha localização").
-async function enderecoDaCoord(c: Coord): Promise<string> {
+// Coordenada -> endereço e região (botão "usar minha localização" e trajetos antigos sem bairro).
+async function enderecoDaCoord(c: Coord): Promise<{ nome: string; regiao: Regiao }> {
+  const semNome = `${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`;
   try {
     const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${c.lat}&lon=${c.lng}`, {
       headers: { "Accept-Language": "pt-BR" },
     });
     const d = await resp.json();
-    return d?.display_name ?? `${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`;
+    return { nome: d?.display_name ?? semNome, regiao: regiaoDoEndereco(d?.address) };
   } catch {
-    return `${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`;
+    return { nome: semNome, regiao: regiaoDoEndereco(null) };
   }
 }
 
@@ -64,12 +71,13 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
   const [papel, setPapel] = useState(trajeto.papel);
   const [endereco, setEndereco] = useState(trajeto.endereco);
   const [origem, setOrigem] = useState<Coord | null>(trajeto.endereco ? trajeto.origem : null);
+  const [regiao, setRegiao] = useState<Regiao>({ bairro: trajeto.bairro ?? null, cidade: trajeto.cidade ?? null });
   const [dias, setDias] = useState<DiaSemana[]>(trajeto.dias);
   const [chegada, setChegada] = useState(trajeto.chegada);
   const [saida, setSaida] = useState(trajeto.saida);
   const [carro, setCarro] = useState(trajeto.carro);
 
-  const [sugestoes, setSugestoes] = useState<{ nome: string; coord: Coord }[]>([]);
+  const [sugestoes, setSugestoes] = useState<Sugestao[]>([]);
   const [buscandoEnd, setBuscandoEnd] = useState(false);
   const [gpsCarregando, setGpsCarregando] = useState(false);
 
@@ -95,6 +103,7 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
   const digitarEndereco = (valor: string) => {
     setEndereco(valor);
     setOrigem(null);
+    setRegiao({ bairro: null, cidade: null });
     limpar();
     cancelarBusca();
     if (valor.trim().length < 3) { setSugestoes([]); return; }
@@ -108,10 +117,11 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
     }, 450);
   };
 
-  const escolher = (s: { nome: string; coord: Coord }) => {
+  const escolher = (s: Sugestao) => {
     cancelarBusca();
     setEndereco(s.nome);
     setOrigem(s.coord);
+    setRegiao(s.regiao);
     setSugestoes([]);
     limpar();
   };
@@ -124,7 +134,9 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
         const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         cancelarBusca();
         setOrigem(c);
-        setEndereco(await enderecoDaCoord(c));
+        const { nome, regiao: r } = await enderecoDaCoord(c);
+        setEndereco(nome);
+        setRegiao(r);
         setSugestoes([]);
         setGpsCarregando(false);
         limpar();
@@ -141,7 +153,9 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
     }
     setSalvando(true); setErro(null);
     try {
-      const novo: TrajetoType = { papel, endereco, origem, dias, chegada, saida, carro };
+      // Trajeto antigo, salvo antes de existir o bairro: descobre pela coordenada (1 consulta).
+      const r = regiao.bairro || regiao.cidade ? regiao : (await enderecoDaCoord(origem)).regiao;
+      const novo: TrajetoType = { papel, endereco, origem, dias, chegada, saida, carro, bairro: r.bairro, cidade: r.cidade };
       await salvar(novo);
       setSalvo(true);
     } catch (e) {

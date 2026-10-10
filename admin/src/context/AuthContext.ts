@@ -15,6 +15,7 @@ export interface AuthContextValue {
   usuario: Sessao["usuario"] | null;
   entrar: (email: string, senha: string) => Promise<void>;
   sair: () => void;
+  avisoSaida: string | null; // motivo da sessão encerrada (aparece no login)
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

@@ -1,21 +1,12 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import type { SignOptions } from "jsonwebtoken";
 import { pool } from "../db.js";
 import { autenticar, RESPOSTA_BLOQUEADO } from "../middleware/autenticar.js";
 import type { ReqAuth } from "../middleware/autenticar.js";
 import { limiteLogin, limiteRegistro } from "../middleware/limite.js";
-import { JWT_SECRET as SEGREDO } from "../config.js";
-
-const OPCOES: SignOptions = { expiresIn: "7d" };
+import { gerarToken } from "../token.js";
 
 export const authRouter = Router();
-
-// Gera um token JWT que carrega o RA do usuário e expira em 7 dias.
-function gerarToken(ra: string) {
-  return jwt.sign({ ra }, SEGREDO, OPCOES);
-}
 
 // POST /auth/registrar — cria a conta guardando o HASH da senha.
 authRouter.post("/auth/registrar", limiteRegistro, async (req, res) => {
@@ -84,11 +75,11 @@ authRouter.post("/auth/login", limiteLogin, async (req, res) => {
   }
 });
 
-// GET /auth/eu — rota PROTEGIDA: devolve o usuário do token (prova o middleware).
+// GET /auth/eu — rota PROTEGIDA: devolve o usuário do token, com o telefone (dado dele mesmo).
 authRouter.get("/auth/eu", autenticar, async (req: ReqAuth, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT ra, nome, email FROM usuarios WHERE ra = $1",
+      "SELECT ra, nome, email, telefone FROM usuarios WHERE ra = $1",
       [req.usuarioRa],
     );
     if (!rows[0]) {

@@ -8,13 +8,20 @@ export function definirToken(t: string | null) { tokenAtual = t; }
 function authHeaders(): Record<string, string> {
   return tokenAtual ? { Authorization: `Bearer ${tokenAtual}` } : {};
 }
-// Conta bloqueada pelo admin: a API responde 403 com "bloqueado" e o AuthProvider encerra a sessão.
-let aoBloquear: (() => void) | null = null;
-export function definirAoBloquear(fn: (() => void) | null) { aoBloquear = fn; }
+// Sessão que deixou de valer: o AuthProvider encerra e explica o motivo no login. Acontece com a
+// conta bloqueada pelo admin (403 com "bloqueado") e com o token recusado (401): expirou, a conta
+// não existe mais ou a senha foi trocada em outro aparelho.
+let aoEncerrar: ((motivo: string) => void) | null = null;
+export function definirAoEncerrar(fn: ((motivo: string) => void) | null) { aoEncerrar = fn; }
 async function falha(resp: Response, acao: string): Promise<Error> {
-  if (resp.status === 403) {
+  if (resp.status === 403 || (resp.status === 401 && tokenAtual)) {
     const d = await resp.json().catch(() => null);
-    if (d?.bloqueado) aoBloquear?.();
+    if (resp.status === 403 && d?.bloqueado) aoEncerrar?.("Sua conta foi bloqueada pela administração.");
+    if (resp.status === 401) {
+      aoEncerrar?.(/senha foi alterada/.test(d?.erro ?? "")
+        ? "Sua senha foi alterada. Entre novamente com a senha nova."
+        : "Sua sessão expirou. Entre novamente.");
+    }
   }
   return new Error(`Erro ${resp.status} ${acao}`);
 }
@@ -45,6 +52,38 @@ export async function login(ra: string, senha: string): Promise<Sessao> {
   });
   if (!resp.ok) throw await erroDaResposta(resp, "RA ou senha inválidos");
   return resp.json();
+}
+
+// --- Dados da própria conta ---
+export interface MeusDados { ra: string; nome: string; email: string; telefone: string; }
+
+export async function buscarMeusDados(): Promise<MeusDados> {
+  const resp = await fetch(`${API_URL}/auth/eu`, { headers: { ...authHeaders() } });
+  if (!resp.ok) throw await falha(resp, "ao buscar seus dados");
+  return resp.json();
+}
+
+export async function atualizarDados(ra: string, dados: { nome?: string; telefone?: string }): Promise<MeusDados> {
+  const resp = await fetch(`${API_URL}/usuarios/${ra}`, {
+    method: "PATCH", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(dados),
+  });
+  // 400: dado inválido; a API explica para o usuário.
+  if (resp.status === 400) throw await erroDaResposta(resp, "Confira os dados.");
+  if (!resp.ok) throw await falha(resp, "ao atualizar seus dados");
+  return resp.json();
+}
+
+// Devolve o token novo: a troca encerra as outras sessões, e esta continua com ele.
+export async function trocarSenha(ra: string, senhaAtual: string, novaSenha: string): Promise<string> {
+  const resp = await fetch(`${API_URL}/usuarios/${ra}/senha`, {
+    method: "PATCH", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ senhaAtual, novaSenha }),
+  });
+  // 401 aqui é a senha atual errada (não a sessão): mostra a mensagem em vez de deslogar.
+  if ([400, 401, 429].includes(resp.status)) throw await erroDaResposta(resp, "Não foi possível trocar a senha.");
+  if (!resp.ok) throw await falha(resp, "ao trocar a senha");
+  return (await resp.json()).token;
 }
 
 // Caronas = motoristas reais (protegido).

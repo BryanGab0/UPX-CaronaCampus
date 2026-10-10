@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag, ShieldCheck, ChevronRight, Undo2, Users } from "lucide-react";
+import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag, ShieldCheck, ChevronRight, Undo2, Users, UserPen, KeyRound } from "lucide-react";
 import { cn } from "../lib/cn";
 import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { useAuth } from "../context/AuthContext";
@@ -13,6 +13,8 @@ import { usePerfilContext } from "../context/PerfilContext";
 import { Aviso } from "./Aviso";
 import { Denunciar } from "./Denunciar";
 import { Confirmar } from "./Confirmar";
+import { EditarDados } from "./EditarDados";
+import { TrocarSenha } from "./TrocarSenha";
 import { Notificacoes } from "./Notificacoes";
 import { desativarPush } from "../lib/push";
 import { Estrelas, NotaMedia } from "./Estrelas";
@@ -28,6 +30,7 @@ export function Perfil() {
   const [denunciado, setDenunciado] = useState<Pedido | null>(null);
   const [avaliando, setAvaliando] = useState<number | null>(null); // id do pedido sendo avaliado
   const [desfazendo, setDesfazendo] = useState<Pedido | null>(null); // aceite a desfazer (folha de confirmação)
+  const [folhaConta, setFolhaConta] = useState<"dados" | "senha" | null>(null);
 
   // Vagas do carro: as do trajeto menos os passageiros aceitos (mesma conta da API).
   const souMotorista = trajeto.papel === "motorista";
@@ -85,6 +88,16 @@ export function Perfil() {
           <div className="truncate font-bold">{nome}</div>
           <div className="flex items-center gap-1.5 text-xs text-sub"><Mail size={13} className="shrink-0" /> <span className="truncate">{email}</span></div>
         </div>
+      </div>
+      <div className="mt-2.5 flex gap-2">
+        <button onClick={() => setFolhaConta("dados")}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line bg-surface py-2.5 text-xs font-bold text-sub transition active:scale-[.98]">
+          <UserPen size={15} /> Editar dados
+        </button>
+        <button onClick={() => setFolhaConta("senha")}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line bg-surface py-2.5 text-xs font-bold text-sub transition active:scale-[.98]">
+          <KeyRound size={15} /> Trocar senha
+        </button>
       </div>
 
       <div className="mt-5 flex items-center gap-2 text-sm font-bold">
@@ -188,6 +201,14 @@ export function Perfil() {
         <LogOut size={17} /> Sair
       </button>
 
+      {folhaConta === "dados" && (
+        <EditarDados onFechar={() => setFolhaConta(null)}
+          onSalvo={() => { setFolhaConta(null); mostrar("ok", "Dados atualizados."); }} />
+      )}
+      {folhaConta === "senha" && (
+        <TrocarSenha onFechar={() => setFolhaConta(null)}
+          onTrocada={() => { setFolhaConta(null); mostrar("ok", "Senha trocada. Os outros aparelhos saíram da conta."); }} />
+      )}
       {desfazendo && (
         <Confirmar titulo="Desfazer o aceite?"
           texto={`${primeiroNome(desfazendo.passageiroNome)} recebe um aviso e o telefone de cada um deixa de aparecer no app. Se já tinham combinado algo, avise pelo WhatsApp antes.`}

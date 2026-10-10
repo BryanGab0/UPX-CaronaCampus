@@ -8,6 +8,15 @@ export interface ReqAuth extends Request {
   usuarioRa?: string;
 }
  
+// Com senha temporária (gerada pelo admin), só dá para trocar a senha ou ver os próprios dados:
+// o admin conhece a temporária, então ela não pode virar a senha de uso.
+const RESPOSTA_TROCAR_SENHA = { erro: "Defina uma nova senha para continuar.", trocarSenha: true };
+function liberadaComSenhaTemporaria(req: Request): boolean {
+  const caminho = req.originalUrl.split("?")[0];
+  return (req.method === "PATCH" && /^\/usuarios\/[^/]+\/senha$/.test(caminho))
+    || (req.method === "GET" && caminho === "/auth/eu");
+}
+
 // Resposta para conta bloqueada; o campo "bloqueado" avisa o front para encerrar a sessão.
 export const RESPOSTA_BLOQUEADO = { erro: "Sua conta foi bloqueada pela administração.", bloqueado: true };
 
@@ -30,7 +39,7 @@ export async function autenticar(req: ReqAuth, res: Response, next: NextFunction
     return;
   }
   try {
-    const { rows } = await pool.query("SELECT bloqueado, senha_alterada_em FROM usuarios WHERE ra = $1", [ra]);
+    const { rows } = await pool.query("SELECT bloqueado, senha_alterada_em, senha_temporaria FROM usuarios WHERE ra = $1", [ra]);
     if (!rows[0]) {
       res.status(401).json({ erro: "usuário não encontrado" });
       return;
@@ -42,6 +51,10 @@ export async function autenticar(req: ReqAuth, res: Response, next: NextFunction
     // A senha foi trocada depois que este token foi emitido: a sessão (de outro aparelho) acabou.
     if (emitidoAntesDaTroca(iat, rows[0].senha_alterada_em)) {
       res.status(401).json({ erro: "Sua senha foi alterada. Entre novamente." });
+      return;
+    }
+    if (rows[0].senha_temporaria && !liberadaComSenhaTemporaria(req)) {
+      res.status(403).json(RESPOSTA_TROCAR_SENHA);
       return;
     }
     req.usuarioRa = ra;

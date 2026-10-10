@@ -54,7 +54,7 @@ authRouter.post("/auth/login", limiteLogin, async (req, res) => {
   }
   try {
     const { rows } = await pool.query(
-      "SELECT ra, nome, email, senha_hash, admin, bloqueado FROM usuarios WHERE ra = $1",
+      "SELECT ra, nome, email, senha_hash, admin, bloqueado, senha_temporaria FROM usuarios WHERE ra = $1",
       [ra],
     );
     const u = rows[0];
@@ -68,7 +68,8 @@ authRouter.post("/auth/login", limiteLogin, async (req, res) => {
       res.status(403).json(RESPOSTA_BLOQUEADO);
       return;
     }
-    res.json({ token: gerarToken(ra), usuario: { ra: u.ra, nome: u.nome, email: u.email, admin: u.admin } });
+    // senhaTemporaria: o app leva direto à troca obrigatória (a API também barra o resto).
+    res.json({ token: gerarToken(ra), usuario: { ra: u.ra, nome: u.nome, email: u.email, admin: u.admin, senhaTemporaria: u.senha_temporaria } });
   } catch (e) {
     console.error(e);
     res.status(500).json({ erro: "falha no login" });

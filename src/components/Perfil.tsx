@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag, ShieldCheck, ChevronRight, Undo2 } from "lucide-react";
+import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag, ShieldCheck, ChevronRight, Undo2, Users } from "lucide-react";
 import { cn } from "../lib/cn";
 import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { useAuth } from "../context/AuthContext";
@@ -28,6 +28,12 @@ export function Perfil() {
   const [denunciado, setDenunciado] = useState<Pedido | null>(null);
   const [avaliando, setAvaliando] = useState<number | null>(null); // id do pedido sendo avaliado
   const [desfazendo, setDesfazendo] = useState<Pedido | null>(null); // aceite a desfazer (folha de confirmação)
+
+  // Vagas do carro: as do trajeto menos os passageiros aceitos (mesma conta da API).
+  const souMotorista = trajeto.papel === "motorista";
+  const vagas = trajeto.carro.lugares;
+  const ocupadas = pedidos.filter((p) => p.status === "aceita").length;
+  const cheio = souMotorista && ocupadas >= vagas;
 
   const onAvaliar = async (p: Pedido, nota: number) => {
     setAvaliando(p.id);
@@ -85,6 +91,11 @@ export function Perfil() {
         <Inbox size={16} className="text-brand" /> Pedidos recebidos
       </div>
       <p className="mt-0.5 text-xs text-sub">Pedidos de carona que você recebeu como motorista.</p>
+      {souMotorista && !carregando && !erro && (
+        <p className={cn("mt-2 flex items-center gap-1.5 text-xs font-semibold", cheio ? "text-accent-ink" : "text-sub")}>
+          <Users size={13} className="shrink-0" /> {ocupadas} de {vagas} {vagas === 1 ? "vaga ocupada" : "vagas ocupadas"}{cheio && " · carro lotado"}
+        </p>
+      )}
       <Aviso aviso={aviso} />
 
       {carregando ? (
@@ -113,7 +124,7 @@ export function Perfil() {
               </div>
               {p.status === "pendente" && (
                 <div className="mt-3 flex gap-2">
-                  <button onClick={() => responder(p, "aceita")} disabled={respondendo === p.id}
+                  <button onClick={() => responder(p, "aceita")} disabled={respondendo === p.id || cheio}
                     className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-good-ink py-2.5 text-xs font-bold text-white transition active:scale-[.98] disabled:opacity-60">
                     <Check size={15} /> Aceitar
                   </button>
@@ -122,6 +133,11 @@ export function Perfil() {
                     <X size={15} /> Recusar
                   </button>
                 </div>
+              )}
+              {p.status === "pendente" && cheio && (
+                <p className="mt-2 text-xs text-sub">
+                  Carro lotado: desfaça um aceite ou <Link to="/trajeto" className="font-semibold text-brand">aumente as vagas</Link> para aceitar.
+                </p>
               )}
               {p.status === "aceita" && p.passageiroTelefone && (
                 <a href={linkWhatsapp(p.passageiroTelefone, `Oi ${primeiroNome(p.passageiroNome)}! Aceitei seu pedido de carona pra Facens. Vamos combinar?`)}

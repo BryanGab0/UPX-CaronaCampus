@@ -27,6 +27,8 @@ export interface Carona {
   consumo: number;
   notaMedia: number | null; // média das avaliações recebidas (null = ainda sem avaliação)
   totalAvaliacoes: number;
+  vagas: number;       // vagas para passageiros (sem contar o motorista)
+  vagasLivres: number; // vagas − pedidos aceitos (0 = lotado)
 }
 
 // Entrada do algoritmo de match.

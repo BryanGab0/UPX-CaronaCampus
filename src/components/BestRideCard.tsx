@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router";
-import { Car, Clock, Wallet, MapPin, Navigation } from "lucide-react";
+import { Car, Clock, Wallet, MapPin, Navigation, Users } from "lucide-react";
 import { iniciais } from "../lib/formato";
 import { reais } from "../lib/match";
 import type { Resultado } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { NotaMedia } from "./Estrelas";
+import { textoVagas } from "../lib/vagas";
 
 export function BestRideCard({ resultado }: { resultado: Resultado }) {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ export function BestRideCard({ resultado }: { resultado: Resultado }) {
       <div className="relative mt-4 flex flex-wrap gap-2">
         <Pill icone={<Clock size={13} />} texto={`chega ${carona.chegada}`} />
         <Pill icone={<Wallet size={13} />} texto={`${reais(custoDia)}/dia`} />
+        <Pill icone={<Users size={13} />} texto={textoVagas(carona)} />
         <span className="inline-flex items-center rounded-[9px] bg-white/15 px-2.5 py-1.5">
           <NotaMedia media={carona.notaMedia} total={carona.totalAvaliacoes} className="text-white [&_svg]:text-white" />
         </span>

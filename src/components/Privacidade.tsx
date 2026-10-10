@@ -34,7 +34,7 @@ export function Privacidade() {
         </Secao>
 
         <Secao titulo="Quem vê o quê">
-          <Item><b>Outros alunos logados</b> veem, de quem oferece carona: nome, endereço de saída, horário, carro e nota média. De passageiros, o motorista vê o nome e a nota média de quem pediu.</Item>
+          <Item><b>Outros alunos logados</b> veem, de quem oferece carona: nome, endereço de saída, horário, carro, nota média e quantas vagas ainda estão livres. De passageiros, o motorista vê o nome e a nota média de quem pediu.</Item>
           <Item><b>Telefone:</b> só as duas pessoas de um pedido <b>aceito</b>, para combinarem pelo WhatsApp. Se o pedido for cancelado, o telefone volta a ficar escondido.</Item>
           <Item><b>Denúncias:</b> só a administração. A pessoa denunciada não sabe quem denunciou.</Item>
           <Item><b>Administração:</b> vê os dados de cadastro, os pedidos e as denúncias, apenas para moderar o uso (por exemplo, bloquear uma conta).</Item>

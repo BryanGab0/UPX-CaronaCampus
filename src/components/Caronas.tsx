@@ -4,6 +4,7 @@ import { usePerfilContext } from "../context/PerfilContext";
 import { cn } from "../lib/cn";
 import { useResultados } from "../hooks/useResultados";
 import { RideRow } from "./RideRow";
+import { lotadosNoFim } from "../lib/vagas";
 import { ErroCarga, EsqueletoLista, EstadoVazio, SemMotoristas, SemTrajeto } from "./Estado";
 
 type Ordem = "compat" | "custo" | "horario";
@@ -27,7 +28,7 @@ export function Caronas() {
     const ordenada = [...filtrada];
     if (ordem === "custo") ordenada.sort((a, b) => a.custoDia - b.custoDia);
     else if (ordem === "horario") ordenada.sort((a, b) => a.carona.chegada.localeCompare(b.carona.chegada));
-    return ordenada;
+    return lotadosNoFim(ordenada);
   }, [resultados, busca, ordem]);
 
   return (

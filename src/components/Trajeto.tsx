@@ -7,6 +7,7 @@ import { usePerfilContext } from "../context/PerfilContext";
 import { useAuth } from "../context/AuthContext";
 import { Carregando, ErroCarga } from "./Estado";
 import type { Trajeto as TrajetoType, DiaSemana, Coord } from "../types";
+import { VAGAS_MAX, VAGAS_MIN } from "../lib/vagas";
 
 const DIAS: DiaSemana[] = ["seg", "ter", "qua", "qui", "sex"];
 
@@ -135,6 +136,9 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
   const onSalvar = async () => {
     if (!origem || !endereco.trim()) { setErro("Escolha seu endereço de origem."); return; }
     if (dias.length === 0) { setErro("Selecione ao menos um dia."); return; }
+    if (papel === "motorista" && (!Number.isInteger(carro.lugares) || carro.lugares < VAGAS_MIN || carro.lugares > VAGAS_MAX)) {
+      setErro(`As vagas devem ser de ${VAGAS_MIN} a ${VAGAS_MAX}.`); return;
+    }
     setSalvando(true); setErro(null);
     try {
       const novo: TrajetoType = { papel, endereco, origem, dias, chegada, saida, carro };
@@ -142,7 +146,8 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
       setSalvo(true);
     } catch (e) {
       console.error(e);
-      setErro("Não foi possível salvar seu trajeto. Verifique sua conexão e tente novamente.");
+      // Mensagem escrita pela API (ex.: vagas abaixo dos passageiros aceitos) ou a genérica.
+      setErro(e instanceof Error && !e.message.startsWith("Erro ") ? e.message : "Não foi possível salvar seu trajeto. Verifique sua conexão e tente novamente.");
     } finally {
       setSalvando(false);
     }
@@ -214,9 +219,10 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
           <input value={carro.modelo} onChange={(e) => { limpar(); setCarro({ ...carro, modelo: e.target.value }); }}
             placeholder="Modelo do carro" className="w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
           <div className="mt-2.5 flex gap-3">
-            <NumberField label="Lugares" value={carro.lugares} onChange={(v) => { limpar(); setCarro({ ...carro, lugares: v }); }} />
+            <NumberField label="Vagas" value={carro.lugares} min={VAGAS_MIN} max={VAGAS_MAX} onChange={(v) => { limpar(); setCarro({ ...carro, lugares: v }); }} />
             <NumberField label="km / litro" value={carro.consumo} onChange={(v) => { limpar(); setCarro({ ...carro, consumo: v }); }} />
           </div>
+          <p className="mt-1.5 text-[11.5px] text-sub">Vagas: lugares livres para passageiros, sem contar você ({VAGAS_MIN} a {VAGAS_MAX}).</p>
         </Section>
       )}
 
@@ -255,6 +261,6 @@ function Chip({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; 
 function TimeField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="time" value={value} onChange={(e) => onChange(e.target.value)} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
 }
-function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="number" inputMode="decimal" value={value} onChange={(e) => onChange(Number(e.target.value))} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
+function NumberField({ label, value, onChange, min, max }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number }) {
+  return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="number" inputMode="decimal" value={value} min={min} max={max} onChange={(e) => onChange(Number(e.target.value))} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
 }

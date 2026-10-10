@@ -10,7 +10,7 @@ const SUL_10KM: Coord = { lat: FACENS.lat - 0.09, lng: FACENS.lng };
 const motorista: Carona = {
   id: "222", nome: "Motorista", endereco: "Rua B", origem: SUL_10KM,
   dias: ["seg", "qua", "sex"], chegada: "08:00", carro: "Carro", consumo: 10,
-  notaMedia: null, totalAvaliacoes: 0,
+  notaMedia: null, totalAvaliacoes: 0, vagas: 4, vagasLivres: 4,
 };
 
 const trajeto = (extra: Partial<Trajeto> = {}): Trajeto => ({

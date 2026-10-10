@@ -66,12 +66,12 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 ## Endpoints
 - `GET  /ping`                       — a API está no ar (não consulta o banco; usado pelo monitor de uptime)
 - `GET  /health`                     — saúde da API e do banco
-- `GET  /caronas`                    — lista as caronas (público)
+- `GET  /caronas`                    — lista as caronas, com as vagas e quantas estão livres (protegida)
 - `POST /auth/registrar`             — cria conta (ra, nome, email, senha) e devolve token
 - `POST /auth/login`                 — autentica (ra, senha) e devolve token JWT
 - `GET  /auth/eu`                    — usuário do token (protegida)
 - `GET  /usuarios/:ra/trajeto`       — trajeto do usuário (protegida)
-- `PUT  /usuarios/:ra/trajeto`       — salva/atualiza o trajeto (protegida)
+- `PUT  /usuarios/:ra/trajeto`       — salva/atualiza o trajeto (protegida; vagas de 1 a 6, nunca abaixo dos passageiros já aceitos: 409)
 - `POST /usuarios/:ra/solicitacoes`  — solicita uma carona (protegida)
 - `GET  /usuarios/:ra/solicitacoes`  — lista as solicitações (protegida)
 - `GET  /usuarios/:ra/pedidos`       — pedidos recebidos pelo motorista (protegida)
@@ -80,9 +80,11 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 
 Regras dos pedidos: um por par passageiro/motorista. Depois de cancelado, pedir de novo o reabre como pendente; depois de recusado, não. O telefone das partes só aparece com o pedido aceito, então some se ele for cancelado. As avaliações feitas durante a carona são mantidas.
 
+Vagas: `carro_lugares` é o número de vagas para passageiros (sem contar o motorista). As vagas livres são calculadas (vagas − pedidos aceitos), nunca guardadas, então cancelar libera a vaga sozinho. Com o carro lotado, o aceite e os pedidos novos recebem 409. O aceite roda numa transação que trava o trajeto do motorista (`SELECT ... FOR UPDATE`, em `src/vagas.ts`), para dois aceites ao mesmo tempo não ocuparem a mesma última vaga.
+
 ## Tabelas
 - `usuarios` — aluno (ra, nome, email, senha_hash, telefone, admin)
-- `trajetos` — trajeto de cada usuário: papel (motorista/passageiro), endereço, coordenadas, dias e horários (chave estrangeira → `usuarios`)
+- `trajetos` — trajeto de cada usuário: papel (motorista/passageiro), endereço, coordenadas, dias, horários e, para motoristas, carro e vagas (chave estrangeira → `usuarios`)
 - `solicitacoes` — pedidos de carona do passageiro ao motorista, com status `pendente`, `aceita`, `recusada` ou `cancelada` e quem cancelou (`cancelado_por`) (chaves estrangeiras → `usuarios`)
 - `denuncias` — denúncia de um usuário contra outro (motivo, descrição, status `aberta`/`resolvida`; uma aberta por par)
 - `avaliacoes` — nota de 1 a 5 que cada lado dá ao outro em um pedido aceito (uma por lado; a média é calculada na consulta)

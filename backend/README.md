@@ -63,15 +63,23 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - Notificações push (Web Push/VAPID) para pedido novo e para aceite/recusa; contas bloqueadas não recebem, e aparelhos que cancelaram a inscrição (404/410) são removidos automaticamente.
 - Erros em produção vão para o Sentry (`src/instrument.ts`, carregado com `--import` antes da API). O envio é restrito: sem corpo das requisições (senha, telefone), cabeçalhos (token), IP, query string, variáveis locais nem o `detail` dos erros do Postgres.
 
+## Compatibilidade e privacidade da localização
+O algoritmo de compatibilidade fica em `src/match.ts` (parâmetros no topo do arquivo) e roda na API, não no navegador: assim a coordenada exata da casa do motorista nunca sai do servidor.
+
+- A nota usa o trajeto **salvo** de quem pede; a origem nunca vem da requisição, então não dá para sondar a casa testando coordenadas.
+- O desvio da rota e a distância até a Facens são arredondados em passos de 0,5 km antes de entrar na nota e no combustível. Sem isso, quem mudasse o próprio trajeto várias vezes e comparasse os números poderia triangular a casa.
+- A localização enviada é o centro de uma célula de 0,01° (~1 km) da grade, fixa para cada motorista: um deslocamento sorteado a cada requisição poderia ser desfeito com a média.
+- O endereço enviado é só bairro e cidade (colunas `bairro`/`cidade`, migração `007`); a rua e o CEP ficam com o dono do trajeto.
+
 ## Endpoints
 - `GET  /ping`                       — a API está no ar (não consulta o banco; usado pelo monitor de uptime)
 - `GET  /health`                     — saúde da API e do banco
-- `GET  /caronas`                    — lista as caronas, com as vagas e quantas estão livres (protegida)
+- `GET  /caronas`                    — lista as caronas já ranqueadas pela compatibilidade com o trajeto salvo de quem pede, com o detalhamento da nota, bairro, região aproximada e vagas livres (protegida)
 - `POST /auth/registrar`             — cria conta (ra, nome, email, senha) e devolve token
 - `POST /auth/login`                 — autentica (ra, senha) e devolve token JWT
 - `GET  /auth/eu`                    — usuário do token (protegida)
 - `GET  /usuarios/:ra/trajeto`       — trajeto do usuário (protegida)
-- `PUT  /usuarios/:ra/trajeto`       — salva/atualiza o trajeto (protegida; vagas de 1 a 6, nunca abaixo dos passageiros já aceitos: 409)
+- `PUT  /usuarios/:ra/trajeto`       — salva/atualiza o trajeto, com bairro e cidade opcionais (protegida; vagas de 1 a 6, nunca abaixo dos passageiros já aceitos: 409)
 - `POST /usuarios/:ra/solicitacoes`  — solicita uma carona (protegida)
 - `GET  /usuarios/:ra/solicitacoes`  — lista as solicitações (protegida)
 - `GET  /usuarios/:ra/pedidos`       — pedidos recebidos pelo motorista (protegida)
@@ -84,7 +92,7 @@ Vagas: `carro_lugares` é o número de vagas para passageiros (sem contar o moto
 
 ## Tabelas
 - `usuarios` — aluno (ra, nome, email, senha_hash, telefone, admin)
-- `trajetos` — trajeto de cada usuário: papel (motorista/passageiro), endereço, coordenadas, dias, horários e, para motoristas, carro e vagas (chave estrangeira → `usuarios`)
+- `trajetos` — trajeto de cada usuário: papel (motorista/passageiro), endereço, bairro e cidade, coordenadas, dias, horários e, para motoristas, carro e vagas (chave estrangeira → `usuarios`)
 - `solicitacoes` — pedidos de carona do passageiro ao motorista, com status `pendente`, `aceita`, `recusada` ou `cancelada` e quem cancelou (`cancelado_por`) (chaves estrangeiras → `usuarios`)
 - `denuncias` — denúncia de um usuário contra outro (motivo, descrição, status `aberta`/`resolvida`; uma aberta por par)
 - `avaliacoes` — nota de 1 a 5 que cada lado dá ao outro em um pedido aceito (uma por lado; a média é calculada na consulta)

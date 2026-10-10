@@ -27,7 +27,7 @@ O repositório tem três partes:
 ## Funcionalidades
 - Login e cadastro com senha e e-mail no formato da Facens (`RA@facens.br`)
 - Cadastro de trajeto (origem, dias e horários)
-- Match de caronas por proximidade e horário (compatibilidade calculada)
+- Match de caronas por proximidade e horário (compatibilidade calculada na API, sem expor a casa do motorista: os outros alunos veem o bairro e uma região aproximada)
 - Mapa com o trajeto até o campus (Leaflet + OpenStreetMap)
 - Divisão do custo de combustível
 - Vagas do carro: o motorista informa quantas tem; o app mostra as livres, carro lotado vai para o fim da lista e não recebe pedidos
@@ -62,7 +62,7 @@ Para o painel administrativo, veja o [README do admin](admin/README.md).
 
 ## Qualidade
 - `npm run lint` — ESLint (cobre app, admin e API)
-- `npm test` — testes do app e do admin (compatibilidade, impacto estimado, formatadores, busca e paginação), com Vitest
-- `npm test` em `backend/` — testes da API (autenticação, permissões, aceite/recusa, cancelamento, moderação, avaliações, notificações, limite de tentativas e migrações)
+- `npm test` — testes do app e do admin (resultado da compatibilidade, impacto estimado, vagas, bairro do endereço, formatadores, busca e paginação), com Vitest
+- `npm test` em `backend/` — testes da API (autenticação, permissões, compatibilidade e privacidade da localização, aceite/recusa, cancelamento, vagas, moderação, avaliações, notificações, limite de tentativas e migrações)
 - A cada push na `main` e em cada Pull Request, o GitHub Actions roda lint, checagem de tipos, testes e build dos três projetos.
 - Erros em produção (app e API) são registrados no Sentry, sem dados pessoais: nada de nome, telefone, senha, endereço, localização ou IP.

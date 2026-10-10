@@ -81,6 +81,15 @@ describe("trocar senha", () => {
     expect((await eu(`Bearer ${login.body.token}`)).status).toBe(200);
   });
 
+  it("remove as inscrições de push (os aparelhos das sessões encerradas param de receber avisos)", async () => {
+    await pool.query(
+      "INSERT INTO inscricoes_push (endpoint, usuario_ra, p256dh, auth) VALUES ('https://push.exemplo.com/perdido', '100', 'k', 'a'), ('https://push.exemplo.com/bia', '200', 'k', 'a')",
+    );
+    await trocarSenha(ana.auth, { senhaAtual: SENHA, novaSenha: "nova-senha" });
+    const { rows } = await pool.query("SELECT usuario_ra FROM inscricoes_push");
+    expect(rows).toEqual([{ usuario_ra: "200" }]); // só os da própria pessoa
+  });
+
   it("só o dono troca a própria senha (403)", async () => {
     expect((await trocarSenha(bia.auth, { senhaAtual: SENHA, novaSenha: "nova-senha" })).status).toBe(403);
   });

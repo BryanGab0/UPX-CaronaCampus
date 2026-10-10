@@ -156,6 +156,9 @@ usuariosRouter.patch("/usuarios/:ra/senha", autenticar, mesmoUsuario, limiteLogi
     // O horário da troca vem do mesmo relógio que assina o token (o do servidor da API, não o do
     // banco): se os dois estivessem fora de sincronia, o token novo poderia ser recusado.
     await pool.query("UPDATE usuarios SET senha_hash = $2, senha_alterada_em = $3 WHERE ra = $1", [req.params.ra, hash, new Date()]);
+    // Os aparelhos das sessões encerradas (ex.: um celular perdido) também param de receber os
+    // avisos, que trazem nomes. O aparelho de quem trocou se inscreve de novo com o token novo.
+    await pool.query("DELETE FROM inscricoes_push WHERE usuario_ra = $1", [req.params.ra]);
     res.json({ token: gerarToken(String(req.params.ra)) });
   } catch (e) {
     console.error(e);

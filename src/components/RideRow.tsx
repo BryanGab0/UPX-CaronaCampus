@@ -1,10 +1,11 @@
 import { Link } from "react-router";
-import { MapPin, Clock } from "lucide-react";
+import { MapPin, Clock, Users } from "lucide-react";
 import { cn } from "../lib/cn";
 import { iniciais } from "../lib/formato";
 import { reais } from "../lib/match";
 import type { Resultado } from "../lib/match";
 import { NotaMedia } from "./Estrelas";
+import { lotado, textoVagas } from "../lib/vagas";
 
 export function RideRow({ resultado }: { resultado: Resultado }) {
   const { carona, compat, custoDia } = resultado;
@@ -24,6 +25,7 @@ export function RideRow({ resultado }: { resultado: Resultado }) {
         <div className="mt-0.5 flex items-center gap-2.5 text-xs text-sub">
           <span className="inline-flex min-w-0 items-center gap-1"><MapPin size={12} className="shrink-0" /><span className="truncate">{carona.endereco}</span></span>
           <span className="inline-flex shrink-0 items-center gap-1"><Clock size={12} />{carona.chegada}</span>
+          <span className={cn("inline-flex shrink-0 items-center gap-1", lotado(carona) && "font-semibold text-accent-ink")}><Users size={12} />{textoVagas(carona)}</span>
         </div>
       </div>
       <div className="shrink-0 text-right">

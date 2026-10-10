@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ChevronLeft, Fuel, Users, Leaf, Check, Clock, MessageCircle, Flag, X } from "lucide-react";
+import { lotado, textoVagas } from "../lib/vagas";
 import { cn } from "../lib/cn";
 import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { FACENS } from "../data/mock";
@@ -45,7 +46,12 @@ export function Detalhe() {
     if (!ra || !id) return;
     setEnviando(true); setErroAcao(null);
     try { await solicitarCarona(ra, id); recarregar(); }
-    catch (e) { console.error(e); setErroAcao("Não foi possível enviar o pedido. Tente novamente."); }
+    catch (e) {
+      console.error(e);
+      // Mensagem escrita pela API (ex.: o carro lotou) ou a genérica; recarrega as vagas.
+      setErroAcao(e instanceof Error && !e.message.startsWith("Erro ") ? e.message : "Não foi possível enviar o pedido. Tente novamente.");
+      recarregarCaronas();
+    }
     finally { setEnviando(false); }
   };
 
@@ -149,6 +155,9 @@ export function Detalhe() {
             <div className="mt-2 flex items-center justify-center gap-2 rounded-[14px] bg-brand-soft px-4 py-4 text-center text-sm font-bold text-brand">
               <Clock size={18} className="shrink-0" /> Pedido enviado · aguardando o motorista
             </div>
+            {lotado(carona) && (
+              <p className="mt-2 text-center text-xs text-sub">O carro lotou: o motorista só pode aceitar se abrir uma vaga.</p>
+            )}
             <BotaoCancelar texto="Cancelar pedido" onClick={() => setCancelando(true)} />
           </>
         ) : status === "recusada" ? (
@@ -159,14 +168,26 @@ export function Detalhe() {
             {status === "cancelada" && (
               <p className={cn("text-center text-[13px] text-sub", erroAcao ? "mt-2" : "mt-5")}>
                 {solic?.canceladoPor === "motorista"
-                  ? `${primeiroNome(carona.nome)} desfez o aceite. Se quiser, peça de novo.`
-                  : "Você cancelou este pedido. Pode pedir de novo quando quiser."}
+                  ? `${primeiroNome(carona.nome)} desfez o aceite.`
+                  : "Você cancelou este pedido."}
+                {/* Com o carro lotado, o aviso abaixo já explica quando dá para pedir de novo. */}
+                {!lotado(carona) && (solic?.canceladoPor === "motorista" ? " Se quiser, peça de novo." : " Pode pedir de novo quando quiser.")}
               </p>
             )}
-            <button onClick={onSolicitar} disabled={enviando}
-              className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erroAcao || status === "cancelada" ? "mt-3" : "mt-5")}>
-              {enviando ? "Enviando…" : "Solicitar carona"}
-            </button>
+            {lotado(carona) ? (
+              <div className={cn("rounded-[14px] bg-canvas px-4 py-4 text-center", erroAcao || status === "cancelada" ? "mt-3" : "mt-5")}>
+                <div className="flex items-center justify-center gap-2 text-sm font-bold text-sub"><Users size={18} className="shrink-0" /> Carro lotado</div>
+                <p className="mt-1 text-xs text-sub">Quando abrir uma vaga, você poderá pedir.</p>
+              </div>
+            ) : (
+              <>
+                <button onClick={onSolicitar} disabled={enviando}
+                  className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erroAcao || status === "cancelada" ? "mt-3" : "mt-5")}>
+                  {enviando ? "Enviando…" : "Solicitar carona"}
+                </button>
+                <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-sub"><Users size={13} /> {textoVagas(carona)} {carona.vagasLivres === 1 ? "livre" : "livres"} no carro</p>
+              </>
+            )}
           </>
         )}
         {status === "aceita" && (

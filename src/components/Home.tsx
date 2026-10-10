@@ -9,6 +9,7 @@ import { useSolicitacoes } from "../hooks/useSolicitacoes";
 import { primeiroNome } from "../lib/formato";
 import { calcularImpacto } from "../lib/impacto";
 import { FACENS } from "../data/mock";
+import { lotadosNoFim } from "../lib/vagas";
 import { ImpactStats } from "./ImpactStats";
 import { BestRideCard } from "./BestRideCard";
 import { RideRow } from "./RideRow";
@@ -31,8 +32,8 @@ export function Home() {
     () => calcularImpacto({ solicitacoes, pedidos, resultados, trajeto, destino: FACENS }),
     [solicitacoes, pedidos, resultados, trajeto],
   );
-  const melhor = resultados[0];
-  const outras = resultados.slice(1);
+  // Destaque: a mais compatível que ainda tem vaga (se todas estiverem lotadas, a primeira).
+  const [melhor, ...outras] = lotadosNoFim(resultados);
 
   return (
     <div className="animate-rise">

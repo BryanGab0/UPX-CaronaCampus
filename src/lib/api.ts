@@ -64,6 +64,8 @@ export async function salvarTrajeto(ra: string, trajeto: Trajeto): Promise<Traje
     method: "PUT", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify(trajeto),
   });
+  // 400/409: vagas fora do limite ou abaixo dos passageiros aceitos; a API explica.
+  if (resp.status === 400 || resp.status === 409) throw await erroDaResposta(resp, "Confira os dados do trajeto.");
   if (!resp.ok) throw await falha(resp, "ao salvar trajeto");
   return resp.json();
 }
@@ -85,6 +87,8 @@ export async function solicitarCarona(ra: string, motoristaRa: string): Promise<
     method: "POST", headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ motoristaRa }),
   });
+  // 409: carro lotado; a API explica para o usuário.
+  if (resp.status === 409) throw await erroDaResposta(resp, "Carro lotado no momento.");
   if (!resp.ok) throw await falha(resp, "ao solicitar carona");
 }
 

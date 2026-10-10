@@ -4,6 +4,7 @@ import { autenticar, mesmoUsuario } from "../middleware/autenticar.js";
 import type { ReqAuth } from "../middleware/autenticar.js";
 import { SQL_MEDIAS } from "./avaliacoes.js";
 import { notificar } from "../notificacoes.js";
+import { LOTADO, vagasDe } from "../vagas.js";
 
 export const solicitacoesRouter = Router();
 
@@ -53,6 +54,13 @@ solicitacoesRouter.post("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, 
       "SELECT status FROM solicitacoes WHERE passageiro_ra = $1 AND motorista_ra = $2",
       [req.params.ra, motoristaRa],
     );
+    // Carro lotado não recebe pedido novo (nem reaberto). Pedido repetido segue sem efeito.
+    const antes = anterior.rows[0]?.status;
+    const passaAEsperar = antes === undefined || antes === "cancelada";
+    if (passaAEsperar && (await vagasDe(pool, String(motoristaRa)))?.livres === 0) {
+      res.status(409).json({ erro: LOTADO });
+      return;
+    }
     const { rows } = await pool.query(
       `INSERT INTO solicitacoes (passageiro_ra, motorista_ra) VALUES ($1, $2)
        ON CONFLICT (passageiro_ra, motorista_ra) DO UPDATE
@@ -65,8 +73,7 @@ solicitacoesRouter.post("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, 
     res.status(201).json(rows[0]);
 
     // Avisa só quando o pedido passa a esperar resposta: novo, ou refeito depois de cancelar.
-    const antes = anterior.rows[0]?.status;
-    if (antes === undefined || antes === "cancelada") void avisarNovoPedido(String(motoristaRa), String(req.params.ra));
+    if (passaAEsperar) void avisarNovoPedido(String(motoristaRa), String(req.params.ra));
   } catch (e) {
     console.error(e);
     res.status(500).json({ erro: "falha ao solicitar carona" });
@@ -125,6 +132,34 @@ solicitacoesRouter.get("/usuarios/:ra/pedidos", autenticar, mesmoUsuario, async 
   }
 });
 
+// Grava a resposta numa transação. No aceite, trava o trajeto do motorista e confere as vagas:
+// dois aceites ao mesmo tempo não ocupam a mesma última vaga. O WHERE do UPDATE garante que
+// o pedido ainda está pendente (o passageiro pode ter cancelado no mesmo instante).
+async function responder(id: string, status: "aceita" | "recusada", motoristaRa: string) {
+  const banco = await pool.connect();
+  try {
+    await banco.query("BEGIN");
+    if (status === "aceita") {
+      const v = await vagasDe(banco, motoristaRa, true);
+      if (v && v.livres === 0) {
+        await banco.query("ROLLBACK");
+        return { erro: "Carro lotado: desfaça um aceite ou aumente as vagas no seu trajeto." };
+      }
+    }
+    const { rows } = await banco.query(
+      "UPDATE solicitacoes SET status = $1 WHERE id = $2 AND status = 'pendente' RETURNING id, status",
+      [status, id],
+    );
+    await banco.query(rows.length ? "COMMIT" : "ROLLBACK");
+    return rows[0] ?? { erro: "Este pedido não está mais aguardando resposta." };
+  } catch (e) {
+    await banco.query("ROLLBACK").catch(() => {});
+    throw e;
+  } finally {
+    banco.release();
+  }
+}
+
 // PATCH — motorista aceita ou recusa (só o motorista dono do pedido e só pedido pendente).
 solicitacoesRouter.patch("/solicitacoes/:id", autenticar, async (req: ReqAuth, res) => {
   const { status } = req.body ?? {};
@@ -146,16 +181,12 @@ solicitacoesRouter.patch("/solicitacoes/:id", autenticar, async (req: ReqAuth, r
       res.status(403).json({ erro: "acesso negado" });
       return;
     }
-    // O WHERE garante a regra mesmo se o passageiro cancelar no mesmo instante.
-    const { rows } = await pool.query(
-      "UPDATE solicitacoes SET status = $1 WHERE id = $2 AND status = 'pendente' RETURNING id, status",
-      [status, req.params.id],
-    );
-    if (rows.length === 0) {
-      res.status(409).json({ erro: "Este pedido não está mais aguardando resposta." });
+    const resposta = await responder(req.params.id as string, status, dono.rows[0].motorista_ra);
+    if ("erro" in resposta) {
+      res.status(409).json({ erro: resposta.erro });
       return;
     }
-    res.json(rows[0]);
+    res.json(resposta);
 
     const { passageiro_ra, motorista_ra, motorista_nome } = dono.rows[0];
     void notificar(passageiro_ra, status === "aceita"

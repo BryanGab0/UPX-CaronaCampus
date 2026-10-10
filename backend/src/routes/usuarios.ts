@@ -1,7 +1,10 @@
 import { Router } from "express";
+import bcrypt from "bcryptjs";
 import { pool } from "../db.js";
 import { autenticar, mesmoUsuario } from "../middleware/autenticar.js";
 import { VAGAS_MAX, VAGAS_MIN, vagasDe } from "../vagas.js";
+import { limiteLogin } from "../middleware/limite.js";
+import { gerarToken } from "../token.js";
 
 export const usuariosRouter = Router();
 
@@ -88,5 +91,74 @@ usuariosRouter.put("/usuarios/:ra/trajeto", autenticar, mesmoUsuario, async (req
     res.status(500).json({ erro: "falha ao salvar trajeto" });
   } finally {
     banco.release();
+  }
+});
+
+// Mesmas regras do cadastro: nome de 2 a 80 caracteres; telefone com DDD (só dígitos, 10 a 13).
+const NOME_MIN = 2;
+const NOME_MAX = 80;
+const SENHA_MIN = 6;
+
+// PATCH — o próprio usuário altera nome e/ou telefone. RA e e-mail não mudam: identificam o aluno.
+usuariosRouter.patch("/usuarios/:ra", autenticar, mesmoUsuario, async (req, res) => {
+  const { nome, telefone } = req.body ?? {};
+  if (nome === undefined && telefone === undefined) {
+    res.status(400).json({ erro: "Informe o nome ou o telefone." });
+    return;
+  }
+  const nomeLimpo = nome === undefined ? undefined : String(nome).trim();
+  if (nomeLimpo !== undefined && (nomeLimpo.length < NOME_MIN || nomeLimpo.length > NOME_MAX)) {
+    res.status(400).json({ erro: `O nome deve ter de ${NOME_MIN} a ${NOME_MAX} caracteres.` });
+    return;
+  }
+  const telDigitos = telefone === undefined ? undefined : String(telefone).replace(/\D/g, "");
+  if (telDigitos !== undefined && (telDigitos.length < 10 || telDigitos.length > 13)) {
+    res.status(400).json({ erro: "Telefone inválido (use DDD + número)." });
+    return;
+  }
+  try {
+    const { rows } = await pool.query(
+      `UPDATE usuarios SET nome = COALESCE($2, nome), telefone = COALESCE($3, telefone)
+       WHERE ra = $1 RETURNING ra, nome, email, telefone`,
+      [req.params.ra, nomeLimpo ?? null, telDigitos ?? null],
+    );
+    res.json(rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: "falha ao atualizar os dados" });
+  }
+});
+
+// PATCH — troca a senha conferindo a atual (com o mesmo limite de tentativas do login). Grava
+// senha_alterada_em: o autenticar passa a recusar os tokens antigos, então as sessões abertas
+// em outros aparelhos acabam. Quem trocou recebe um token novo e continua logado.
+usuariosRouter.patch("/usuarios/:ra/senha", autenticar, mesmoUsuario, limiteLogin, async (req, res) => {
+  const { senhaAtual, novaSenha } = req.body ?? {};
+  if (!senhaAtual || !novaSenha) {
+    res.status(400).json({ erro: "Informe a senha atual e a nova." });
+    return;
+  }
+  if (String(novaSenha).length < SENHA_MIN) {
+    res.status(400).json({ erro: `A nova senha deve ter ao menos ${SENHA_MIN} caracteres.` });
+    return;
+  }
+  if (String(novaSenha) === String(senhaAtual)) {
+    res.status(400).json({ erro: "A nova senha deve ser diferente da atual." });
+    return;
+  }
+  try {
+    const { rows } = await pool.query("SELECT senha_hash FROM usuarios WHERE ra = $1", [req.params.ra]);
+    if (!(await bcrypt.compare(String(senhaAtual), rows[0].senha_hash))) {
+      res.status(401).json({ erro: "Senha atual incorreta." });
+      return;
+    }
+    const hash = await bcrypt.hash(String(novaSenha), 10);
+    // O horário da troca vem do mesmo relógio que assina o token (o do servidor da API, não o do
+    // banco): se os dois estivessem fora de sincronia, o token novo poderia ser recusado.
+    await pool.query("UPDATE usuarios SET senha_hash = $2, senha_alterada_em = $3 WHERE ra = $1", [req.params.ra, hash, new Date()]);
+    res.json({ token: gerarToken(String(req.params.ra)) });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: "falha ao trocar a senha" });
   }
 });

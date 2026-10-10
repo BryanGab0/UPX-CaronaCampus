@@ -4,6 +4,8 @@ import { useNavigate } from "react-router";
 import { MapPin, CalendarDays, Clock, Car, Users, Navigation, Check, Loader2, LocateFixed } from "lucide-react";
 import { cn } from "../lib/cn";
 import { usePerfilContext } from "../context/PerfilContext";
+import { useAuth } from "../context/AuthContext";
+import { Carregando, ErroCarga } from "./Estado";
 import type { Trajeto as TrajetoType, DiaSemana, Coord } from "../types";
 import { VAGAS_MAX, VAGAS_MIN } from "../lib/vagas";
 
@@ -36,7 +38,27 @@ async function enderecoDaCoord(c: Coord): Promise<string> {
 }
 
 export function Trajeto() {
-  const { trajeto, salvar } = usePerfilContext();
+  const { trajeto, pronto, erro, recarregar } = usePerfilContext();
+  const { ra } = useAuth();
+
+  return (
+    <div className="animate-rise px-[22px] pb-6 pt-[46px]">
+      <h1 className="font-display text-[26px] font-bold tracking-tight">Meu trajeto</h1>
+      <p className="mt-1 text-sm text-sub">É com isso que o app encontra caronas compatíveis.</p>
+
+      {/* O formulário só monta com o trajeto já carregado: o estado local nasce dele.
+          Antes disso o contexto entrega o trajeto padrão, e salvar sobrescreveria o verdadeiro.
+          Se a busca falhou, também não há trajeto confiável: mostra o erro em vez do formulário.
+          A key remonta o formulário ao trocar de conta. */}
+      {erro ? <ErroCarga titulo="Não foi possível carregar seu trajeto" onTentar={recarregar} />
+        : pronto ? <FormTrajeto key={ra} trajeto={trajeto} />
+        : <Carregando texto="Carregando seu trajeto…" />}
+    </div>
+  );
+}
+
+function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
+  const { salvar } = usePerfilContext();
   const navigate = useNavigate();
 
   const [papel, setPapel] = useState(trajeto.papel);
@@ -132,10 +154,7 @@ export function Trajeto() {
   };
 
   return (
-    <div className="animate-rise px-[22px] pb-6 pt-[46px]">
-      <h1 className="font-display text-[26px] font-bold tracking-tight">Meu trajeto</h1>
-      <p className="mt-1 text-sm text-sub">É com isso que o app encontra caronas compatíveis.</p>
-
+    <>
       <Section icone={<Users size={16} />} titulo="Como você vai?">
         <div className="flex gap-2.5">
           <Toggle ativo={papel === "passageiro"} onClick={() => { limpar(); setPapel("passageiro"); }} texto="Preciso de carona" />
@@ -221,7 +240,7 @@ export function Trajeto() {
           </button>
         </>
       )}
-    </div>
+    </>
   );
 }
 

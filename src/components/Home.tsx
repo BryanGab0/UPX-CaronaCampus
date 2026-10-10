@@ -24,7 +24,7 @@ function saudacao(hora = new Date().getHours()) {
 
 export function Home() {
   const { nome } = useAuth();
-  const { trajeto, pronto, temTrajeto } = usePerfilContext();
+  const { trajeto, pronto, temTrajeto, erro: erroTrajeto, recarregar: recarregarTrajeto } = usePerfilContext();
   const { resultados, carregando, erro, recarregar } = useResultados();
   const { pedidos, pendentes } = usePedidos();
   const { solicitacoes } = useSolicitacoes();
@@ -61,7 +61,7 @@ export function Home() {
           <div className="min-w-0 flex-1">
             <div className="text-[11.5px] text-sub">seu trajeto</div>
             <div className="truncate text-[13.5px] font-semibold">
-              {trajeto.endereco ? `${trajeto.endereco} → Facens` : "Cadastre seu trajeto"}
+              {trajeto.endereco ? `${trajeto.endereco} → Facens` : erroTrajeto ? "Não foi possível carregar" : "Cadastre seu trajeto"}
             </div>
           </div>
           <ChevronRight size={18} className="shrink-0 text-sub" />
@@ -70,7 +70,9 @@ export function Home() {
 
       <ImpactStats impacto={impacto} />
 
-      {carregando || !pronto ? (
+      {erroTrajeto ? (
+        <div className="px-[22px]"><ErroCarga titulo="Não foi possível carregar seu trajeto" onTentar={recarregarTrajeto} /></div>
+      ) : carregando || !pronto ? (
         <div className="px-[22px] pt-[22px]">
           <div className="mb-3 h-5" />
           <EsqueletoDestaque />

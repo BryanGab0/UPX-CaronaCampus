@@ -6,7 +6,7 @@ import { SQL_MEDIAS } from "./avaliacoes.js";
 import { SQL_OCUPADAS } from "../vagas.js";
 import { avaliar, regiaoAproximada, PESO_HORARIO, PESO_ROTA } from "../match.js";
 import type { Avaliacao, PerfilPassageiro } from "../match.js";
-import { horariosDasColunas } from "../horarios.js";
+import { resumoAntigo } from "../horarios.js";
 
 export const caronasRouter = Router();
 
@@ -14,24 +14,33 @@ export const caronasRouter = Router();
 export const enderecoPublico = (bairro: string | null, cidade: string | null) =>
   [bairro, cidade || "Sorocaba"].filter(Boolean).join(", ");
 
+// Transição: campos que o app aberto antes do deploy ainda lê (por dia = ida e volta). Remover
+// quando todos tiverem atualizado o app.
+const avaliacaoAntiga = (a: Avaliacao) => ({
+  diasComuns: [...new Set(a.trechosComuns.map((t) => t.dia))],
+  difChegadaMin: (a.trechosComuns.find((t) => t.sentido === "ida") ?? a.trechosComuns[0])?.difMin ?? 0,
+  litrosDia: a.litrosTrecho * 2,
+  custoDia: a.custoTrecho * 2,
+});
+
 // Caronas = usuários com trajeto papel='motorista' (exceto o próprio usuário e contas bloqueadas),
 // já ranqueadas pela compatibilidade com o trajeto SALVO de quem pede. A origem nunca vem da
 // requisição: assim ninguém sonda a casa do motorista testando coordenadas arbitrárias.
 caronasRouter.get("/caronas", autenticar, async (req: ReqAuth, res) => {
   try {
     const eu = await pool.query(
-      "SELECT origem_lat, origem_lng, dias, chegada, saida, endereco FROM trajetos WHERE usuario_ra = $1",
+      "SELECT origem_lat, origem_lng, horarios, endereco FROM trajetos WHERE usuario_ra = $1",
       [req.usuarioRa],
     );
     const t = eu.rows[0];
     // Sem trajeto cadastrado não há com o que comparar: a lista vem sem nota (o app pede o cadastro).
     const perfil: PerfilPassageiro | null = t?.endereco
-      ? { origem: { lat: t.origem_lat, lng: t.origem_lng }, horarios: horariosDasColunas(t.dias, t.chegada, t.saida) }
+      ? { origem: { lat: t.origem_lat, lng: t.origem_lng }, horarios: t.horarios }
       : null;
 
     const { rows } = await pool.query(
       `SELECT u.ra, u.nome, t.bairro, t.cidade, t.origem_lat, t.origem_lng,
-              t.dias, t.chegada, t.saida, t.carro_modelo, t.carro_consumo, t.carro_lugares,
+              t.horarios, t.carro_modelo, t.carro_consumo, t.carro_lugares,
               COALESCE(oc.ocupadas, 0) AS ocupadas,
               md.media AS nota_media, COALESCE(md.total, 0) AS total_avaliacoes
        FROM trajetos t
@@ -47,15 +56,15 @@ caronasRouter.get("/caronas", autenticar, async (req: ReqAuth, res) => {
       // A origem exata só é usada aqui dentro; para fora vai a região aproximada (~1 km).
       const exata = { lat: r.origem_lat, lng: r.origem_lng };
       const avaliacao: Avaliacao | null = perfil
-        ? avaliar(perfil, { origem: exata, horarios: horariosDasColunas(r.dias, r.chegada, r.saida), consumo })
+        ? avaliar(perfil, { origem: exata, horarios: r.horarios, consumo })
         : null;
       return {
         id: r.ra,
         nome: r.nome,
         endereco: enderecoPublico(r.bairro, r.cidade),
         origem: regiaoAproximada(exata),
-        dias: r.dias,
-        chegada: r.chegada,
+        horarios: r.horarios,
+        ...resumoAntigo(r.horarios), // transição: dias/chegada para o app antigo
         carro: r.carro_modelo || "Carro",
         consumo,
         vagas: r.carro_lugares,
@@ -64,7 +73,7 @@ caronasRouter.get("/caronas", autenticar, async (req: ReqAuth, res) => {
         totalAvaliacoes: r.total_avaliacoes,
         // Compatibilidade calculada aqui (null sem trajeto de quem pede). Os pesos vão junto para
         // o app explicar a nota sem repetir as constantes do algoritmo.
-        ...(avaliacao ?? { compat: null }),
+        ...(avaliacao ? { ...avaliacao, ...avaliacaoAntiga(avaliacao) } : { compat: null }),
         pesos: { horario: PESO_HORARIO, rota: PESO_ROTA },
       };
     });

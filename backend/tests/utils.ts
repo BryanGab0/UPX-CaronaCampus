@@ -24,8 +24,8 @@ export async function criarUsuario(ra: string, { admin = false, telefone = "1599
 
 export async function criarTrajeto(ra: string, papel: "motorista" | "passageiro") {
   await pool.query(
-    `INSERT INTO trajetos (usuario_ra, papel, endereco, origem_lat, origem_lng, dias, chegada, saida)
-     VALUES ($1, $2, 'Rua Teste, Sorocaba', -23.5, -47.45, ARRAY['seg','qua'], '08:00', '18:00')`,
+    `INSERT INTO trajetos (usuario_ra, papel, endereco, origem_lat, origem_lng, horarios)
+     VALUES ($1, $2, 'Rua Teste, Sorocaba', -23.5, -47.45, '{"seg":{"ida":"08:00","volta":"18:00"},"qua":{"ida":"08:00","volta":"18:00"}}')`,
     [ra, papel],
   );
 }

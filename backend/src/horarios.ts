@@ -22,9 +22,40 @@ export function trechosDe(h: Horarios): Trecho[] {
   return trechos;
 }
 
+const HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
+const hora = (v: unknown) => (typeof v === "string" && HORA.test(v) ? v : null);
+
+// Confere o que veio do app: só dias de seg a sex, horas no formato HH:MM e cada dia com pelo
+// menos a ida ou a volta. Devolve os horários limpos (só as chaves conhecidas) ou null se inválidos.
+export function validarHorarios(v: unknown): Horarios | null {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const h: Horarios = {};
+  for (const [dia, valor] of Object.entries(v)) {
+    if (!DIAS.includes(dia as DiaSemana) || !valor || typeof valor !== "object") return null;
+    const { ida, volta } = valor as Record<string, unknown>;
+    // Vazio vale como "não faz esse sentido"; preenchido precisa ser uma hora válida.
+    if ((ida != null && ida !== "" && !hora(ida)) || (volta != null && volta !== "" && !hora(volta))) return null;
+    if (!hora(ida) && !hora(volta)) return null;
+    h[dia as DiaSemana] = { ida: hora(ida), volta: hora(volta) };
+  }
+  return Object.keys(h).length > 0 ? h : null;
+}
+
 // Formato antigo (mesma chegada e saída em todos os dias) → horários por dia, com ida e volta.
 export function horariosDasColunas(dias: string[], chegada: string, saida: string): Horarios {
   const h: Horarios = {};
   for (const dia of DIAS) if (dias.includes(dia)) h[dia] = { ida: chegada, volta: saida };
   return h;
+}
+
+// Transição: o app aberto antes do deploy (aba ou PWA) ainda lê dias/chegada/saida. Resume os
+// horários nesse formato (primeira ida e primeira volta da semana). Remover quando todos atualizarem.
+export function resumoAntigo(h: Horarios) {
+  const trechos = trechosDe(h);
+  const primeira = (s: Sentido) => trechos.find((t) => t.sentido === s)?.hora;
+  return {
+    dias: DIAS.filter((d) => h[d]),
+    chegada: primeira("ida") ?? primeira("volta") ?? "",
+    saida: primeira("volta") ?? primeira("ida") ?? "",
+  };
 }

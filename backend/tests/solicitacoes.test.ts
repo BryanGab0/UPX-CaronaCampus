@@ -67,6 +67,30 @@ describe("solicitar carona", () => {
   });
 });
 
+describe("GET /usuarios/:ra/solicitacoes: privacidade", () => {
+  it("não envia a rua/CEP do motorista, nem com o pedido aceito", async () => {
+    await pool.query(
+      "UPDATE trajetos SET endereco = $1, bairro = 'Jardim Secreto', cidade = 'Sorocaba' WHERE usuario_ra = '200'",
+      ["Rua das Flores, 123, Jardim Secreto, Sorocaba, 18000-000"],
+    );
+    const id = await pedir();
+
+    for (const status of ["pendente", "aceita"]) {
+      if (status === "aceita") expect((await responder(id, "aceita")).status).toBe(200);
+      const lista = await minhas();
+      const texto = JSON.stringify(lista);
+      expect(texto).not.toContain("Rua das Flores");
+      expect(texto).not.toContain("18000-000");
+      expect(lista).toEqual([expect.objectContaining({ status, endereco: "Jardim Secreto, Sorocaba" })]);
+    }
+  });
+
+  it("sem bairro salvo, mostra só a cidade", async () => {
+    await pedir();
+    expect(await minhas()).toEqual([expect.objectContaining({ endereco: "Sorocaba" })]);
+  });
+});
+
 describe("aceitar ou recusar", () => {
   it("só o motorista do pedido pode responder (403)", async () => {
     const id = await pedir();

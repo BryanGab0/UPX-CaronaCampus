@@ -55,10 +55,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSessao(s);
   };
 
-  const sair = () => {
+  const sair = (aviso?: string) => {
     definirToken(null);
     setSessao(null);
     setSenhaDigitadaNoLogin(null);
+    setAvisoSaida(aviso ?? null);
   };
 
   const u = sessao?.usuario;

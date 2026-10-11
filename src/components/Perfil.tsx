@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag, ShieldCheck, ChevronRight, Undo2, Users, UserPen, KeyRound } from "lucide-react";
+import { LogOut, Mail, Inbox, Check, X, MessageCircle, Flag, ShieldCheck, ChevronRight, Undo2, Users, UserPen, KeyRound, Trash2 } from "lucide-react";
 import { cn } from "../lib/cn";
 import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
 import { useAuth } from "../context/AuthContext";
@@ -15,6 +15,7 @@ import { Denunciar } from "./Denunciar";
 import { Confirmar } from "./Confirmar";
 import { EditarDados } from "./EditarDados";
 import { TrocarSenha } from "./TrocarSenha";
+import { ExcluirConta } from "./ExcluirConta";
 import { Notificacoes } from "./Notificacoes";
 import { desativarPush } from "../lib/push";
 import { Estrelas, NotaMedia } from "./Estrelas";
@@ -30,7 +31,7 @@ export function Perfil() {
   const [denunciado, setDenunciado] = useState<Pedido | null>(null);
   const [avaliando, setAvaliando] = useState<number | null>(null); // id do pedido sendo avaliado
   const [desfazendo, setDesfazendo] = useState<Pedido | null>(null); // aceite a desfazer (folha de confirmação)
-  const [folhaConta, setFolhaConta] = useState<"dados" | "senha" | null>(null);
+  const [folhaConta, setFolhaConta] = useState<"dados" | "senha" | "excluir" | null>(null);
 
   // Vagas do carro: as do trajeto menos os passageiros aceitos (mesma conta da API).
   const souMotorista = trajeto.papel === "motorista";
@@ -200,11 +201,16 @@ export function Perfil() {
         className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-[14px] border border-line bg-surface py-4 text-sm font-bold text-sub transition active:scale-[.98]">
         <LogOut size={17} /> Sair
       </button>
+      <button onClick={() => setFolhaConta("excluir")}
+        className="mx-auto mt-4 flex items-center gap-1.5 text-xs font-semibold text-accent-ink transition active:scale-[.98]">
+        <Trash2 size={13} /> Excluir minha conta
+      </button>
 
       {folhaConta === "dados" && (
         <EditarDados onFechar={() => setFolhaConta(null)}
           onSalvo={() => { setFolhaConta(null); mostrar("ok", "Dados atualizados."); }} />
       )}
+      {folhaConta === "excluir" && <ExcluirConta onFechar={() => setFolhaConta(null)} />}
       {folhaConta === "senha" && (
         <TrocarSenha onFechar={() => setFolhaConta(null)}
           onTrocada={() => { setFolhaConta(null); mostrar("ok", "Senha trocada. Os outros aparelhos saíram da conta."); }} />

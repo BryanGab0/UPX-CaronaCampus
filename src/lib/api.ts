@@ -87,6 +87,17 @@ export async function trocarSenha(ra: string, senhaAtual: string, novaSenha: str
   return (await resp.json()).token;
 }
 
+// Exclui a própria conta, confirmando a senha.
+export async function excluirConta(ra: string, senha: string): Promise<void> {
+  const resp = await fetch(`${API_URL}/usuarios/${ra}`, {
+    method: "DELETE", headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ senha }),
+  });
+  // 401 aqui é a senha errada (não a sessão); 400 inclui conta de administrador.
+  if ([400, 401, 429].includes(resp.status)) throw await erroDaResposta(resp, "Não foi possível excluir a conta.");
+  if (!resp.ok) throw await falha(resp, "ao excluir a conta");
+}
+
 // Caronas = motoristas reais (protegido).
 // Carona como vem da API: já com a nota e o detalhamento, ou compat null se quem pede ainda não
 // cadastrou trajeto. A origem do motorista é uma região aproximada (~1 km), não a casa.

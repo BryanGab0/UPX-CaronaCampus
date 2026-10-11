@@ -22,7 +22,7 @@ export function Privacidade() {
           <Destaque icone={<Phone size={17} />} texto="Seu telefone só aparece para a outra pessoa enquanto o pedido estiver aceito. Se alguém cancelar, ele deixa de aparecer." />
           <Destaque icone={<MapPin size={17} />} texto="Seu endereço exato fica só com você: os outros alunos veem o seu bairro e uma região aproximada, nunca a rua." />
           <Destaque icone={<ShieldCheck size={17} />} texto="Não vendemos seus dados nem usamos para propaganda. É um projeto acadêmico, sem fins comerciais." />
-          <Destaque icone={<Trash2 size={17} />} texto="Você pode pedir para ver, corrigir ou apagar seus dados a qualquer momento." />
+          <Destaque icone={<Trash2 size={17} />} texto="Você pode corrigir seus dados e excluir sua conta pelo Perfil, a qualquer momento." />
         </div>
 
         <Secao titulo="O que guardamos">
@@ -51,8 +51,10 @@ export function Privacidade() {
         </Secao>
 
         <Secao titulo="Seus direitos (LGPD)">
-          <Item>Você pode pedir acesso, correção ou exclusão dos seus dados, e tirar dúvidas, pelo e-mail <a href={`mailto:${CONTATO}`} className="font-semibold text-brand break-all">{CONTATO}</a>.</Item>
-          <Item>Os dados ficam guardados enquanto a sua conta existir. Ao apagar a conta, saem também o trajeto, os pedidos, as avaliações e as denúncias ligadas a ela.</Item>
+          <Item><b>Excluir a conta:</b> no Perfil, em “Excluir minha conta”, confirmando com a sua senha. Saem o cadastro, o trajeto, os pedidos, as avaliações, os aparelhos de notificação e as denúncias feitas contra você. As denúncias que você fez continuam para a moderação, sem o seu nome.</Item>
+          <Item><b>Corrigir os dados:</b> nome e telefone, no Perfil, em “Editar dados”.</Item>
+          <Item>Você também pode pedir acesso aos seus dados, ou tirar dúvidas, pelo e-mail <a href={`mailto:${CONTATO}`} className="font-semibold text-brand break-all">{CONTATO}</a>.</Item>
+          <Item>Os dados ficam guardados enquanto a sua conta existir.</Item>
         </Secao>
       </div>
     </div>

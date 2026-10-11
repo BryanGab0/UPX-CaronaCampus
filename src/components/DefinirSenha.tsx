@@ -79,7 +79,7 @@ export function DefinirSenha() {
           </div>
         </div>
 
-        <button onClick={sair} className="mx-auto mt-6 flex items-center gap-1.5 text-[13.5px] font-semibold text-sub">
+        <button onClick={() => sair()} className="mx-auto mt-6 flex items-center gap-1.5 text-[13.5px] font-semibold text-sub">
           <LogOut size={15} /> Sair
         </button>
       </main>

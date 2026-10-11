@@ -17,7 +17,7 @@ export interface AuthContextValue {
   ra: string;
   login: (email: string, senha: string) => Promise<void>;
   registrar: (email: string, nome: string, telefone: string, senha: string) => Promise<void>;
-  sair: () => void;
+  sair: (aviso?: string) => void; // aviso: motivo mostrado no login (ex.: conta excluída)
   atualizarSessao: (mudanca: { nome?: string; token?: string; senhaTemporaria?: boolean }) => void; // após editar o nome ou trocar a senha
   senhaTemporaria: boolean;          // entrou com a senha gerada pelo admin: precisa definir uma nova
   senhaDigitadaNoLogin: string | null; // só na memória, para a troca obrigatória não pedir a temporária de novo

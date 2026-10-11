@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { alterarBloqueio, buscarUsuarios } from "../lib/api";
+import { alterarBloqueio, buscarUsuarios, gerarSenhaTemporaria } from "../lib/api";
 import type { UsuarioAdmin } from "../lib/api";
+import { KeyRound, Copy, Check, X } from "lucide-react";
 import { cn } from "../lib/cn";
 import { combina, paginar } from "../lib/filtro";
 import { Carregando, ErroCarga } from "./Estado";
@@ -60,6 +61,31 @@ export function Usuarios() {
     }
   };
 
+  // Senha temporária recém-gerada: aparece uma única vez, até o admin fechar o aviso.
+  const [gerada, setGerada] = useState<{ nome: string; senha: string } | null>(null);
+  const [copiada, setCopiada] = useState(false);
+
+  const gerarSenha = async (u: UsuarioAdmin) => {
+    if (!window.confirm(`Gerar uma senha temporária para ${u.nome}? A senha atual deixa de valer e a pessoa sai da conta em todos os aparelhos. Confira a identidade antes de entregar a nova senha.`)) return;
+    setAlterando(u.ra); setErroAcao(null); setCopiada(false);
+    try {
+      const senha = await gerarSenhaTemporaria(u.ra);
+      setGerada({ nome: u.nome, senha });
+      setLista((l) => l?.map((x) => (x.ra === u.ra ? { ...x, senha_temporaria: true } : x)) ?? l);
+    } catch (e) {
+      console.error(e);
+      setErroAcao(`Não foi possível gerar a senha temporária de ${u.nome}. Tente novamente.`);
+    } finally {
+      setAlterando(null);
+    }
+  };
+
+  const copiar = async () => {
+    if (!gerada) return;
+    try { await navigator.clipboard.writeText(gerada.senha); setCopiada(true); }
+    catch { setCopiada(false); } // sem permissão de área de transferência: a senha continua visível para copiar à mão
+  };
+
   return (
     <div>
       <h1 className="font-display text-2xl font-bold tracking-tight">Usuários</h1>
@@ -77,6 +103,30 @@ export function Usuarios() {
             opcoes={FILTROS.map((f) => ({ id: f.id, texto: f.texto, total: lista.filter(f.teste).length }))} />
         </BarraFiltros>
         {erroAcao && <p role="alert" className="mt-4 text-sm font-semibold text-accent-ink">{erroAcao}</p>}
+        {gerada && (
+          <div role="status" className="mt-4 rounded-2xl border border-brand bg-brand-soft p-4">
+            <div className="flex items-start gap-3">
+              <KeyRound size={18} className="mt-0.5 shrink-0 text-brand" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">Senha temporária de {gerada.nome}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <code className="rounded-lg bg-surface px-3 py-1.5 font-mono text-base tracking-wider">{gerada.senha}</code>
+                  <button onClick={copiar}
+                    className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-xs font-semibold text-sub transition hover:border-ink hover:text-ink">
+                    {copiada ? <><Check size={14} /> Copiada</> : <><Copy size={14} /> Copiar</>}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-sub">
+                  Entregue pessoalmente ou pelo WhatsApp. Ela não aparece de novo, e o aluno vai ter que trocá-la ao entrar.
+                </p>
+              </div>
+              <button onClick={() => setGerada(null)} aria-label="Fechar o aviso da senha temporária"
+                className="grid size-8 shrink-0 place-items-center rounded-lg text-sub transition hover:text-ink">
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
         {filtrada.length === 0 ? <SemResultado onLimpar={limpar} /> : (
         <>
         <div className="mt-4 overflow-x-auto rounded-2xl border border-line bg-surface">
@@ -112,10 +162,19 @@ export function Usuarios() {
                       <span className={cn("text-xs font-semibold", u.bloqueado ? "text-accent-ink" : "text-good-ink")}>
                         {u.bloqueado ? "bloqueado" : "ativo"}
                       </span>
+                      {u.senha_temporaria && (
+                        <span className="rounded-md bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand">senha temporária</span>
+                      )}
                       {!u.admin && (
                         <button onClick={() => alternarBloqueio(u)} disabled={alterando === u.ra}
                           className="rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-sub transition hover:border-ink hover:text-ink disabled:opacity-50">
                           {u.bloqueado ? "Desbloquear" : "Bloquear"}
+                        </button>
+                      )}
+                      {!u.admin && (
+                        <button onClick={() => gerarSenha(u)} disabled={alterando === u.ra}
+                          className="rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-sub transition hover:border-ink hover:text-ink disabled:opacity-50">
+                          Senha temporária
                         </button>
                       )}
                     </div>

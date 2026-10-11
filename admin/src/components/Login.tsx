@@ -3,10 +3,10 @@ import { ShieldCheck, Mail, Lock } from "lucide-react";
 import { useAuth, emailInstitucional } from "../context/AuthContext";
 
 export function Login() {
-  const { entrar } = useAuth();
+  const { entrar, avisoSaida } = useAuth();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState("");
+  const [erro, setErro] = useState(avisoSaida ?? "");
   const [carregando, setCarregando] = useState(false);
 
   const enviar = async () => {

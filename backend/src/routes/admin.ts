@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { pool } from "../db.js";
+import bcrypt from "bcryptjs";
 import { autenticar, souAdmin } from "../middleware/autenticar.js";
+import { gerarSenhaTemporaria } from "../token.js";
 
 export const adminRouter = Router();
 adminRouter.use(autenticar, souAdmin);
@@ -28,7 +30,7 @@ adminRouter.get("/estatisticas", async (_req, res) => {
 adminRouter.get("/usuarios", async (_req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT ra, nome, email, telefone, admin, bloqueado, criado_em FROM usuarios ORDER BY criado_em DESC",
+      "SELECT ra, nome, email, telefone, admin, bloqueado, senha_temporaria, criado_em FROM usuarios ORDER BY criado_em DESC",
     );
     res.json(rows);
   } catch (e) {
@@ -82,6 +84,35 @@ adminRouter.get("/solicitacoes", async (_req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ erro: "falha ao listar solicitações" });
+  }
+});
+
+// POST — gera uma senha temporária para quem esqueceu a senha (não há e-mail para recuperar).
+// A senha aparece só nesta resposta (o banco guarda o hash); o admin confere a identidade do aluno
+// e entrega a senha a ele. Encerra as sessões e os avisos dos aparelhos, e obriga a troca no
+// próximo login. Não vale para administradores.
+adminRouter.post("/usuarios/:ra/senha-temporaria", async (req, res) => {
+  try {
+    const alvo = await pool.query("SELECT admin FROM usuarios WHERE ra = $1", [req.params.ra]);
+    if (alvo.rows.length === 0) {
+      res.status(404).json({ erro: "usuário não encontrado" });
+      return;
+    }
+    if (alvo.rows[0].admin) {
+      res.status(400).json({ erro: "não é possível gerar senha temporária para um administrador" });
+      return;
+    }
+    const senha = gerarSenhaTemporaria();
+    const hash = await bcrypt.hash(senha, 10);
+    await pool.query(
+      "UPDATE usuarios SET senha_hash = $2, senha_temporaria = true, senha_alterada_em = $3 WHERE ra = $1",
+      [req.params.ra, hash, new Date()], // horário do relógio da API, o mesmo que assina os tokens
+    );
+    await pool.query("DELETE FROM inscricoes_push WHERE usuario_ra = $1", [req.params.ra]);
+    res.json({ senha });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: "falha ao gerar a senha temporária" });
   }
 });
 

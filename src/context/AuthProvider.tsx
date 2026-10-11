@@ -22,13 +22,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   // Depois de editar o nome ou trocar a senha (token novo), a sessão salva acompanha.
-  const atualizarSessao = (mudanca: { nome?: string; token?: string }) => {
+  const atualizarSessao = (mudanca: { nome?: string; token?: string; senhaTemporaria?: boolean }) => {
     if (mudanca.token) definirToken(mudanca.token);
+    if (mudanca.senhaTemporaria === false) setSenhaDigitadaNoLogin(null);
     setSessao((s) => s && {
       token: mudanca.token ?? s.token,
-      usuario: { ...s.usuario, nome: mudanca.nome ?? s.usuario.nome },
+      usuario: {
+        ...s.usuario,
+        nome: mudanca.nome ?? s.usuario.nome,
+        senhaTemporaria: mudanca.senhaTemporaria ?? s.usuario.senhaTemporaria,
+      },
     });
   };
+
+  // A senha digitada fica só na memória (nunca no navegador) e só quando é a temporária.
+  const [senhaDigitadaNoLogin, setSenhaDigitadaNoLogin] = useState<string | null>(null);
 
   const login = async (email: string, senha: string) => {
     const ra = email.trim().split("@")[0];
@@ -36,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     definirToken(s.token);
     setSessao(s);
     setAvisoSaida(null);
+    setSenhaDigitadaNoLogin(s.usuario.senhaTemporaria ? senha : null);
   };
 
   const registrar = async (email: string, nome: string, telefone: string, senha: string) => {
@@ -49,12 +58,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const sair = () => {
     definirToken(null);
     setSessao(null);
+    setSenhaDigitadaNoLogin(null);
   };
 
   const u = sessao?.usuario;
   return (
     <AuthContext.Provider
-      value={{ autenticado: sessao !== null, nome: u?.nome ?? "", email: u?.email ?? "", ra: u?.ra ?? "", login, registrar, sair, atualizarSessao, avisoSaida }}
+      value={{ autenticado: sessao !== null, nome: u?.nome ?? "", email: u?.email ?? "", ra: u?.ra ?? "", login, registrar, sair, atualizarSessao, avisoSaida,
+        senhaTemporaria: u?.senhaTemporaria === true, senhaDigitadaNoLogin }}
     >
       {children}
     </AuthContext.Provider>

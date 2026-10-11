@@ -59,6 +59,7 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - Trocar a senha encerra as sessões dos outros aparelhos: `senha_alterada_em` (migração `008`) guarda o momento da troca e o `autenticar` recusa (401) tokens emitidos antes dela. Quem trocou recebe um token novo. As inscrições de notificação da pessoa também são apagadas, para um aparelho perdido não continuar recebendo avisos; o aparelho atual se inscreve de novo.
 - CORS liberado só para as origens de `CORS_ORIGINS`.
 - Limite de tentativas por IP: 10 logins com falha a cada 15 min e 5 cadastros por hora (resposta 429).
+- Senha esquecida (não há e-mail para recuperar): o admin gera uma senha temporária (`POST /admin/usuarios/:ra/senha-temporaria`), sorteada com gerador criptográfico e sem caracteres ambíguos, mostrada só nessa resposta (o banco guarda o hash). Ela encerra as sessões e os avisos do aluno e marca `senha_temporaria` (migração `009`): até o aluno definir a própria senha, o `autenticar` responde 403 (`trocarSenha: true`) a tudo, exceto trocar a senha e `GET /auth/eu`. Não vale para administradores.
 - Moderação: o admin bloqueia contas (`PATCH /admin/usuarios/:ra/bloqueio`). A cada requisição, o `autenticar` confere no banco se a conta existe e não está bloqueada; conta bloqueada não faz login e some da lista de caronas.
 - Telefone só é exposto às duas partes de um pedido aceito.
 - Notificações push (Web Push/VAPID) para pedido novo e para aceite/recusa; contas bloqueadas não recebem, e aparelhos que cancelaram a inscrição (404/410) são removidos automaticamente.
@@ -77,7 +78,7 @@ O algoritmo de compatibilidade fica em `src/match.ts` (parâmetros no topo do ar
 - `GET  /health`                     — saúde da API e do banco
 - `GET  /caronas`                    — lista as caronas já ranqueadas pela compatibilidade com o trajeto salvo de quem pede, com o detalhamento da nota, bairro, região aproximada e vagas livres (protegida)
 - `POST /auth/registrar`             — cria conta (ra, nome, email, senha) e devolve token
-- `POST /auth/login`                 — autentica (ra, senha) e devolve token JWT
+- `POST /auth/login`                 — autentica (ra, senha) e devolve token JWT (com `senhaTemporaria` quando a senha veio do admin)
 - `GET  /auth/eu`                    — usuário do token, com o telefone (protegida)
 - `GET  /usuarios/:ra/trajeto`       — trajeto do usuário (protegida)
 - `PATCH /usuarios/:ra`               — altera o próprio nome (2 a 80 caracteres) e/ou telefone; RA e e-mail não mudam (protegida)
@@ -94,7 +95,7 @@ Regras dos pedidos: um por par passageiro/motorista. Depois de cancelado, pedir 
 Vagas: `carro_lugares` é o número de vagas para passageiros (sem contar o motorista). As vagas livres são calculadas (vagas − pedidos aceitos), nunca guardadas, então cancelar libera a vaga sozinho. Com o carro lotado, o aceite e os pedidos novos recebem 409. O aceite roda numa transação que trava o trajeto do motorista (`SELECT ... FOR UPDATE`, em `src/vagas.ts`), para dois aceites ao mesmo tempo não ocuparem a mesma última vaga.
 
 ## Tabelas
-- `usuarios` — aluno (ra, nome, email, senha_hash, telefone, admin, bloqueado, senha_alterada_em)
+- `usuarios` — aluno (ra, nome, email, senha_hash, telefone, admin, bloqueado, senha_alterada_em, senha_temporaria)
 - `trajetos` — trajeto de cada usuário: papel (motorista/passageiro), endereço, bairro e cidade, coordenadas, dias, horários e, para motoristas, carro e vagas (chave estrangeira → `usuarios`)
 - `solicitacoes` — pedidos de carona do passageiro ao motorista, com status `pendente`, `aceita`, `recusada` ou `cancelada` e quem cancelou (`cancelado_por`) (chaves estrangeiras → `usuarios`)
 - `denuncias` — denúncia de um usuário contra outro (motivo, descrição, status `aberta`/`resolvida`; uma aberta por par)

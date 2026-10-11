@@ -8,17 +8,19 @@ import { Caronas } from "./components/Caronas";
 import { Detalhe } from "./components/Detalhe";
 import { Perfil } from "./components/Perfil";
 import { Privacidade } from "./components/Privacidade";
+import { DefinirSenha } from "./components/DefinirSenha";
 
 export default function App() {
-  const { autenticado } = useAuth();
+  const { autenticado, senhaTemporaria } = useAuth();
 
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/privacidade" element={<Privacidade />} /> {/* pública: abre com ou sem login */}
 
-      {/* Rotas protegidas: sem estar logado, redireciona para /login */}
-      <Route element={autenticado ? <Layout /> : <Navigate to="/login" replace />}>
+      {/* Rotas protegidas: sem estar logado, redireciona para /login; com a senha temporária
+          do admin, qualquer tela vira a troca obrigatória até a pessoa definir a própria. */}
+      <Route element={!autenticado ? <Navigate to="/login" replace /> : senhaTemporaria ? <DefinirSenha /> : <Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/trajeto" element={<Trajeto />} />
         <Route path="/caronas" element={<Caronas />} />

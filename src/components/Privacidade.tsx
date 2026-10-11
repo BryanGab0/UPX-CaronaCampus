@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { ChevronLeft, MapPin, Phone, ShieldCheck, Trash2 } from "lucide-react";
+import { CONTATO } from "../lib/contato";
 
-// Canal para pedidos sobre os dados (acesso, correção, exclusão).
-const CONTATO = "caronacampus.contato@gmail.com";
 const ATUALIZADA_EM = "outubro de 2026";
 
 // Política de privacidade em linguagem simples (LGPD). Pública: abre com ou sem login.

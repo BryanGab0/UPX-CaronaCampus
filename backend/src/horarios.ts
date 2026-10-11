@@ -41,21 +41,3 @@ export function validarHorarios(v: unknown): Horarios | null {
   return Object.keys(h).length > 0 ? h : null;
 }
 
-// Formato antigo (mesma chegada e saída em todos os dias) → horários por dia, com ida e volta.
-export function horariosDasColunas(dias: string[], chegada: string, saida: string): Horarios {
-  const h: Horarios = {};
-  for (const dia of DIAS) if (dias.includes(dia)) h[dia] = { ida: chegada, volta: saida };
-  return h;
-}
-
-// Transição: o app aberto antes do deploy (aba ou PWA) ainda lê dias/chegada/saida. Resume os
-// horários nesse formato (primeira ida e primeira volta da semana). Remover quando todos atualizarem.
-export function resumoAntigo(h: Horarios) {
-  const trechos = trechosDe(h);
-  const primeira = (s: Sentido) => trechos.find((t) => t.sentido === s)?.hora;
-  return {
-    dias: DIAS.filter((d) => h[d]),
-    chegada: primeira("ida") ?? primeira("volta") ?? "",
-    saida: primeira("volta") ?? primeira("ida") ?? "",
-  };
-}

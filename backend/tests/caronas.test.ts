@@ -3,7 +3,7 @@ import request from "supertest";
 import { app } from "../src/app.js";
 import { pool } from "../src/db.js";
 import { PASSO_KM } from "../src/match.js";
-import { horariosDasColunas } from "../src/horarios.js";
+import { horariosIguais } from "./fixtures.js";
 import { limparBanco, criarUsuario } from "./utils.js";
 
 afterAll(() => pool.end());
@@ -16,7 +16,7 @@ const CASA = { lat: -23.501234, lng: -47.456789 };
 const ENDERECO_COMPLETO = "Rua das Flores, 123, Jardim Secreto, Sorocaba, 18000-000";
 
 // Seg, qua e sex, ida no horário dado e volta às 18:00.
-const semana = (ida: string) => horariosDasColunas(["seg", "qua", "sex"], ida, "18:00");
+const semana = (ida: string) => horariosIguais(["seg", "qua", "sex"], ida, "18:00");
 
 const trajeto = (extra: Record<string, unknown>) => ({
   papel: "motorista", endereco: ENDERECO_COMPLETO, origem: CASA,
@@ -133,23 +133,20 @@ describe("trajeto: horários por dia, com ida e volta", () => {
   });
 });
 
-// O app aberto antes do deploy (aba ou PWA) ainda manda e lê o formato antigo.
-describe("trajeto: transição do formato antigo", () => {
-  it("aceita dias + chegada + saida e devolve também esses campos", async () => {
+// O formato de antes da migração 011 (dias + chegada + saida) não é mais aceito.
+describe("trajeto: formato antigo de horários", () => {
+  it("recusa dias + chegada + saida sem horarios", async () => {
     const antigo = trajeto({ horarios: undefined, dias: ["ter", "qui"], chegada: "07:30", saida: "17:00" });
-    expect((await salvar(perto, antigo)).status).toBe(200);
-    const res = await request(app).get("/usuarios/200/trajeto").set("Authorization", perto.auth);
-    expect(res.body).toMatchObject({
-      horarios: { ter: { ida: "07:30", volta: "17:00" }, qui: { ida: "07:30", volta: "17:00" } },
-      dias: ["ter", "qui"], chegada: "07:30", saida: "17:00",
-    });
+    expect((await salvar(perto, antigo)).status).toBe(400);
   });
 
-  it("GET /caronas mantém os campos que o app antigo lê", async () => {
+  it("as respostas não trazem mais os campos antigos", async () => {
     await salvar(aluna, trajeto({ papel: "passageiro", origem: { lat: -23.50, lng: -47.455 } }));
+    const meu = (await request(app).get("/usuarios/100/trajeto").set("Authorization", aluna.auth)).body;
     const c = (await caronas(aluna)).find((x: { id: string }) => x.id === "200");
-    expect(c).toMatchObject({ dias: ["seg", "qua", "sex"], chegada: "08:00", diasComuns: ["seg", "qua", "sex"], difChegadaMin: 0 });
-    expect(c.custoDia).toBeCloseTo(c.custoTrecho * 2, 10);
-    expect(c.litrosDia).toBeCloseTo(c.litrosTrecho * 2, 10);
+    for (const campo of ["dias", "chegada", "saida"]) expect(meu).not.toHaveProperty(campo);
+    for (const campo of ["dias", "chegada", "saida", "diasComuns", "difChegadaMin", "custoDia", "litrosDia"]) {
+      expect(c).not.toHaveProperty(campo);
+    }
   });
 });

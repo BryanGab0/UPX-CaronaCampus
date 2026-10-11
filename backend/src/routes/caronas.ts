@@ -6,22 +6,12 @@ import { SQL_MEDIAS } from "./avaliacoes.js";
 import { SQL_OCUPADAS } from "../vagas.js";
 import { avaliar, regiaoAproximada, PESO_HORARIO, PESO_ROTA } from "../match.js";
 import type { Avaliacao, PerfilPassageiro } from "../match.js";
-import { resumoAntigo } from "../horarios.js";
 
 export const caronasRouter = Router();
 
 // Endereço que os outros alunos veem: só bairro e cidade (a rua e o CEP ficam no servidor).
 export const enderecoPublico = (bairro: string | null, cidade: string | null) =>
   [bairro, cidade || "Sorocaba"].filter(Boolean).join(", ");
-
-// Transição: campos que o app aberto antes do deploy ainda lê (por dia = ida e volta). Remover
-// quando todos tiverem atualizado o app.
-const avaliacaoAntiga = (a: Avaliacao) => ({
-  diasComuns: [...new Set(a.trechosComuns.map((t) => t.dia))],
-  difChegadaMin: (a.trechosComuns.find((t) => t.sentido === "ida") ?? a.trechosComuns[0])?.difMin ?? 0,
-  litrosDia: a.litrosTrecho * 2,
-  custoDia: a.custoTrecho * 2,
-});
 
 // Caronas = usuários com trajeto papel='motorista' (exceto o próprio usuário e contas bloqueadas),
 // já ranqueadas pela compatibilidade com o trajeto SALVO de quem pede. A origem nunca vem da
@@ -64,7 +54,6 @@ caronasRouter.get("/caronas", autenticar, async (req: ReqAuth, res) => {
         endereco: enderecoPublico(r.bairro, r.cidade),
         origem: regiaoAproximada(exata),
         horarios: r.horarios,
-        ...resumoAntigo(r.horarios), // transição: dias/chegada para o app antigo
         carro: r.carro_modelo || "Carro",
         consumo,
         vagas: r.carro_lugares,
@@ -73,7 +62,7 @@ caronasRouter.get("/caronas", autenticar, async (req: ReqAuth, res) => {
         totalAvaliacoes: r.total_avaliacoes,
         // Compatibilidade calculada aqui (null sem trajeto de quem pede). Os pesos vão junto para
         // o app explicar a nota sem repetir as constantes do algoritmo.
-        ...(avaliacao ? { ...avaliacao, ...avaliacaoAntiga(avaliacao) } : { compat: null }),
+        ...(avaliacao ?? { compat: null }),
         pesos: { horario: PESO_HORARIO, rota: PESO_ROTA },
       };
     });

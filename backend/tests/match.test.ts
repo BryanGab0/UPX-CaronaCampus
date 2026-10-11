@@ -1,19 +1,22 @@
 import { describe, it, expect } from "vitest";
 import {
-  avaliar, haversineKm, distanciaDaRotaKm, litrosDia, arredondarKm, regiaoAproximada,
+  avaliar, haversineKm, distanciaDaRotaKm, litrosTrecho, arredondarKm, regiaoAproximada,
   TOLERANCIA_MIN, DESVIO_MAX_KM, PESO_HORARIO, PESO_ROTA, PRECO_LITRO, PASSO_KM, GRADE_GRAUS,
 } from "../src/match.js";
 import type { Coord, PerfilMotorista, PerfilPassageiro } from "../src/match.js";
+import { DIAS, horariosDasColunas } from "../src/horarios.js";
 
 const FACENS: Coord = { lat: -23.4710, lng: -47.4285 };
 // 0,09° de latitude ≈ 10 km ao sul da Facens.
 const SUL_10KM: Coord = { lat: FACENS.lat - 0.09, lng: FACENS.lng };
+// Seg a sex, ida às 08:00 e volta às 18:00 (10 trechos).
+const SEMANA = horariosDasColunas(DIAS, "08:00", "18:00");
 
 const motorista = (extra: Partial<PerfilMotorista> = {}): PerfilMotorista => ({
-  origem: SUL_10KM, dias: ["seg", "ter", "qua", "qui", "sex"], chegada: "08:00", consumo: 10, ...extra,
+  origem: SUL_10KM, horarios: SEMANA, consumo: 10, ...extra,
 });
 const passageiro = (extra: Partial<PerfilPassageiro> = {}): PerfilPassageiro => ({
-  origem: SUL_10KM, chegada: "08:00", dias: ["seg", "ter", "qua", "qui", "sex"], ...extra,
+  origem: SUL_10KM, horarios: SEMANA, ...extra,
 });
 const multiploDoPasso = (km: number) => Math.abs(km / PASSO_KM - Math.round(km / PASSO_KM)) < 1e-9;
 
@@ -43,24 +46,60 @@ describe("distanciaDaRotaKm", () => {
 });
 
 describe("avaliar", () => {
-  it("dá 100% quando horário, dias e origem coincidem", () => {
+  it("dá 100% quando horários, dias e origem coincidem", () => {
     const a = avaliar(passageiro(), motorista(), FACENS);
     expect(a.compat).toBe(100);
     expect(a.scoreHorario).toBe(1);
     expect(a.scoreRota).toBe(1);
+    expect(a.totalTrechos).toBe(10);
+    expect(a.trechosComuns).toHaveLength(10);
   });
 
   it("o horário deixa de pontuar a partir da tolerância", () => {
-    const a = avaliar(passageiro({ chegada: "08:00" }), motorista({ chegada: "08:45" }), FACENS);
-    expect(a.difChegadaMin).toBe(TOLERANCIA_MIN);
-    // dias todos em comum (0,5) + chegada zerada (0) = 0,5
-    expect(a.scoreHorario).toBe(0.5);
+    const a = avaliar(passageiro(), motorista({ horarios: horariosDasColunas(DIAS, "08:45", "18:45") }), FACENS);
+    expect(a.trechosComuns.every((t) => t.difMin === TOLERANCIA_MIN)).toBe(true);
+    expect(a.scoreHorario).toBe(0);
   });
 
-  it("conta só os dias em comum", () => {
-    const a = avaliar(passageiro({ dias: ["seg", "qua"] }), motorista({ dias: ["seg", "ter"] }), FACENS);
-    expect(a.diasComuns).toEqual(["seg"]);
-    expect(a.scoreHorario).toBe(0.5 * 0.5 + 0.5 * 1);
+  it("avalia a ida e a volta separadamente", () => {
+    const a = avaliar(
+      passageiro({ horarios: { seg: { ida: "08:00", volta: "18:00" } } }),
+      motorista({ horarios: { seg: { ida: "08:00", volta: "18:15" } } }),
+      FACENS,
+    );
+    expect(a.trechosComuns).toEqual([
+      { dia: "seg", sentido: "ida", difMin: 0 },
+      { dia: "seg", sentido: "volta", difMin: 15 },
+    ]);
+    expect(a.scoreHorario).toBeCloseTo((1 + (1 - 15 / TOLERANCIA_MIN)) / 2, 10);
+  });
+
+  it("trecho que o motorista não faz (outro dia ou sentido) vale 0", () => {
+    // Passageiro: seg ida e volta + qua só ida (3 trechos). Motorista: seg só ida + qua ida e volta.
+    const a = avaliar(
+      passageiro({ horarios: { seg: { ida: "08:00", volta: "18:00" }, qua: { ida: "08:00", volta: null } } }),
+      motorista({ horarios: { seg: { ida: "08:00", volta: null }, qua: { ida: "08:00", volta: "18:00" } } }),
+      FACENS,
+    );
+    expect(a.totalTrechos).toBe(3);
+    expect(a.trechosComuns.map((t) => `${t.dia}-${t.sentido}`)).toEqual(["seg-ida", "qua-ida"]);
+    expect(a.scoreHorario).toBeCloseTo(2 / 3, 10);
+  });
+
+  it("não confunde a ida de um com a volta do outro", () => {
+    const a = avaliar(
+      passageiro({ horarios: { seg: { ida: null, volta: "18:00" } } }),
+      motorista({ horarios: { seg: { ida: "18:00", volta: null } } }),
+      FACENS,
+    );
+    expect(a.trechosComuns).toEqual([]);
+    expect(a.scoreHorario).toBe(0);
+  });
+
+  it("sem trechos do passageiro, o horário não pontua", () => {
+    const a = avaliar(passageiro({ horarios: {} }), motorista(), FACENS);
+    expect(a.totalTrechos).toBe(0);
+    expect(a.scoreHorario).toBe(0);
   });
 
   it("a rota deixa de pontuar a partir do desvio máximo", () => {
@@ -73,15 +112,15 @@ describe("avaliar", () => {
 
   it("combina horário e rota com os pesos definidos", () => {
     const aoLado = { lat: SUL_10KM.lat + 0.03, lng: SUL_10KM.lng + 0.03 };
-    const a = avaliar(passageiro({ origem: aoLado }), motorista({ chegada: "08:20" }), FACENS);
+    const a = avaliar(passageiro({ origem: aoLado }), motorista({ horarios: horariosDasColunas(DIAS, "08:20", "18:00") }), FACENS);
     expect(a.compat).toBe(Math.round(100 * (PESO_HORARIO * a.scoreHorario + PESO_ROTA * a.scoreRota)));
   });
 
-  it("divide o combustível de ida e volta entre 2, com a distância arredondada", () => {
+  it("divide o combustível de cada viagem entre 2, com a distância arredondada", () => {
     const a = avaliar(passageiro(), motorista({ consumo: 10 }), FACENS);
     const km = arredondarKm(haversineKm(SUL_10KM, FACENS));
-    expect(a.litrosDia).toBeCloseTo((km * 2) / 10, 10);
-    expect(a.custoDia).toBeCloseTo(((km * 2) / 10) * PRECO_LITRO / 2, 10);
+    expect(a.litrosTrecho).toBeCloseTo(km / 10, 10);
+    expect(a.custoTrecho).toBeCloseTo((km / 10) * PRECO_LITRO / 2, 10);
   });
 });
 
@@ -98,7 +137,7 @@ describe("privacidade: arredondamentos", () => {
     const antes = avaliar(p, motorista(), FACENS);
     const depois = avaliar(p, motorista({ origem: { lat: SUL_10KM.lat, lng: SUL_10KM.lng + 0.001 } }), FACENS);
     expect(depois.desvioKm).toBe(antes.desvioKm);
-    expect(depois.custoDia).toBe(antes.custoDia);
+    expect(depois.custoTrecho).toBe(antes.custoTrecho);
   });
 
   it("arredonda para o passo mais próximo", () => {
@@ -124,8 +163,8 @@ describe("privacidade: região aproximada", () => {
   });
 });
 
-describe("litrosDia", () => {
+describe("litrosTrecho", () => {
   it("usa 12 km/L quando o consumo não foi informado", () => {
-    expect(litrosDia(SUL_10KM, FACENS, 0)).toBeCloseTo(litrosDia(SUL_10KM, FACENS, 12), 10);
+    expect(litrosTrecho(SUL_10KM, FACENS, 0)).toBeCloseTo(litrosTrecho(SUL_10KM, FACENS, 12), 10);
   });
 });

@@ -28,7 +28,7 @@ const carona = async (quem: Usuario) =>
 const salvarVagas = (n: number) =>
   request(app).put("/usuarios/200/trajeto").set("Authorization", motorista.auth).send({
     papel: "motorista", endereco: "Rua A, Sorocaba", origem: { lat: -23.5, lng: -47.45 },
-    dias: ["seg", "ter"], chegada: "08:00", saida: "18:00", carro: { modelo: "Gol", lugares: n, consumo: 11 },
+    horarios: { seg: { ida: "08:00", volta: "18:00" }, ter: { ida: "08:00", volta: "18:00" } }, carro: { modelo: "Gol", lugares: n, consumo: 11 },
   });
 
 describe("vagas na lista de caronas", () => {

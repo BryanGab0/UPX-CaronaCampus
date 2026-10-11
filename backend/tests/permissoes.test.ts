@@ -9,7 +9,7 @@ afterAll(() => pool.end());
 
 const trajeto = {
   papel: "motorista", endereco: "Rua A, Sorocaba", origem: { lat: -23.5, lng: -47.45 },
-  dias: ["seg", "ter"], chegada: "08:00", saida: "18:00", carro: { modelo: "Gol", lugares: 4, consumo: 11 },
+  horarios: { seg: { ida: "08:00", volta: "18:00" }, ter: { ida: "08:00", volta: "18:00" } }, carro: { modelo: "Gol", lugares: 4, consumo: 11 },
 };
 
 describe("trajeto (só o dono)", () => {
@@ -19,7 +19,7 @@ describe("trajeto (só o dono)", () => {
     expect(put.status).toBe(200);
 
     const get = await request(app).get("/usuarios/100/trajeto").set("Authorization", ana.auth);
-    expect(get.body).toMatchObject({ papel: "motorista", endereco: "Rua A, Sorocaba", dias: ["seg", "ter"] });
+    expect(get.body).toMatchObject({ papel: "motorista", endereco: "Rua A, Sorocaba", horarios: { seg: { ida: "08:00", volta: "18:00" } } });
   });
 
   it("recusa trajeto incompleto (400)", async () => {

@@ -26,10 +26,10 @@ O repositório tem três partes:
 
 ## Funcionalidades
 - Login e cadastro com senha e e-mail no formato da Facens (`RA@facens.br`)
-- Cadastro de trajeto (origem, dias e horários)
-- Match de caronas por proximidade e horário (compatibilidade calculada na API, sem expor a casa do motorista: os outros alunos veem o bairro e uma região aproximada)
+- Cadastro de trajeto: origem e, em cada dia de aula, horário de ida e/ou de volta (o mesmo para a semana toda ou um por dia)
+- Match de caronas por proximidade e horário, viagem a viagem: cada ida e cada volta sua conta separadamente (compatibilidade calculada na API, sem expor a casa do motorista: os outros alunos veem o bairro e uma região aproximada)
 - Mapa com o trajeto até o campus (Leaflet + OpenStreetMap)
-- Divisão do custo de combustível
+- Divisão do custo de combustível, por viagem e no mês (só as viagens em comum com o motorista)
 - Vagas do carro: o motorista informa quantas tem; o app mostra as livres, carro lotado vai para o fim da lista e não recebe pedidos
 - Solicitação de caronas, com aceite ou recusa pelo motorista; o passageiro pode cancelar o pedido ou desistir da carona, e o motorista pode desfazer o aceite (a outra parte é avisada)
 - Aviso de pedidos pendentes na tela inicial

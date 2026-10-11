@@ -7,10 +7,11 @@ import type { Resultado } from "../lib/match";
 import { CompatRing } from "./CompatRing";
 import { NotaMedia } from "./Estrelas";
 import { textoVagas } from "../lib/vagas";
+import { resumoHorario, textoHorario } from "../lib/horarios";
 
 export function BestRideCard({ resultado }: { resultado: Resultado }) {
   const navigate = useNavigate();
-  const { carona, compat, custoDia } = resultado;
+  const { carona, compat, custoTrecho, trechosComuns } = resultado;
 
   return (
     <div className="relative overflow-hidden rounded-[22px] bg-linear-to-br from-brand to-brand-dark p-5 text-white shadow-[0_18px_40px_rgba(47,75,255,.27)]">
@@ -30,8 +31,8 @@ export function BestRideCard({ resultado }: { resultado: Resultado }) {
       </div>
 
       <div className="relative mt-4 flex flex-wrap gap-2">
-        <Pill icone={<Clock size={13} />} texto={`chega ${carona.chegada}`} />
-        <Pill icone={<Wallet size={13} />} texto={`${reais(custoDia)}/dia`} />
+        <Pill icone={<Clock size={13} />} texto={textoHorario(resumoHorario(carona.horarios, trechosComuns))} />
+        <Pill icone={<Wallet size={13} />} texto={`${reais(custoTrecho)}/viagem`} />
         <Pill icone={<Users size={13} />} texto={textoVagas(carona)} />
         <span className="inline-flex items-center rounded-[9px] bg-white/15 px-2.5 py-1.5">
           <NotaMedia media={carona.notaMedia} total={carona.totalAvaliacoes} className="text-white [&_svg]:text-white" />

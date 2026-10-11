@@ -3,6 +3,7 @@ import request from "supertest";
 import { app } from "../src/app.js";
 import { pool } from "../src/db.js";
 import { PASSO_KM } from "../src/match.js";
+import { horariosDasColunas } from "../src/horarios.js";
 import { limparBanco, criarUsuario } from "./utils.js";
 
 afterAll(() => pool.end());
@@ -14,9 +15,12 @@ let aluna: Usuario, perto: Usuario, longe: Usuario;
 const CASA = { lat: -23.501234, lng: -47.456789 };
 const ENDERECO_COMPLETO = "Rua das Flores, 123, Jardim Secreto, Sorocaba, 18000-000";
 
+// Seg, qua e sex, ida no horário dado e volta às 18:00.
+const semana = (ida: string) => horariosDasColunas(["seg", "qua", "sex"], ida, "18:00");
+
 const trajeto = (extra: Record<string, unknown>) => ({
   papel: "motorista", endereco: ENDERECO_COMPLETO, origem: CASA,
-  dias: ["seg", "qua", "sex"], chegada: "08:00", saida: "18:00",
+  horarios: semana("08:00"),
   carro: { modelo: "Gol", lugares: 3, consumo: 11 }, bairro: "Jardim Secreto", cidade: "Sorocaba",
   ...extra,
 });
@@ -30,7 +34,7 @@ beforeEach(async () => {
   perto = await criarUsuario("200");
   longe = await criarUsuario("300");
   await salvar(perto, trajeto({}));
-  await salvar(longe, trajeto({ origem: { lat: -23.60, lng: -47.35 }, chegada: "10:00", bairro: null, cidade: null }));
+  await salvar(longe, trajeto({ origem: { lat: -23.60, lng: -47.35 }, horarios: semana("10:00"), bairro: null, cidade: null }));
 });
 
 describe("GET /caronas: privacidade", () => {
@@ -68,11 +72,11 @@ describe("GET /caronas: compatibilidade calculada na API", () => {
     const lista = await caronas(aluna);
     expect(lista.map((c: { id: string }) => c.id)).toEqual(["200", "300"]);
     expect(lista[0].compat).toBeGreaterThan(lista[1].compat);
-    expect(lista[0]).toMatchObject({
-      diasComuns: ["seg", "qua", "sex"], difChegadaMin: 0, pesos: { horario: 0.55, rota: 0.45 },
-    });
-    expect(lista[0].custoDia).toBeGreaterThan(0);
-    expect(lista[0].litrosDia).toBeGreaterThan(0);
+    expect(lista[0]).toMatchObject({ totalTrechos: 6, pesos: { horario: 0.55, rota: 0.45 } });
+    expect(lista[0].trechosComuns).toHaveLength(6);
+    expect(lista[0].trechosComuns[0]).toEqual({ dia: "seg", sentido: "ida", difMin: 0 });
+    expect(lista[0].custoTrecho).toBeGreaterThan(0);
+    expect(lista[0].litrosTrecho).toBeGreaterThan(0);
   });
 
   it("sem trajeto de quem pede, a lista vem sem nota", async () => {
@@ -93,5 +97,59 @@ describe("trajeto: bairro e cidade", () => {
     const res = await request(app).get("/usuarios/200/trajeto").set("Authorization", perto.auth);
     expect(res.body.bairro).toHaveLength(80);
     expect(res.body.cidade).toBeNull();
+  });
+});
+
+describe("trajeto: horários por dia, com ida e volta", () => {
+  const lerTrajeto = async (u: Usuario) =>
+    (await request(app).get(`/usuarios/${u.ra}/trajeto`).set("Authorization", u.auth)).body;
+
+  it("salva dias diferentes, só ida ou só volta", async () => {
+    const horarios = { seg: { ida: "08:00", volta: null }, qua: { ida: null, volta: "17:30" }, sex: { ida: "10:00", volta: "18:00" } };
+    expect((await salvar(perto, trajeto({ horarios }))).status).toBe(200);
+    expect((await lerTrajeto(perto)).horarios).toEqual(horarios);
+  });
+
+  it("recusa dia sem ida nem volta, dia inválido, hora fora do formato ou nenhum dia", async () => {
+    for (const horarios of [
+      { seg: { ida: null, volta: null } },
+      { sab: { ida: "08:00", volta: null } },
+      { seg: { ida: "8h", volta: null } },
+      { seg: { ida: "25:00", volta: null } },
+      {},
+      ["seg"],
+      undefined,
+    ]) {
+      const res = await salvar(perto, trajeto({ horarios }));
+      expect(res.status).toBe(400);
+    }
+  });
+
+  it("o passageiro só de volta não pontua com o motorista só de ida", async () => {
+    await salvar(perto, trajeto({ horarios: { seg: { ida: "08:00", volta: null } } }));
+    await salvar(aluna, trajeto({ papel: "passageiro", horarios: { seg: { ida: null, volta: "08:00" } } }));
+    const c = (await caronas(aluna)).find((x: { id: string }) => x.id === "200");
+    expect(c).toMatchObject({ trechosComuns: [], totalTrechos: 1, scoreHorario: 0 });
+  });
+});
+
+// O app aberto antes do deploy (aba ou PWA) ainda manda e lê o formato antigo.
+describe("trajeto: transição do formato antigo", () => {
+  it("aceita dias + chegada + saida e devolve também esses campos", async () => {
+    const antigo = trajeto({ horarios: undefined, dias: ["ter", "qui"], chegada: "07:30", saida: "17:00" });
+    expect((await salvar(perto, antigo)).status).toBe(200);
+    const res = await request(app).get("/usuarios/200/trajeto").set("Authorization", perto.auth);
+    expect(res.body).toMatchObject({
+      horarios: { ter: { ida: "07:30", volta: "17:00" }, qui: { ida: "07:30", volta: "17:00" } },
+      dias: ["ter", "qui"], chegada: "07:30", saida: "17:00",
+    });
+  });
+
+  it("GET /caronas mantém os campos que o app antigo lê", async () => {
+    await salvar(aluna, trajeto({ papel: "passageiro", origem: { lat: -23.50, lng: -47.455 } }));
+    const c = (await caronas(aluna)).find((x: { id: string }) => x.id === "200");
+    expect(c).toMatchObject({ dias: ["seg", "qua", "sex"], chegada: "08:00", diasComuns: ["seg", "qua", "sex"], difChegadaMin: 0 });
+    expect(c.custoDia).toBeCloseTo(c.custoTrecho * 2, 10);
+    expect(c.litrosDia).toBeCloseTo(c.litrosTrecho * 2, 10);
   });
 });

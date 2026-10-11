@@ -5,9 +5,14 @@ import { cn } from "../lib/cn";
 import { useResultados } from "../hooks/useResultados";
 import { RideRow } from "./RideRow";
 import { lotadosNoFim } from "../lib/vagas";
+import { resumoHorario } from "../lib/horarios";
+import type { Resultado } from "../lib/match";
 import { ErroCarga, EsqueletoLista, EstadoVazio, SemMotoristas, SemTrajeto } from "./Estado";
 
 type Ordem = "compat" | "custo" | "horario";
+
+// "Mais cedo": o horário que aparece no card (a ida em comum; quem só faz a volta, por último).
+const minutosDoCard = (r: Resultado) => resumoHorario(r.carona.horarios, r.trechosComuns)?.minutos ?? Infinity;
 const ORDENS: { id: Ordem; label: string }[] = [
   { id: "compat", label: "Compatibilidade" },
   { id: "custo", label: "Menor custo" },
@@ -26,8 +31,8 @@ export function Caronas() {
       (r) => r.carona.nome.toLowerCase().includes(q) || r.carona.endereco.toLowerCase().includes(q),
     );
     const ordenada = [...filtrada];
-    if (ordem === "custo") ordenada.sort((a, b) => a.custoDia - b.custoDia);
-    else if (ordem === "horario") ordenada.sort((a, b) => a.carona.chegada.localeCompare(b.carona.chegada));
+    if (ordem === "custo") ordenada.sort((a, b) => a.custoTrecho - b.custoTrecho);
+    else if (ordem === "horario") ordenada.sort((a, b) => minutosDoCard(a) - minutosDoCard(b));
     return lotadosNoFim(ordenada);
   }, [resultados, busca, ordem]);
 

@@ -12,6 +12,10 @@ import { useAuth } from "../context/AuthContext";
 import { avaliar, buscarSolicitacoes, cancelarSolicitacao, solicitarCarona } from "../lib/api";
 import type { MinhaSolicitacao } from "../lib/api";
 import { reais } from "../lib/match";
+import type { TrechoComum } from "../lib/match";
+import { custoMensal } from "../lib/impacto";
+import { diasDe } from "../lib/horarios";
+import type { Horarios } from "../types";
 import { CompatRing } from "./CompatRing";
 import { MapaRota } from "./MapaRota";
 import { useAviso } from "../hooks/useAviso";
@@ -88,8 +92,8 @@ export function Detalhe() {
     );
   }
 
-  const { carona, compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm, custoDia, pesos } = resultado;
-  const mensal = reais(custoDia * 22);
+  const { carona, compat, scoreHorario, scoreRota, trechosComuns, totalTrechos, desvioKm, custoTrecho, pesos } = resultado;
+  const porSemana = trechosComuns.length;
   const status = solic?.status;
 
   return (
@@ -122,7 +126,8 @@ export function Detalhe() {
         <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
           <div className="font-display font-bold">Por que esse match?</div>
           <Barra titulo="Compatibilidade de horário" pct={Math.round(scoreHorario * 100)}
-            detalhe={`chega ${carona.chegada} · ${difChegadaMin} min de diferença · ${diasComuns.length} dias em comum`} cor="bg-brand" />
+            detalhe={`${porSemana} de ${totalTrechos} ${totalTrechos === 1 ? "viagem sua" : "viagens suas"} em comum · quanto mais perto o horário, mais pontua`} cor="bg-brand" />
+          <SuasViagens suas={trajeto.horarios} motorista={carona.horarios} comuns={trechosComuns} />
           <Barra titulo="Proximidade de rota" pct={Math.round(scoreRota * 100)}
             detalhe={`${desvioKm.toFixed(1)} km fora da sua rota direta até a Facens`} cor="bg-good" />
           <p className="mt-3 text-[11.5px] leading-relaxed text-sub">
@@ -133,8 +138,9 @@ export function Detalhe() {
         <div className="mt-3.5 rounded-[18px] border border-line bg-surface p-4">
           <div className="font-display font-bold">Divisão do combustível</div>
           <div className="mt-3 flex gap-2.5">
-            <Metric icone={<Fuel size={16} />} valor={reais(custoDia)} label="sua parte por dia (estimado)" destaque />
-            <Metric icone={<Users size={16} />} valor={mensal} label="estimativa no mês" />
+            <Metric icone={<Fuel size={16} />} valor={reais(custoTrecho)} label="sua parte por viagem (estimado)" destaque />
+            <Metric icone={<Users size={16} />} valor={reais(custoMensal(resultado))}
+              label={porSemana === 0 ? "no mês (nenhuma viagem em comum)" : `no mês (${porSemana} ${porSemana === 1 ? "viagem" : "viagens"} por semana)`} />
           </div>
           <div className="mt-2.5 flex items-center gap-2.5 rounded-xl bg-good-soft px-3.5 py-3">
             <Leaf size={18} className="shrink-0 text-good" />
@@ -238,6 +244,29 @@ function BotaoCancelar({ texto, onClick }: { texto: string; onClick: () => void 
 
 function Legenda({ className, texto }: { className: string; texto: string }) {
   return <span className="inline-flex items-center gap-1.5"><span className={cn("size-2.5 rounded-full", className)} />{texto}</span>;
+}
+// Suas viagens (de seg a sex) com o horário do motorista em cada uma: explica a nota de horário.
+function SuasViagens({ suas, motorista, comuns }: { suas: Horarios; motorista: Horarios; comuns: TrechoComum[] }) {
+  return (
+    <ul aria-label="Suas viagens e o horário do motorista" className="mt-2.5 space-y-1.5 rounded-xl bg-canvas p-3 text-[11.5px]">
+      {diasDe(suas).map((dia) => (
+        <li key={dia} className="flex items-baseline gap-2">
+          <span className="w-7 shrink-0 font-bold text-ink">{dia}</span>
+          {(["ida", "volta"] as const).map((sentido) => {
+            const comum = comuns.find((t) => t.dia === dia && t.sentido === sentido);
+            return (
+              <span key={sentido} className="min-w-0 flex-1 truncate text-sub">
+                {sentido}{" "}
+                {!suas[dia]?.[sentido] ? "—"
+                  : comum ? <><b className="text-ink">{motorista[dia]?.[sentido]}</b> · {comum.difMin === 0 ? "igual" : `${comum.difMin} min`}</>
+                  : <span className="text-accent-ink">sem carona</span>}
+              </span>
+            );
+          })}
+        </li>
+      ))}
+    </ul>
+  );
 }
 function Barra({ titulo, pct, detalhe, cor }: { titulo: string; pct: number; detalhe: string; cor: string }) {
   return (

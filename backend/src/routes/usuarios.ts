@@ -6,6 +6,8 @@ import { VAGAS_MAX, VAGAS_MIN, vagasDe } from "../vagas.js";
 import { limiteLogin } from "../middleware/limite.js";
 import { gerarToken } from "../token.js";
 import { notificar } from "../notificacoes.js";
+import { validarHorarios, horariosDasColunas, resumoAntigo } from "../horarios.js";
+import type { Horarios } from "../horarios.js";
 
 export const usuariosRouter = Router();
 
@@ -14,7 +16,7 @@ const textoCurto = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim()
 
 interface TrajetoRow {
   papel: string; endereco: string; origem_lat: number; origem_lng: number;
-  dias: string[]; chegada: string; saida: string;
+  horarios: Horarios;
   carro_modelo: string; carro_lugares: number; carro_consumo: string;
   bairro: string | null; cidade: string | null;
 }
@@ -26,9 +28,8 @@ function mapTrajeto(r: TrajetoRow) {
     bairro: r.bairro,
     cidade: r.cidade,
     origem: { lat: r.origem_lat, lng: r.origem_lng },
-    dias: r.dias,
-    chegada: r.chegada,
-    saida: r.saida,
+    horarios: r.horarios,
+    ...resumoAntigo(r.horarios), // transição: dias/chegada/saida para o app antigo
     carro: { modelo: r.carro_modelo, lugares: r.carro_lugares, consumo: Number(r.carro_consumo) },
   };
 }
@@ -47,9 +48,16 @@ usuariosRouter.put("/usuarios/:ra/trajeto", autenticar, mesmoUsuario, async (req
   const t = req.body ?? {};
   const o = t.origem ?? {};
   const carro = t.carro ?? {};
-  if (!t.papel || !t.endereco || typeof o.lat !== "number" || typeof o.lng !== "number"
-      || !Array.isArray(t.dias) || !t.chegada || !t.saida) {
-    res.status(400).json({ erro: "trajeto incompleto (papel, endereço, origem, dias, horários)" });
+  if (!t.papel || !t.endereco || typeof o.lat !== "number" || typeof o.lng !== "number") {
+    res.status(400).json({ erro: "trajeto incompleto (papel, endereço, origem, horários)" });
+    return;
+  }
+  // Transição: o app antigo ainda manda dias + chegada + saida; vira ida e volta nesses dias.
+  const horarios = validarHorarios(
+    t.horarios === undefined && Array.isArray(t.dias) ? horariosDasColunas(t.dias, t.chegada, t.saida) : t.horarios,
+  );
+  if (!horarios) {
+    res.status(400).json({ erro: "Informe a ida ou a volta (HH:MM) em pelo menos um dia de aula." });
     return;
   }
   const vagas = carro.lugares ?? 4;
@@ -71,17 +79,17 @@ usuariosRouter.put("/usuarios/:ra/trajeto", autenticar, mesmoUsuario, async (req
     }
     const { rows } = await banco.query<TrajetoRow>(
       `INSERT INTO trajetos
-         (usuario_ra, papel, endereco, origem_lat, origem_lng, dias, chegada, saida, carro_modelo, carro_lugares, carro_consumo, bairro, cidade)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         (usuario_ra, papel, endereco, origem_lat, origem_lng, horarios, carro_modelo, carro_lugares, carro_consumo, bairro, cidade)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        ON CONFLICT (usuario_ra) DO UPDATE SET
          papel = EXCLUDED.papel, endereco = EXCLUDED.endereco,
          origem_lat = EXCLUDED.origem_lat, origem_lng = EXCLUDED.origem_lng,
-         dias = EXCLUDED.dias, chegada = EXCLUDED.chegada, saida = EXCLUDED.saida,
+         horarios = EXCLUDED.horarios,
          carro_modelo = EXCLUDED.carro_modelo, carro_lugares = EXCLUDED.carro_lugares,
          carro_consumo = EXCLUDED.carro_consumo, bairro = EXCLUDED.bairro, cidade = EXCLUDED.cidade,
          atualizado_em = now()
        RETURNING *`,
-      [req.params.ra, t.papel, t.endereco, o.lat, o.lng, t.dias, t.chegada, t.saida,
+      [req.params.ra, t.papel, t.endereco, o.lat, o.lng, JSON.stringify(horarios),
        carro.modelo ?? "", vagas, carro.consumo ?? 12, textoCurto(t.bairro), textoCurto(t.cidade)],
     );
     await banco.query("COMMIT");

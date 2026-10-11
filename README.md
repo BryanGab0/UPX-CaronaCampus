@@ -38,7 +38,8 @@ O repositório tem três partes:
 - Denúncia de motorista ou passageiro, analisada pela administração
 - Página de privacidade (LGPD) explicando quais dados são usados e quem vê o quê
 - Perfil: editar nome e telefone e trocar a senha (os outros aparelhos saem da conta); sessão encerrada volta ao login explicando o motivo
-- Painel administrativo: estatísticas, usuários (com bloqueio de conta), solicitações e denúncias
+- Senha esquecida: "Esqueci minha senha" no login orienta a falar com a administração, que gera uma senha temporária; ao entrar com ela, o aluno é obrigado a criar uma nova
+- Painel administrativo: estatísticas, usuários (com bloqueio de conta e senha temporária), solicitações e denúncias
 - Instalável na tela inicial do celular (PWA), abrindo em tela cheia
 - Notificações push: o motorista é avisado de pedidos novos e o passageiro, do aceite ou da recusa (ativadas no Perfil; no iPhone, com o app instalado)
 - Acessibilidade: contraste AA, navegação por teclado e rótulos para leitores de tela

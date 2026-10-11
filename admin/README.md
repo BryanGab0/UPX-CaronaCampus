@@ -27,6 +27,8 @@ docker compose exec db psql -U carona -d caronacampus -c "UPDATE usuarios SET ad
 Todas as listas têm busca (sem diferenciar acentos), filtros com contagem e paginação de 20 em 20.
 
 - **Estatísticas** — totais de usuários, caronas, trajetos e solicitações
-- **Usuários** — lista dos cadastrados (marca quem é admin), com bloquear/desbloquear conta
+- **Usuários** — lista dos cadastrados (marca quem é admin), com bloquear/desbloquear conta e gerar senha temporária para quem esqueceu a senha (mostrada uma vez, com botão de copiar; o aluno é obrigado a trocá-la ao entrar)
+
+Se a sessão deixar de valer (token expirado, senha trocada, conta bloqueada ou sem acesso de admin), o painel volta ao login explicando o motivo.
 - **Solicitações** — todos os pedidos de carona (pendentes, aceitos, recusados e cancelados, com quem cancelou)
 - **Denúncias** — denúncias dos alunos, com atalhos para bloquear o denunciado e marcar como resolvida

@@ -5,6 +5,7 @@ import { autenticar, mesmoUsuario } from "../middleware/autenticar.js";
 import { VAGAS_MAX, VAGAS_MIN, vagasDe } from "../vagas.js";
 import { limiteLogin } from "../middleware/limite.js";
 import { gerarToken } from "../token.js";
+import { notificar } from "../notificacoes.js";
 
 export const usuariosRouter = Router();
 
@@ -163,5 +164,50 @@ usuariosRouter.patch("/usuarios/:ra/senha", autenticar, mesmoUsuario, limiteLogi
   } catch (e) {
     console.error(e);
     res.status(500).json({ erro: "falha ao trocar a senha" });
+  }
+});
+
+// DELETE — o próprio usuário exclui a conta (direito previsto na LGPD), confirmando a senha: uma
+// sessão esquecida aberta não basta. Saem em cascata trajeto, pedidos, avaliações, denúncias
+// recebidas e aparelhos de notificação; as denúncias que a pessoa fez continuam, anônimas.
+// Quem tinha pedido pendente ou carona aceita com ela recebe um aviso.
+usuariosRouter.delete("/usuarios/:ra", autenticar, mesmoUsuario, limiteLogin, async (req, res) => {
+  const { senha } = req.body ?? {};
+  if (!senha) {
+    res.status(400).json({ erro: "Confirme com a sua senha." });
+    return;
+  }
+  try {
+    const { rows: [eu] } = await pool.query("SELECT nome, senha_hash, admin FROM usuarios WHERE ra = $1", [req.params.ra]);
+    // Assim como não podem ser bloqueados, administradores não se excluem pelo app (o painel
+    // poderia ficar sem nenhum); isso é feito direto no banco.
+    if (eu.admin) {
+      res.status(400).json({ erro: "Contas de administrador não podem ser excluídas pelo app." });
+      return;
+    }
+    if (!(await bcrypt.compare(String(senha), eu.senha_hash))) {
+      res.status(401).json({ erro: "Senha incorreta." });
+      return;
+    }
+    // Antes de apagar: quem tem pedido pendente ou carona aceita com esta pessoa.
+    const { rows: afetados } = await pool.query(
+      `SELECT CASE WHEN passageiro_ra = $1 THEN motorista_ra ELSE passageiro_ra END AS ra,
+              passageiro_ra = $1 AS era_passageiro, status
+       FROM solicitacoes
+       WHERE (passageiro_ra = $1 OR motorista_ra = $1) AND status IN ('pendente', 'aceita')`,
+      [req.params.ra],
+    );
+    await pool.query("DELETE FROM usuarios WHERE ra = $1", [req.params.ra]);
+    res.status(204).end();
+
+    const primeiro = String(eu.nome).trim().split(/\s+/)[0];
+    for (const a of afetados) {
+      void notificar(a.ra, a.era_passageiro
+        ? { titulo: "Pedido cancelado", corpo: `${primeiro} saiu do CaronaCampus. O pedido de carona foi cancelado.`, url: "/perfil" }
+        : { titulo: "Carona cancelada", corpo: `${primeiro} saiu do CaronaCampus. Veja outras caronas compatíveis.`, url: "/caronas" });
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ erro: "falha ao excluir a conta" });
   }
 });

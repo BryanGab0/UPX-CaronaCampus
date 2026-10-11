@@ -59,6 +59,7 @@ Os testes usam um banco separado, `caronacampus_test`, criado e recriado automat
 - Trocar a senha encerra as sessões dos outros aparelhos: `senha_alterada_em` (migração `008`) guarda o momento da troca e o `autenticar` recusa (401) tokens emitidos antes dela. Quem trocou recebe um token novo. As inscrições de notificação da pessoa também são apagadas, para um aparelho perdido não continuar recebendo avisos; o aparelho atual se inscreve de novo.
 - CORS liberado só para as origens de `CORS_ORIGINS`.
 - Limite de tentativas por IP: 10 logins com falha a cada 15 min e 5 cadastros por hora (resposta 429).
+- Exclusão da conta (LGPD): `DELETE /usuarios/:ra` exige a senha (uma sessão esquecida aberta não basta). Saem em cascata trajeto, pedidos, avaliações, aparelhos de notificação e denúncias recebidas; as denúncias **feitas** pela pessoa continuam para a moderação, anônimas (`denunciante_ra` vira nulo, migração `010`). Quem tinha carona aceita ou pedido pendente com ela recebe um aviso.
 - Senha esquecida (não há e-mail para recuperar): o admin gera uma senha temporária (`POST /admin/usuarios/:ra/senha-temporaria`), sorteada com gerador criptográfico e sem caracteres ambíguos, mostrada só nessa resposta (o banco guarda o hash). Ela encerra as sessões e os avisos do aluno e marca `senha_temporaria` (migração `009`): até o aluno definir a própria senha, o `autenticar` responde 403 (`trocarSenha: true`) a tudo, exceto trocar a senha e `GET /auth/eu`. Não vale para administradores.
 - Moderação: o admin bloqueia contas (`PATCH /admin/usuarios/:ra/bloqueio`). A cada requisição, o `autenticar` confere no banco se a conta existe e não está bloqueada; conta bloqueada não faz login e some da lista de caronas.
 - Telefone só é exposto às duas partes de um pedido aceito.
@@ -83,6 +84,7 @@ O algoritmo de compatibilidade fica em `src/match.ts` (parâmetros no topo do ar
 - `GET  /usuarios/:ra/trajeto`       — trajeto do usuário (protegida)
 - `PATCH /usuarios/:ra`               — altera o próprio nome (2 a 80 caracteres) e/ou telefone; RA e e-mail não mudam (protegida)
 - `PATCH /usuarios/:ra/senha`         — troca a senha conferindo a atual (mesmo limite de tentativas do login) e devolve um token novo (protegida)
+- `DELETE /usuarios/:ra`              — exclui a própria conta confirmando a senha (mesmo limite de tentativas); administradores não se excluem pelo app (protegida)
 - `PUT  /usuarios/:ra/trajeto`       — salva/atualiza o trajeto, com bairro e cidade opcionais (protegida; vagas de 1 a 6, nunca abaixo dos passageiros já aceitos: 409)
 - `POST /usuarios/:ra/solicitacoes`  — solicita uma carona (protegida)
 - `GET  /usuarios/:ra/solicitacoes`  — lista as solicitações (protegida)
@@ -98,7 +100,7 @@ Vagas: `carro_lugares` é o número de vagas para passageiros (sem contar o moto
 - `usuarios` — aluno (ra, nome, email, senha_hash, telefone, admin, bloqueado, senha_alterada_em, senha_temporaria)
 - `trajetos` — trajeto de cada usuário: papel (motorista/passageiro), endereço, bairro e cidade, coordenadas, dias, horários e, para motoristas, carro e vagas (chave estrangeira → `usuarios`)
 - `solicitacoes` — pedidos de carona do passageiro ao motorista, com status `pendente`, `aceita`, `recusada` ou `cancelada` e quem cancelou (`cancelado_por`) (chaves estrangeiras → `usuarios`)
-- `denuncias` — denúncia de um usuário contra outro (motivo, descrição, status `aberta`/`resolvida`; uma aberta por par)
+- `denuncias` — denúncia de um usuário contra outro (motivo, descrição, status `aberta`/`resolvida`; uma aberta por par; denunciante nulo quando quem denunciou excluiu a conta)
 - `avaliacoes` — nota de 1 a 5 que cada lado dá ao outro em um pedido aceito (uma por lado; a média é calculada na consulta)
 - `inscricoes_push` — aparelhos inscritos para receber notificações (endereço e chaves do navegador)
 - `migracoes` — controle de quais migrações já foram aplicadas

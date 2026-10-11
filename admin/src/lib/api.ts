@@ -109,8 +109,8 @@ export interface DenunciaAdmin {
   descricao: string;
   status: "aberta" | "resolvida";
   criadoEm: string;
-  denuncianteRa: string;
-  denuncianteNome: string;
+  denuncianteRa: string | null;   // null: quem denunciou excluiu a conta (a denúncia continua, anônima)
+  denuncianteNome: string | null;
   denunciadoRa: string;
   denunciadoNome: string;
   denunciadoBloqueado: boolean;

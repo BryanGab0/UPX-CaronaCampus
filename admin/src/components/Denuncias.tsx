@@ -43,7 +43,7 @@ export function Denuncias() {
   const limpar = () => { setBusca(""); setSituacao("todas"); setPagina(1); };
   const filtrada = useMemo(
     () => (lista ?? []).filter((d) => daSituacao(d, situacao)
-      && combina([d.denuncianteNome, d.denuncianteRa, d.denunciadoNome, d.denunciadoRa, MOTIVOS[d.motivo], d.descricao], busca)),
+      && combina([d.denuncianteNome ?? "Conta excluída", d.denuncianteRa, d.denunciadoNome, d.denunciadoRa, MOTIVOS[d.motivo], d.descricao], busca)),
     [lista, situacao, busca],
   );
   const pag = paginar(filtrada, pagina);
@@ -101,7 +101,11 @@ export function Denuncias() {
                 </div>
 
                 <p className="mt-3 text-sm">
-                  <b>{d.denuncianteNome}</b> <span className="text-sub">({d.denuncianteRa})</span> denunciou{" "}
+                  {d.denuncianteRa ? (
+                    <><b>{d.denuncianteNome}</b> <span className="text-sub">({d.denuncianteRa})</span></>
+                  ) : (
+                    <span className="italic text-sub">Conta excluída</span>
+                  )}{" "}denunciou{" "}
                   <b>{d.denunciadoNome}</b> <span className="text-sub">({d.denunciadoRa})</span>
                   {d.denunciadoBloqueado && <span className="ml-2 text-xs font-semibold text-accent-ink">bloqueado</span>}
                 </p>

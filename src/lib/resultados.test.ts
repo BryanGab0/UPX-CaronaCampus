@@ -5,12 +5,12 @@ import type { Carona } from "../types";
 
 const carona: Carona = {
   id: "200", nome: "Motorista", endereco: "Jardim A, Sorocaba", origem: { lat: -23.505, lng: -47.455 },
-  dias: ["seg"], chegada: "08:00", carro: "Gol", consumo: 11,
+  horarios: { seg: { ida: "08:00", volta: "18:00" } }, carro: "Gol", consumo: 11,
   notaMedia: null, totalAvaliacoes: 0, vagas: 3, vagasLivres: 3,
 };
 const avaliacao = {
-  compat: 80, scoreHorario: 1, scoreRota: 0.5, diasComuns: ["seg" as const], difChegadaMin: 0,
-  desvioKm: 4, litrosDia: 2, custoDia: 6.09, pesos: { horario: 0.55, rota: 0.45 },
+  compat: 80, scoreHorario: 1, scoreRota: 0.5, trechosComuns: [{ dia: "seg" as const, sentido: "ida" as const, difMin: 0 }],
+  totalTrechos: 2, desvioKm: 4, litrosTrecho: 1, custoTrecho: 3.045, pesos: { horario: 0.55, rota: 0.45 },
 };
 
 describe("paraResultados", () => {

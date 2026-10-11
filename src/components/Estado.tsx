@@ -108,7 +108,7 @@ export function ErroCarga({ titulo = "Não foi possível carregar as caronas", o
 export function SemTrajeto({ className }: { className?: string }) {
   return (
     <EstadoVazio className={className} icone={<MapPin size={22} />} titulo="Cadastre seu trajeto"
-      texto="Com seu endereço, dias e horário de chegada, o app calcula quais motoristas combinam com você."
+      texto="Com seu endereço, dias e horários de ida e volta, o app calcula quais motoristas combinam com você."
       acao={{ texto: "Cadastrar trajeto", para: "/trajeto" }} />
   );
 }

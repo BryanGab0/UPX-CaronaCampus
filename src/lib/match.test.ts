@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { haversineKm, litrosDia, reais } from "./match";
+import { haversineKm, litrosTrecho, reais } from "./match";
 import type { Coord } from "../types";
 
 // Os testes do algoritmo de compatibilidade ficam na API (backend/tests/match.test.ts).
@@ -15,12 +15,12 @@ describe("haversineKm", () => {
   });
 });
 
-describe("litrosDia", () => {
-  it("ida e volta dividida pelo consumo", () => {
-    expect(litrosDia(SUL_10KM, FACENS, 10)).toBeCloseTo((haversineKm(SUL_10KM, FACENS) * 2) / 10, 10);
+describe("litrosTrecho", () => {
+  it("uma viagem dividida pelo consumo", () => {
+    expect(litrosTrecho(SUL_10KM, FACENS, 10)).toBeCloseTo(haversineKm(SUL_10KM, FACENS) / 10, 10);
   });
   it("usa 12 km/L quando o consumo não foi informado", () => {
-    expect(litrosDia(SUL_10KM, FACENS, 0)).toBeCloseTo(litrosDia(SUL_10KM, FACENS, 12), 10);
+    expect(litrosTrecho(SUL_10KM, FACENS, 0)).toBeCloseTo(litrosTrecho(SUL_10KM, FACENS, 12), 10);
   });
 });
 

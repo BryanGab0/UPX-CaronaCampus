@@ -8,7 +8,7 @@ import type { Resultado } from "./match";
 export function paraResultados(lista: CaronaApi[]): Resultado[] {
   return lista.flatMap((item) => {
     if (item.compat === null) return [];
-    const { compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm, litrosDia, custoDia, pesos, ...carona } = item;
-    return [{ carona, compat, scoreHorario, scoreRota, diasComuns, difChegadaMin, desvioKm, litrosDia, custoDia, pesos }];
+    const { compat, scoreHorario, scoreRota, trechosComuns, totalTrechos, desvioKm, litrosTrecho, custoTrecho, pesos, ...carona } = item;
+    return [{ carona, compat, scoreHorario, scoreRota, trechosComuns, totalTrechos, desvioKm, litrosTrecho, custoTrecho, pesos }];
   });
 }

@@ -6,9 +6,11 @@ import { reais } from "../lib/match";
 import type { Resultado } from "../lib/match";
 import { NotaMedia } from "./Estrelas";
 import { lotado, textoVagas } from "../lib/vagas";
+import { resumoHorario } from "../lib/horarios";
 
 export function RideRow({ resultado }: { resultado: Resultado }) {
-  const { carona, compat, custoDia } = resultado;
+  const { carona, compat, custoTrecho, trechosComuns } = resultado;
+  const horario = resumoHorario(carona.horarios, trechosComuns);
   const cor = compat >= 75 ? "text-good-ink" : compat >= 50 ? "text-brand" : "text-accent-ink";
 
   return (
@@ -24,13 +26,13 @@ export function RideRow({ resultado }: { resultado: Resultado }) {
         </div>
         <div className="mt-0.5 flex items-center gap-2.5 text-xs text-sub">
           <span className="inline-flex min-w-0 items-center gap-1"><MapPin size={12} className="shrink-0" /><span className="truncate">{carona.endereco}</span></span>
-          <span className="inline-flex shrink-0 items-center gap-1"><Clock size={12} />{carona.chegada}</span>
+          <span className="inline-flex shrink-0 items-center gap-1"><Clock size={12} />{horario?.hora == null ? "varia" : horario.sentido === "volta" ? `volta ${horario.hora}` : horario.hora}</span>
           <span className={cn("inline-flex shrink-0 items-center gap-1", lotado(carona) && "font-semibold text-accent-ink")}><Users size={12} />{textoVagas(carona)}</span>
         </div>
       </div>
       <div className="shrink-0 text-right">
         <div className={cn("font-display text-sm font-bold", cor)}>{compat}%</div>
-        <div className="mt-px text-[11.5px] text-sub">{reais(custoDia)}</div>
+        <div className="mt-px text-[11.5px] text-sub">{reais(custoTrecho)}<span className="sr-only"> por viagem</span></div>
       </div>
     </Link>
   );

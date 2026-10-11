@@ -4,6 +4,8 @@ export type Papel = "passageiro" | "motorista";
 export interface Coord { lat: number; lng: number; }
 export interface Carro { modelo: string; lugares: number; consumo: number; }
 
+export type Sentido = "ida" | "volta";
+
 // Por dia de aula: ida = chego na Facens às, volta = saio da Facens às (null = não faz esse sentido).
 export interface HorarioDia { ida: string | null; volta: string | null; }
 export type Horarios = Partial<Record<DiaSemana, HorarioDia>>;
@@ -26,8 +28,7 @@ export interface Carona {
   nome: string;
   endereco: string;    // só bairro e cidade (a rua fica no servidor)
   origem: Coord;       // região aproximada (~1 km), não a casa do motorista
-  dias: DiaSemana[];
-  chegada: string;
+  horarios: Horarios;
   carro: string;
   consumo: number;
   notaMedia: number | null; // média das avaliações recebidas (null = ainda sem avaliação)

@@ -31,4 +31,4 @@ Todas as listas têm busca (sem diferenciar acentos), filtros com contagem e pag
 
 Se a sessão deixar de valer (token expirado, senha trocada, conta bloqueada ou sem acesso de admin), o painel volta ao login explicando o motivo.
 - **Solicitações** — todos os pedidos de carona (pendentes, aceitos, recusados e cancelados, com quem cancelou)
-- **Denúncias** — denúncias dos alunos, com atalhos para bloquear o denunciado e marcar como resolvida
+- **Denúncias** — denúncias dos alunos, com atalhos para bloquear o denunciado e marcar como resolvida (denúncia de quem excluiu a conta aparece como "Conta excluída")

@@ -37,7 +37,7 @@ O repositório tem três partes:
 - Avaliação de 1 a 5 estrelas entre passageiro e motorista após o aceite, com a média exibida nos cards
 - Denúncia de motorista ou passageiro, analisada pela administração
 - Página de privacidade (LGPD) explicando quais dados são usados e quem vê o quê
-- Perfil: editar nome e telefone e trocar a senha (os outros aparelhos saem da conta); sessão encerrada volta ao login explicando o motivo
+- Perfil: editar nome e telefone, trocar a senha (os outros aparelhos saem da conta) e excluir a própria conta com a senha (LGPD); sessão encerrada volta ao login explicando o motivo
 - Senha esquecida: "Esqueci minha senha" no login orienta a falar com a administração, que gera uma senha temporária; ao entrar com ela, o aluno é obrigado a criar uma nova
 - Painel administrativo: estatísticas, usuários (com bloqueio de conta e senha temporária), solicitações e denúncias
 - Instalável na tela inicial do celular (PWA), abrindo em tela cheia
@@ -65,6 +65,9 @@ Para o painel administrativo, veja o [README do admin](admin/README.md).
 ## Qualidade
 - `npm run lint` — ESLint (cobre app, admin e API)
 - `npm test` — testes do app e do admin (resultado da compatibilidade, impacto estimado, vagas, bairro do endereço, formatadores, busca e paginação), com Vitest
-- `npm test` em `backend/` — testes da API (autenticação, permissões, compatibilidade e privacidade da localização, aceite/recusa, cancelamento, vagas, moderação, avaliações, notificações, limite de tentativas e migrações)
+- `npm test` em `backend/` — testes da API (autenticação, conta e senhas, permissões, compatibilidade e privacidade da localização, aceite/recusa, cancelamento, vagas, moderação, avaliações, notificações, limite de tentativas e migrações)
 - A cada push na `main` e em cada Pull Request, o GitHub Actions roda lint, checagem de tipos, testes e build dos três projetos.
 - Erros em produção (app e API) são registrados no Sentry, sem dados pessoais: nada de nome, telefone, senha, endereço, localização ou IP.
+
+## Limitações conhecidas
+- **Recadastro após excluir a conta:** quem exclui a conta pode se cadastrar de novo com o mesmo RA, inclusive para escapar de uma denúncia em aberto. A exclusão é um direito previsto na LGPD, e uma conta bloqueada não consegue entrar para se excluir; a aprovação de cadastro pelo admin (planejada) fecha essa porta.

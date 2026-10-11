@@ -6,7 +6,7 @@ import { VAGAS_MAX, VAGAS_MIN, vagasDe } from "../vagas.js";
 import { limiteLogin } from "../middleware/limite.js";
 import { gerarToken } from "../token.js";
 import { notificar } from "../notificacoes.js";
-import { validarHorarios, horariosDasColunas, resumoAntigo } from "../horarios.js";
+import { validarHorarios } from "../horarios.js";
 import type { Horarios } from "../horarios.js";
 
 export const usuariosRouter = Router();
@@ -29,7 +29,6 @@ function mapTrajeto(r: TrajetoRow) {
     cidade: r.cidade,
     origem: { lat: r.origem_lat, lng: r.origem_lng },
     horarios: r.horarios,
-    ...resumoAntigo(r.horarios), // transição: dias/chegada/saida para o app antigo
     carro: { modelo: r.carro_modelo, lugares: r.carro_lugares, consumo: Number(r.carro_consumo) },
   };
 }
@@ -52,10 +51,7 @@ usuariosRouter.put("/usuarios/:ra/trajeto", autenticar, mesmoUsuario, async (req
     res.status(400).json({ erro: "trajeto incompleto (papel, endereço, origem, horários)" });
     return;
   }
-  // Transição: o app antigo ainda manda dias + chegada + saida; vira ida e volta nesses dias.
-  const horarios = validarHorarios(
-    t.horarios === undefined && Array.isArray(t.dias) ? horariosDasColunas(t.dias, t.chegada, t.saida) : t.horarios,
-  );
+  const horarios = validarHorarios(t.horarios);
   if (!horarios) {
     res.status(400).json({ erro: "Informe a ida ou a volta (HH:MM) em pelo menos um dia de aula." });
     return;

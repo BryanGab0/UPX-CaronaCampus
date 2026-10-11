@@ -4,13 +4,14 @@ import {
   TOLERANCIA_MIN, DESVIO_MAX_KM, PESO_HORARIO, PESO_ROTA, PRECO_LITRO, PASSO_KM, GRADE_GRAUS,
 } from "../src/match.js";
 import type { Coord, PerfilMotorista, PerfilPassageiro } from "../src/match.js";
-import { DIAS, horariosDasColunas } from "../src/horarios.js";
+import { DIAS } from "../src/horarios.js";
+import { horariosIguais } from "./fixtures.js";
 
 const FACENS: Coord = { lat: -23.4710, lng: -47.4285 };
 // 0,09° de latitude ≈ 10 km ao sul da Facens.
 const SUL_10KM: Coord = { lat: FACENS.lat - 0.09, lng: FACENS.lng };
 // Seg a sex, ida às 08:00 e volta às 18:00 (10 trechos).
-const SEMANA = horariosDasColunas(DIAS, "08:00", "18:00");
+const SEMANA = horariosIguais(DIAS, "08:00", "18:00");
 
 const motorista = (extra: Partial<PerfilMotorista> = {}): PerfilMotorista => ({
   origem: SUL_10KM, horarios: SEMANA, consumo: 10, ...extra,
@@ -56,7 +57,7 @@ describe("avaliar", () => {
   });
 
   it("o horário deixa de pontuar a partir da tolerância", () => {
-    const a = avaliar(passageiro(), motorista({ horarios: horariosDasColunas(DIAS, "08:45", "18:45") }), FACENS);
+    const a = avaliar(passageiro(), motorista({ horarios: horariosIguais(DIAS, "08:45", "18:45") }), FACENS);
     expect(a.trechosComuns.every((t) => t.difMin === TOLERANCIA_MIN)).toBe(true);
     expect(a.scoreHorario).toBe(0);
   });
@@ -112,7 +113,7 @@ describe("avaliar", () => {
 
   it("combina horário e rota com os pesos definidos", () => {
     const aoLado = { lat: SUL_10KM.lat + 0.03, lng: SUL_10KM.lng + 0.03 };
-    const a = avaliar(passageiro({ origem: aoLado }), motorista({ horarios: horariosDasColunas(DIAS, "08:20", "18:00") }), FACENS);
+    const a = avaliar(passageiro({ origem: aoLado }), motorista({ horarios: horariosIguais(DIAS, "08:20", "18:00") }), FACENS);
     expect(a.compat).toBe(Math.round(100 * (PESO_HORARIO * a.scoreHorario + PESO_ROTA * a.scoreRota)));
   });
 

@@ -116,7 +116,8 @@ adminRouter.post("/usuarios/:ra/senha-temporaria", async (req, res) => {
   }
 });
 
-// GET — denúncias, as abertas primeiro. Traz se o denunciado já está bloqueado.
+// GET — denúncias, as abertas primeiro. Traz se o denunciado já está bloqueado. Denúncia de quem
+// excluiu a conta continua, anônima (denunciante nulo): por isso o LEFT JOIN.
 adminRouter.get("/denuncias", async (_req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -124,7 +125,7 @@ adminRouter.get("/denuncias", async (_req, res) => {
              a.ra AS denunciante_ra, a.nome AS denunciante_nome,
              b.ra AS denunciado_ra, b.nome AS denunciado_nome, b.bloqueado AS denunciado_bloqueado
       FROM denuncias d
-      JOIN usuarios a ON a.ra = d.denunciante_ra
+      LEFT JOIN usuarios a ON a.ra = d.denunciante_ra
       JOIN usuarios b ON b.ra = d.denunciado_ra
       ORDER BY (d.status = 'aberta') DESC, d.criado_em DESC
     `);

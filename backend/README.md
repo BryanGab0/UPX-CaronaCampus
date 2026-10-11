@@ -93,8 +93,6 @@ O algoritmo de compatibilidade fica em `src/match.ts` (parâmetros no topo do ar
 - `PATCH /solicitacoes/:id`           — motorista aceita ou recusa um pedido pendente (protegida; 409 se não estiver pendente)
 - `PATCH /solicitacoes/:id/cancelamento` — passageiro cancela (pendente ou aceito) ou motorista desfaz o aceite (protegida; 409 se o status já mudou)
 
-Transição do formato de horários: o app aberto antes do deploy da migração `011` (aba ou PWA) ainda manda e lê `dias`/`chegada`/`saida`. Por isso o `PUT` do trajeto aceita esse formato (vira ida e volta nesses dias) e as respostas repetem os campos antigos (`resumoAntigo` em `src/horarios.ts` e `avaliacaoAntiga` em `src/routes/caronas.ts`). Dá para remover depois que todos tiverem atualizado o app.
-
 Regras dos pedidos: um por par passageiro/motorista. Depois de cancelado, pedir de novo o reabre como pendente; depois de recusado, não. O telefone das partes só aparece com o pedido aceito, então some se ele for cancelado. As avaliações feitas durante a carona são mantidas.
 
 Vagas: `carro_lugares` é o número de vagas para passageiros (sem contar o motorista). As vagas livres são calculadas (vagas − pedidos aceitos), nunca guardadas, então cancelar libera a vaga sozinho. Com o carro lotado, o aceite e os pedidos novos recebem 409. O aceite roda numa transação que trava o trajeto do motorista (`SELECT ... FOR UPDATE`, em `src/vagas.ts`), para dois aceites ao mesmo tempo não ocuparem a mesma última vaga.

@@ -2,6 +2,9 @@
 // exata da casa do motorista nunca saia do servidor: o aluno recebe só a nota, o detalhamento
 // (com distâncias arredondadas) e uma região aproximada.
 
+import { trechosDe } from "./horarios.js";
+import type { DiaSemana, Horarios, Sentido } from "./horarios.js";
+
 export const TOLERANCIA_MIN = 45;   // diferença de horário (min) que ainda pontua
 export const DESVIO_MAX_KM = 8;     // desvio da rota (km) que ainda pontua
 export const PESO_HORARIO = 0.55;
@@ -17,22 +20,24 @@ export const GRADE_GRAUS = 0.01;
 
 export const FACENS: Coord = { lat: -23.47097531229756, lng: -47.42845107751073 };
 
-export type DiaSemana = "seg" | "ter" | "qua" | "qui" | "sex";
 export interface Coord { lat: number; lng: number; }
 
 // O que o algoritmo precisa de cada lado (a origem do motorista é a exata, só usada aqui dentro).
-export interface PerfilPassageiro { origem: Coord; chegada: string; dias: DiaSemana[]; }
-export interface PerfilMotorista { origem: Coord; chegada: string; dias: DiaSemana[]; consumo: number; }
+export interface PerfilPassageiro { origem: Coord; horarios: Horarios; }
+export interface PerfilMotorista { origem: Coord; horarios: Horarios; consumo: number; }
+
+// Trecho do passageiro que o motorista também faz (mesmo dia e sentido) e a diferença de horário.
+export interface TrechoComum { dia: DiaSemana; sentido: Sentido; difMin: number; }
 
 export interface Avaliacao {
   compat: number;
   scoreHorario: number;
   scoreRota: number;
-  diasComuns: DiaSemana[];
-  difChegadaMin: number;
-  desvioKm: number;   // arredondado (PASSO_KM)
-  litrosDia: number;  // combustível do motorista por dia, ida e volta (distância arredondada)
-  custoDia: number;   // R$ por dia, parte do passageiro (estimado)
+  trechosComuns: TrechoComum[];
+  totalTrechos: number;   // trechos do passageiro na semana
+  desvioKm: number;       // arredondado (PASSO_KM)
+  litrosTrecho: number;   // combustível do motorista numa viagem casa ↔ Facens (distância arredondada)
+  custoTrecho: number;    // R$ por viagem, parte do passageiro (estimado)
 }
 
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -73,18 +78,27 @@ export function regiaoAproximada(c: Coord): Coord {
   return { lat: centro(c.lat), lng: centro(c.lng) };
 }
 
-// Litros gastos por dia no trajeto do motorista (ida e volta, em linha reta, distância arredondada).
-export function litrosDia(origem: Coord, destino: Coord, consumo: number): number {
-  const kmIda = arredondarKm(haversineKm(origem, destino));
-  return (kmIda * 2) / (consumo > 0 ? consumo : 12);
+// Litros gastos numa viagem do motorista (casa → Facens ou a volta; linha reta, distância arredondada).
+export function litrosTrecho(origem: Coord, destino: Coord, consumo: number): number {
+  const km = arredondarKm(haversineKm(origem, destino));
+  return km / (consumo > 0 ? consumo : 12);
 }
 
+// Média, entre os trechos do passageiro, da proximidade de horário. O trecho que o motorista não
+// faz (outro dia ou outro sentido) vale 0: assim dias e horários entram numa conta só.
 function avaliarHorario(p: PerfilPassageiro, m: PerfilMotorista) {
-  const diasComuns = p.dias.filter((d) => m.dias.includes(d));
-  const fracaoDias = p.dias.length === 0 ? 0 : diasComuns.length / p.dias.length;
-  const difChegadaMin = Math.abs(minutos(p.chegada) - minutos(m.chegada));
-  const scoreChegada = clamp01(1 - difChegadaMin / TOLERANCIA_MIN);
-  return { diasComuns, difChegadaMin, score: 0.5 * fracaoDias + 0.5 * scoreChegada };
+  const trechos = trechosDe(p.horarios);
+  const trechosComuns: TrechoComum[] = [];
+  let soma = 0;
+  for (const t of trechos) {
+    const hora = m.horarios[t.dia]?.[t.sentido];
+    if (!hora) continue;
+    const difMin = Math.abs(minutos(t.hora) - minutos(hora));
+    trechosComuns.push({ dia: t.dia, sentido: t.sentido, difMin });
+    soma += clamp01(1 - difMin / TOLERANCIA_MIN);
+  }
+  const score = trechos.length === 0 ? 0 : soma / trechos.length;
+  return { trechosComuns, totalTrechos: trechos.length, score };
 }
 
 export function avaliar(p: PerfilPassageiro, m: PerfilMotorista, destino: Coord = FACENS): Avaliacao {
@@ -92,8 +106,11 @@ export function avaliar(p: PerfilPassageiro, m: PerfilMotorista, destino: Coord 
   const desvioKm = arredondarKm(distanciaDaRotaKm(p.origem, m.origem, destino));
   const scoreRota = clamp01(1 - desvioKm / DESVIO_MAX_KM);
   const compat = Math.round(100 * (PESO_HORARIO * h.score + PESO_ROTA * scoreRota));
-  const litros = litrosDia(m.origem, destino, m.consumo);
-  // Custo do combustível dividido entre 2 (motorista + passageiro).
-  const custoDia = (litros * PRECO_LITRO) / 2;
-  return { compat, scoreHorario: h.score, scoreRota, diasComuns: h.diasComuns, difChegadaMin: h.difChegadaMin, desvioKm, litrosDia: litros, custoDia };
+  const litros = litrosTrecho(m.origem, destino, m.consumo);
+  // Combustível de cada viagem dividido entre 2 (motorista + passageiro).
+  const custoTrecho = (litros * PRECO_LITRO) / 2;
+  return {
+    compat, scoreHorario: h.score, scoreRota, trechosComuns: h.trechosComuns, totalTrechos: h.totalTrechos,
+    desvioKm, litrosTrecho: litros, custoTrecho,
+  };
 }

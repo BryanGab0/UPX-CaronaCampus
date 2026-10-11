@@ -5,7 +5,8 @@ import type { ReqAuth } from "../middleware/autenticar.js";
 import { SQL_MEDIAS } from "./avaliacoes.js";
 import { SQL_OCUPADAS } from "../vagas.js";
 import { avaliar, regiaoAproximada, PESO_HORARIO, PESO_ROTA } from "../match.js";
-import type { Avaliacao, DiaSemana, PerfilPassageiro } from "../match.js";
+import type { Avaliacao, PerfilPassageiro } from "../match.js";
+import { horariosDasColunas } from "../horarios.js";
 
 export const caronasRouter = Router();
 
@@ -19,18 +20,18 @@ export const enderecoPublico = (bairro: string | null, cidade: string | null) =>
 caronasRouter.get("/caronas", autenticar, async (req: ReqAuth, res) => {
   try {
     const eu = await pool.query(
-      "SELECT origem_lat, origem_lng, chegada, dias, endereco FROM trajetos WHERE usuario_ra = $1",
+      "SELECT origem_lat, origem_lng, dias, chegada, saida, endereco FROM trajetos WHERE usuario_ra = $1",
       [req.usuarioRa],
     );
     const t = eu.rows[0];
     // Sem trajeto cadastrado não há com o que comparar: a lista vem sem nota (o app pede o cadastro).
     const perfil: PerfilPassageiro | null = t?.endereco
-      ? { origem: { lat: t.origem_lat, lng: t.origem_lng }, chegada: t.chegada, dias: t.dias as DiaSemana[] }
+      ? { origem: { lat: t.origem_lat, lng: t.origem_lng }, horarios: horariosDasColunas(t.dias, t.chegada, t.saida) }
       : null;
 
     const { rows } = await pool.query(
       `SELECT u.ra, u.nome, t.bairro, t.cidade, t.origem_lat, t.origem_lng,
-              t.dias, t.chegada, t.carro_modelo, t.carro_consumo, t.carro_lugares,
+              t.dias, t.chegada, t.saida, t.carro_modelo, t.carro_consumo, t.carro_lugares,
               COALESCE(oc.ocupadas, 0) AS ocupadas,
               md.media AS nota_media, COALESCE(md.total, 0) AS total_avaliacoes
        FROM trajetos t
@@ -46,7 +47,7 @@ caronasRouter.get("/caronas", autenticar, async (req: ReqAuth, res) => {
       // A origem exata só é usada aqui dentro; para fora vai a região aproximada (~1 km).
       const exata = { lat: r.origem_lat, lng: r.origem_lng };
       const avaliacao: Avaliacao | null = perfil
-        ? avaliar(perfil, { origem: exata, chegada: r.chegada, dias: r.dias, consumo })
+        ? avaliar(perfil, { origem: exata, horarios: horariosDasColunas(r.dias, r.chegada, r.saida), consumo })
         : null;
       return {
         id: r.ra,

@@ -68,11 +68,11 @@ describe("GET /caronas: compatibilidade calculada na API", () => {
     const lista = await caronas(aluna);
     expect(lista.map((c: { id: string }) => c.id)).toEqual(["200", "300"]);
     expect(lista[0].compat).toBeGreaterThan(lista[1].compat);
-    expect(lista[0]).toMatchObject({
-      diasComuns: ["seg", "qua", "sex"], difChegadaMin: 0, pesos: { horario: 0.55, rota: 0.45 },
-    });
-    expect(lista[0].custoDia).toBeGreaterThan(0);
-    expect(lista[0].litrosDia).toBeGreaterThan(0);
+    expect(lista[0]).toMatchObject({ totalTrechos: 6, pesos: { horario: 0.55, rota: 0.45 } });
+    expect(lista[0].trechosComuns).toHaveLength(6);
+    expect(lista[0].trechosComuns[0]).toEqual({ dia: "seg", sentido: "ida", difMin: 0 });
+    expect(lista[0].custoTrecho).toBeGreaterThan(0);
+    expect(lista[0].litrosTrecho).toBeGreaterThan(0);
   });
 
   it("sem trajeto de quem pede, a lista vem sem nota", async () => {

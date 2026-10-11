@@ -27,14 +27,14 @@ export function Privacidade() {
 
         <Secao titulo="O que guardamos">
           <Item><b>Cadastro:</b> RA, nome, e-mail no formato da Facens e telefone. A senha é guardada embaralhada (hash), e nem a administração consegue lê-la.</Item>
-          <Item><b>Trajeto:</b> endereço de saída com a localização no mapa (e o bairro e a cidade dele), dias, horários, se você vai como motorista ou passageiro e, para motoristas, modelo, vagas e consumo do carro.</Item>
+          <Item><b>Trajeto:</b> endereço de saída com a localização no mapa (e o bairro e a cidade dele), dias e horários de ida e de volta, se você vai como motorista ou passageiro e, para motoristas, modelo, vagas e consumo do carro.</Item>
           <Item><b>Uso do app:</b> pedidos de carona, respostas e cancelamentos, notas das avaliações e denúncias.</Item>
           <Item><b>Notificações:</b> só se você ativar no Perfil. Guardamos o endereço que o seu navegador cria para receber os avisos (novo pedido, pedido aceito ou recusado). Ao desativar ou sair da conta, ele é apagado.</Item>
           <Item><b>No seu aparelho:</b> o login fica salvo no navegador por até 7 dias, para você não precisar entrar toda vez.</Item>
         </Secao>
 
         <Secao titulo="Quem vê o quê">
-          <Item><b>Outros alunos logados</b> veem, de quem oferece carona: nome, bairro, uma região aproximada no mapa (cerca de 1 km, nunca a rua nem o ponto exato), horário, carro, nota média e quantas vagas ainda estão livres. De passageiros, o motorista vê o nome e a nota média de quem pediu.</Item>
+          <Item><b>Outros alunos logados</b> veem, de quem oferece carona: nome, bairro, uma região aproximada no mapa (cerca de 1 km, nunca a rua nem o ponto exato), horários de ida e volta de cada dia, carro, nota média e quantas vagas ainda estão livres. De passageiros, o motorista vê o nome e a nota média de quem pediu.</Item>
           <Item><b>Compatibilidade:</b> calculada no servidor, a partir do trajeto salvo. As distâncias mostradas são arredondadas (de 0,5 em 0,5 km), para que ninguém descubra onde você mora comparando os números.</Item>
           <Item><b>Telefone:</b> só as duas pessoas de um pedido <b>aceito</b>, para combinarem pelo WhatsApp. Se o pedido for cancelado, o telefone volta a ficar escondido.</Item>
           <Item><b>Denúncias:</b> só a administração. A pessoa denunciada não sabe quem denunciou.</Item>

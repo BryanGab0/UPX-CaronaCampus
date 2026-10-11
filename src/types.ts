@@ -4,14 +4,16 @@ export type Papel = "passageiro" | "motorista";
 export interface Coord { lat: number; lng: number; }
 export interface Carro { modelo: string; lugares: number; consumo: number; }
 
+// Por dia de aula: ida = chego na Facens às, volta = saio da Facens às (null = não faz esse sentido).
+export interface HorarioDia { ida: string | null; volta: string | null; }
+export type Horarios = Partial<Record<DiaSemana, HorarioDia>>;
+
 // O que o usuário cadastra (com endereço + coordenada real).
 export interface Trajeto {
   papel: Papel;
   endereco: string;
   origem: Coord;
-  dias: DiaSemana[];
-  chegada: string;
-  saida: string;
+  horarios: Horarios;
   carro: Carro;
   // O que os outros alunos veem no lugar da rua (detalhes do Nominatim; vazio em trajetos antigos).
   bairro?: string | null;

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { calcularImpacto, SEMANAS_MES, CO2_KG_POR_LITRO } from "./impacto";
+import { DIAS } from "./horarios";
 import { litrosDia, PRECO_LITRO } from "./match";
 import type { Resultado } from "./match";
 import type { MinhaSolicitacao, Pedido } from "./api";
@@ -16,7 +17,7 @@ const motorista: Carona = {
 
 const trajeto = (extra: Partial<Trajeto> = {}): Trajeto => ({
   papel: "passageiro", endereco: "Rua A", origem: SUL_10KM,
-  dias: ["seg", "ter", "qua", "qui", "sex"], chegada: "08:00", saida: "18:00",
+  horarios: Object.fromEntries(DIAS.map((d) => [d, { ida: "08:00", volta: "18:00" }])),
   carro: { modelo: "", lugares: 4, consumo: 12 },
   ...extra,
 });
@@ -61,7 +62,7 @@ describe("calcularImpacto", () => {
   });
 
   it("como motorista, conta cada pedido aceito com o próprio trajeto", () => {
-    const t = trajeto({ papel: "motorista", dias: ["seg", "ter"], carro: { modelo: "Gol", lugares: 4, consumo: 10 } });
+    const t = trajeto({ papel: "motorista", horarios: { seg: { ida: "08:00", volta: "18:00" }, ter: { ida: "08:00", volta: "18:00" } }, carro: { modelo: "Gol", lugares: 4, consumo: 10 } });
     const r = calcularImpacto({
       solicitacoes: [], pedidos: [pedido(1, "aceita"), pedido(2, "aceita"), pedido(3, "pendente")],
       resultados: [], trajeto: t, destino: FACENS,

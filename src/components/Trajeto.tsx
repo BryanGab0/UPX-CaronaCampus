@@ -6,14 +6,37 @@ import { cn } from "../lib/cn";
 import { usePerfilContext } from "../context/PerfilContext";
 import { useAuth } from "../context/AuthContext";
 import { Carregando, ErroCarga } from "./Estado";
-import type { Trajeto as TrajetoType, DiaSemana, Coord } from "../types";
+import type { Trajeto as TrajetoType, DiaSemana, Coord, HorarioDia, Horarios } from "../types";
 import { regiaoDoEndereco } from "../lib/regiao";
 import type { Regiao } from "../lib/regiao";
 import { VAGAS_MAX, VAGAS_MIN } from "../lib/vagas";
-
-const DIAS: DiaSemana[] = ["seg", "ter", "qua", "qui", "sex"];
+import { DIAS, diasDe, horarioUnico } from "../lib/horarios";
 
 interface Sugestao { nome: string; coord: Coord; regiao: Regiao; }
+
+// No formulário, cada sentido guarda a hora mesmo desmarcado: marcar de novo devolve o valor.
+interface Campo { hora: string; ativo: boolean; }
+interface DiaForm { ida: Campo; volta: Campo; }
+
+const PADRAO: DiaForm = { ida: { hora: "08:00", ativo: true }, volta: { hora: "18:00", ativo: true } };
+
+const paraForm = (h: HorarioDia | undefined, base: DiaForm): DiaForm => h
+  ? { ida: { hora: h.ida ?? base.ida.hora, ativo: h.ida !== null }, volta: { hora: h.volta ?? base.volta.hora, ativo: h.volta !== null } }
+  : base;
+const paraHorario = (f: DiaForm): HorarioDia => ({
+  ida: f.ida.ativo ? f.ida.hora : null,
+  volta: f.volta.ativo ? f.volta.hora : null,
+});
+
+// O que falta para o dia valer: ao menos um sentido marcado, e todo sentido marcado com a hora.
+function problemaDoDia(f: DiaForm, dia: string | null): string | null {
+  const onde = dia ? ` de ${dia}` : "";
+  if (!f.ida.ativo && !f.volta.ativo) return `Marque a ida ou a volta${onde}.`;
+  for (const s of ["ida", "volta"] as const) {
+    if (f[s].ativo && !f[s].hora) return `Preencha o horário de ${s}${onde}.`;
+  }
+  return null;
+}
 
 // Busca endereços no Nominatim (OpenStreetMap), limitado à região de Sorocaba, com os detalhes
 // (bairro, cidade) de cada um.
@@ -72,9 +95,14 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
   const [endereco, setEndereco] = useState(trajeto.endereco);
   const [origem, setOrigem] = useState<Coord | null>(trajeto.endereco ? trajeto.origem : null);
   const [regiao, setRegiao] = useState<Regiao>({ bairro: trajeto.bairro ?? null, cidade: trajeto.cidade ?? null });
-  const [dias, setDias] = useState<DiaSemana[]>(trajeto.dias);
-  const [chegada, setChegada] = useState(trajeto.chegada);
-  const [saida, setSaida] = useState(trajeto.saida);
+  const [dias, setDias] = useState<DiaSemana[]>(diasDe(trajeto.horarios));
+  // "Mesmo horário todos os dias": ligado se o trajeto salvo já é assim (ou ainda não tem dias).
+  const unicoSalvo = horarioUnico(trajeto.horarios);
+  const [igual, setIgual] = useState(unicoSalvo !== null || dias.length === 0);
+  const [unico, setUnico] = useState<DiaForm>(() => paraForm(unicoSalvo ?? trajeto.horarios[dias[0]], PADRAO));
+  const [porDia, setPorDia] = useState<Record<DiaSemana, DiaForm>>(
+    () => Object.fromEntries(DIAS.map((d) => [d, paraForm(trajeto.horarios[d], unico)])) as Record<DiaSemana, DiaForm>,
+  );
   const [carro, setCarro] = useState(trajeto.carro);
 
   const [sugestoes, setSugestoes] = useState<Sugestao[]>([]);
@@ -86,7 +114,18 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
   const [erro, setErro] = useState<string | null>(null);
 
   const limpar = () => { setSalvo(false); setErro(null); };
-  const toggleDia = (d: DiaSemana) => { limpar(); setDias((ds) => ds.includes(d) ? ds.filter((x) => x !== d) : [...ds, d]); };
+  // Mantém os dias na ordem da semana (seg → sex), que é a ordem das linhas por dia.
+  const toggleDia = (d: DiaSemana) => { limpar(); setDias((ds) => DIAS.filter((x) => (x === d ? !ds.includes(x) : ds.includes(x)))); };
+
+  // Ao separar por dia, cada dia começa com o horário único; ao juntar, vale o do primeiro dia.
+  const alternarIgual = () => {
+    limpar();
+    if (igual) setPorDia(Object.fromEntries(DIAS.map((d) => [d, unico])) as Record<DiaSemana, DiaForm>);
+    else if (dias.length > 0) setUnico(porDia[dias[0]]);
+    setIgual(!igual);
+  };
+  const mudarDia = (d: DiaSemana, f: DiaForm) => { limpar(); setPorDia((p) => ({ ...p, [d]: f })); };
+  const formDo = (d: DiaSemana) => (igual ? unico : porDia[d]);
 
   // Autocomplete com atraso (debounce): a busca só sai quando a pessoa para de digitar,
   // respeitando o limite de ~1 requisição/s do Nominatim.
@@ -148,6 +187,9 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
   const onSalvar = async () => {
     if (!origem || !endereco.trim()) { setErro("Escolha seu endereço de origem."); return; }
     if (dias.length === 0) { setErro("Selecione ao menos um dia."); return; }
+    const problema = igual ? problemaDoDia(unico, null) : dias.map((d) => problemaDoDia(porDia[d], d)).find(Boolean);
+    if (problema) { setErro(problema); return; }
+    const horarios: Horarios = Object.fromEntries(dias.map((d) => [d, paraHorario(formDo(d))]));
     if (papel === "motorista" && (!Number.isInteger(carro.lugares) || carro.lugares < VAGAS_MIN || carro.lugares > VAGAS_MAX)) {
       setErro(`As vagas devem ser de ${VAGAS_MIN} a ${VAGAS_MAX}.`); return;
     }
@@ -155,7 +197,7 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
     try {
       // Trajeto antigo, salvo antes de existir o bairro: descobre pela coordenada (1 consulta).
       const r = regiao.bairro || regiao.cidade ? regiao : (await enderecoDaCoord(origem)).regiao;
-      const novo: TrajetoType = { papel, endereco, origem, dias, chegada, saida, carro, bairro: r.bairro, cidade: r.cidade };
+      const novo: TrajetoType = { papel, endereco, origem, horarios, carro, bairro: r.bairro, cidade: r.cidade };
       await salvar(novo);
       setSalvo(true);
     } catch (e) {
@@ -222,10 +264,35 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
       </Section>
 
       <Section icone={<Clock size={16} />} titulo="Horários">
-        <div className="flex gap-3">
-          <TimeField label="Chego às" value={chegada} onChange={(v) => { limpar(); setChegada(v); }} />
-          <TimeField label="Saio às" value={saida} onChange={(v) => { limpar(); setSaida(v); }} />
-        </div>
+        <button type="button" role="switch" aria-checked={igual} onClick={alternarIgual}
+          className="flex w-full items-center justify-between gap-3 text-left text-[13px] font-semibold">
+          <span className="min-w-0">Mesmo horário todos os dias</span>
+          <span className={cn("relative h-6 w-10 shrink-0 rounded-full transition", igual ? "bg-brand" : "bg-sub")}>
+            <span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow transition-all", igual ? "left-[18px]" : "left-0.5")} />
+          </span>
+        </button>
+
+        {igual ? (
+          <div className="mt-3 flex gap-3">
+            <CampoHorario rotulo="Ida · chego às" nome="ida" campo={unico.ida} onChange={(c) => { limpar(); setUnico({ ...unico, ida: c }); }} />
+            <CampoHorario rotulo="Volta · saio às" nome="volta" campo={unico.volta} onChange={(c) => { limpar(); setUnico({ ...unico, volta: c }); }} />
+          </div>
+        ) : dias.length === 0 ? (
+          <p className="mt-3 text-xs text-sub">Selecione os dias de aula acima.</p>
+        ) : (
+          <div className="mt-3 space-y-3">
+            {dias.map((d) => (
+              <div key={d} className="flex items-end gap-2">
+                <span className="w-7 shrink-0 pb-3.5 text-[13px] font-bold">{d}</span>
+                <CampoHorario rotulo="ida" nome={`ida de ${d}`} campo={porDia[d].ida} onChange={(c) => mudarDia(d, { ...porDia[d], ida: c })} />
+                <CampoHorario rotulo="volta" nome={`volta de ${d}`} campo={porDia[d].volta} onChange={(c) => mudarDia(d, { ...porDia[d], volta: c })} />
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="mt-2.5 text-[11.5px] leading-relaxed text-sub">
+          Ida: chegada na Facens. Volta: saída da Facens. Desmarque o sentido em que você não precisa (ou não oferece) carona.
+        </p>
       </Section>
 
       {papel === "motorista" && (
@@ -272,8 +339,21 @@ function Toggle({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void
 function Chip({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; texto: string }) {
   return <button onClick={onClick} aria-pressed={ativo} className={cn("rounded-[11px] border py-2 text-center text-[13px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand text-white" : "border-line bg-surface text-sub")}>{texto}</button>;
 }
-function TimeField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="time" value={value} onChange={(e) => onChange(e.target.value)} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
+// Sentido da viagem (ida/volta): a caixa diz se a pessoa faz esse sentido; desmarcada, a hora
+// fica guardada mas desabilitada.
+function CampoHorario({ rotulo, nome, campo, onChange }: { rotulo: string; nome: string; campo: Campo; onChange: (c: Campo) => void }) {
+  return (
+    <div className="min-w-0 flex-1">
+      <label className="flex items-center gap-1.5 text-xs font-semibold text-sub">
+        <input type="checkbox" checked={campo.ativo} aria-label={`Incluir ${nome}`}
+          onChange={(e) => onChange({ ...campo, ativo: e.target.checked })} className="size-4 shrink-0 accent-brand" />
+        <span className="truncate">{rotulo}</span>
+      </label>
+      <input type="time" value={campo.hora} disabled={!campo.ativo} aria-label={`Horário de ${nome}`}
+        onChange={(e) => onChange({ ...campo, hora: e.target.value })}
+        className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-3 text-sm outline-none focus:border-brand disabled:opacity-40" />
+    </div>
+  );
 }
 function NumberField({ label, value, onChange, min, max }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number }) {
   return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="number" inputMode="decimal" value={value} min={min} max={max} onChange={(e) => onChange(Number(e.target.value))} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;

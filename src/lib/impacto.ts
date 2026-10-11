@@ -1,6 +1,7 @@
 import type { Coord, Trajeto } from "../types";
 import type { MinhaSolicitacao, Pedido } from "./api";
 import { litrosDia, PRECO_LITRO } from "./match";
+import { diasDe } from "./horarios";
 import type { Resultado } from "./match";
 
 // Estimativa do impacto das caronas ACEITAS do usuário (módulo puro, sem React).
@@ -41,7 +42,7 @@ export function calcularImpacto({ solicitacoes, pedidos, resultados, trajeto, de
   const aceitosMotorista = pedidos.filter((p) => p.status === "aceita").length;
   if (trajeto.endereco) {
     const litros = litrosDia(trajeto.origem, destino, trajeto.carro.consumo);
-    for (let i = 0; i < aceitosMotorista; i++) viagens.push({ litrosDia: litros, diasPorSemana: trajeto.dias.length });
+    for (let i = 0; i < aceitosMotorista; i++) viagens.push({ litrosDia: litros, diasPorSemana: diasDe(trajeto.horarios).length });
   }
 
   let economiaMes = 0;

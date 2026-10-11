@@ -5,6 +5,7 @@ import type { ReqAuth } from "../middleware/autenticar.js";
 import { SQL_MEDIAS } from "./avaliacoes.js";
 import { notificar } from "../notificacoes.js";
 import { LOTADO, vagasDe } from "../vagas.js";
+import { enderecoPublico } from "./caronas.js";
 
 export const solicitacoesRouter = Router();
 
@@ -80,12 +81,13 @@ solicitacoesRouter.post("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, 
   }
 });
 
-// GET — solicitações do PASSAGEIRO. Telefone do motorista só quando aceita.
+// GET — solicitações do PASSAGEIRO. Telefone do motorista só quando aceita; do endereço, só
+// bairro e cidade, como em GET /caronas (a rua e o CEP do motorista ficam no servidor).
 solicitacoesRouter.get("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT s.id, s.motorista_ra, s.status, s.cancelado_por, s.criado_em, m.nome AS motorista_nome,
-              t.endereco AS motorista_endereco,
+              t.usuario_ra IS NOT NULL AS tem_trajeto, t.bairro, t.cidade,
               CASE WHEN s.status = 'aceita' THEN m.telefone ELSE NULL END AS motorista_telefone,
               a.nota AS minha_nota
        FROM solicitacoes s
@@ -98,7 +100,7 @@ solicitacoesRouter.get("/usuarios/:ra/solicitacoes", autenticar, mesmoUsuario, a
     );
     res.json(rows.map((r) => ({
       id: r.id, motoristaRa: r.motorista_ra, status: r.status, canceladoPor: r.cancelado_por, motoristaNome: r.motorista_nome,
-      endereco: r.motorista_endereco, motoristaTelefone: r.motorista_telefone, minhaNota: r.minha_nota,
+      endereco: r.tem_trajeto ? enderecoPublico(r.bairro, r.cidade) : null, motoristaTelefone: r.motorista_telefone, minhaNota: r.minha_nota,
     })));
   } catch (e) {
     console.error(e);

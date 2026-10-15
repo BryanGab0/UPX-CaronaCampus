@@ -34,7 +34,7 @@ export function Folha({ tituloId, onFechar, children }: Props) {
   }, [onFechar]);
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 desk:items-center" onClick={onFechar}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-scrim desk:items-center" onClick={onFechar}>
       <div ref={painel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={tituloId} onClick={(e) => e.stopPropagation()}
         className="animate-rise no-scrollbar max-h-[92dvh] focus:outline-none w-full max-w-[430px] overflow-y-auto overscroll-contain rounded-t-[24px] bg-surface px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-5 text-ink desk:rounded-[24px] desk:pb-5">
         {children}

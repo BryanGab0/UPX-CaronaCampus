@@ -220,7 +220,7 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
 
       <Section icone={<MapPin size={16} />} titulo="De onde você sai">
         <div className="relative">
-          <div className="flex items-center gap-2.5 rounded-xl border border-line bg-surface px-3.5 py-3 transition focus-within:border-brand">
+          <div className="flex items-center gap-2.5 rounded-xl border border-line-strong bg-surface px-3.5 py-3 transition focus-within:border-brand">
             <MapPin size={18} className="shrink-0 text-sub" />
             <input
               value={endereco}
@@ -268,7 +268,7 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
           className="flex w-full items-center justify-between gap-3 text-left text-[13px] font-semibold">
           <span className="min-w-0">Mesmo horário todos os dias</span>
           <span className={cn("relative h-6 w-10 shrink-0 rounded-full transition", igual ? "bg-brand" : "bg-sub")}>
-            <span className={cn("absolute top-0.5 size-5 rounded-full bg-white shadow transition-all", igual ? "left-[18px]" : "left-0.5")} />
+            <span className={cn("absolute top-0.5 size-5 rounded-full bg-surface shadow transition-all", igual ? "left-[18px]" : "left-0.5")} />
           </span>
         </button>
 
@@ -298,7 +298,7 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
       {papel === "motorista" && (
         <Section icone={<Car size={16} />} titulo="Seu carro">
           <input value={carro.modelo} onChange={(e) => { limpar(); setCarro({ ...carro, modelo: e.target.value }); }}
-            placeholder="Modelo do carro" className="w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
+            placeholder="Modelo do carro" className="w-full rounded-xl border border-line-strong bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
           <div className="mt-2.5 flex gap-3">
             <NumberField label="Vagas" value={carro.lugares} min={VAGAS_MIN} max={VAGAS_MAX} onChange={(v) => { limpar(); setCarro({ ...carro, lugares: v }); }} />
             <NumberField label="km / litro" value={carro.consumo} onChange={(v) => { limpar(); setCarro({ ...carro, consumo: v }); }} />
@@ -316,7 +316,7 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
         <>
           {erro && <p role="alert" className="mt-6 text-[13px] text-accent-ink">{erro}</p>}
           <button onClick={onSalvar} disabled={salvando}
-            className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erro ? "mt-3" : "mt-6")}>
+            className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-on-brand transition active:scale-[.98]", erro ? "mt-3" : "mt-6")}>
             {salvando ? "Salvando…" : "Salvar trajeto"}
           </button>
         </>
@@ -337,7 +337,7 @@ function Toggle({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void
   return <button onClick={onClick} aria-pressed={ativo} className={cn("flex-1 rounded-[13px] border px-2.5 py-3 text-[13.5px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand-soft text-brand" : "border-line bg-surface text-sub")}>{texto}</button>;
 }
 function Chip({ ativo, onClick, texto }: { ativo: boolean; onClick: () => void; texto: string }) {
-  return <button onClick={onClick} aria-pressed={ativo} className={cn("rounded-[11px] border py-2 text-center text-[13px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand text-white" : "border-line bg-surface text-sub")}>{texto}</button>;
+  return <button onClick={onClick} aria-pressed={ativo} className={cn("rounded-[11px] border py-2 text-center text-[13px] font-semibold transition active:scale-[.98]", ativo ? "border-brand bg-brand text-on-brand" : "border-line bg-surface text-sub")}>{texto}</button>;
 }
 // Sentido da viagem (ida/volta): a caixa diz se a pessoa faz esse sentido; desmarcada, a hora
 // fica guardada mas desabilitada.
@@ -351,10 +351,10 @@ function CampoHorario({ rotulo, nome, campo, onChange }: { rotulo: string; nome:
       </label>
       <input type="time" value={campo.hora} disabled={!campo.ativo} aria-label={`Horário de ${nome}`}
         onChange={(e) => onChange({ ...campo, hora: e.target.value })}
-        className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-3 text-sm outline-none focus:border-brand disabled:opacity-40" />
+        className="mt-1.5 w-full rounded-xl border border-line-strong bg-surface px-3 py-3 text-sm outline-none focus:border-brand disabled:opacity-40" />
     </div>
   );
 }
 function NumberField({ label, value, onChange, min, max }: { label: string; value: number; onChange: (v: number) => void; min?: number; max?: number }) {
-  return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="number" inputMode="decimal" value={value} min={min} max={max} onChange={(e) => onChange(Number(e.target.value))} className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
+  return <label className="min-w-0 flex-1"><span className="text-xs font-semibold text-sub">{label}</span><input type="number" inputMode="decimal" value={value} min={min} max={max} onChange={(e) => onChange(Number(e.target.value))} className="mt-1.5 w-full rounded-xl border border-line-strong bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" /></label>;
 }

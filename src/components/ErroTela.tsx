@@ -23,8 +23,8 @@ export class ErroTela extends Component<{ children: ReactNode }, { falhou: boole
       <div className="flex h-dvh justify-center bg-canvas desk:items-center desk:bg-shell desk:p-5">
         <main className="flex h-full w-full flex-col bg-canvas px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(3.5rem+env(safe-area-inset-top))] text-ink min-[380px]:px-7 desk:h-[min(812px,100%)] desk:max-w-[430px] desk:rounded-[32px] desk:pb-8 desk:pt-14 desk:shadow-2xl">
           <div className="flex items-center gap-2.5">
-            <div className="grid size-11 place-items-center rounded-[13px] bg-brand shadow-[0_8px_20px_rgba(47,75,255,.33)]">
-              <RouteIcon size={24} color="#fff" strokeWidth={2.4} />
+            <div className="grid size-11 place-items-center rounded-[13px] bg-brand sombra-brand-sm">
+              <RouteIcon size={24} strokeWidth={2.4} className="text-on-brand" />
             </div>
             <span className="font-display text-xl font-bold tracking-tight">CaronaCampus</span>
           </div>
@@ -38,7 +38,7 @@ export class ErroTela extends Component<{ children: ReactNode }, { falhou: boole
               O app encontrou um erro inesperado. Recarregue a página para continuar; seus dados não foram perdidos.
             </p>
             <button type="button" onClick={() => window.location.reload()}
-              className="mt-6 flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white transition active:scale-[.98]">
+              className="mt-6 flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-on-brand transition active:scale-[.98]">
               <RotateCw size={16} /> Recarregar
             </button>
           </div>

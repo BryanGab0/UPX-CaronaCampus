@@ -6,9 +6,11 @@ import { PerfilProvider } from "./context/PerfilProvider";
 import App from "./App";
 import { ErroTela } from "./components/ErroTela";
 import { iniciarMonitoramento } from "./lib/monitoramento";
+import { iniciarTema } from "./lib/tema";
 import "./index.css";
 
 iniciarMonitoramento();
+iniciarTema();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

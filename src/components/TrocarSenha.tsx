@@ -36,7 +36,7 @@ export function TrocarSenha({ onFechar, onTrocada }: { onFechar: () => void; onT
     }
   };
 
-  const campo = "mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-base outline-none focus:border-brand";
+  const campo = "mt-1.5 w-full rounded-xl border border-line-strong bg-surface px-3.5 py-3 text-base outline-none focus:border-brand";
   const mudar = (definir: (v: string) => void) => (e: ChangeEvent<HTMLInputElement>) => { definir(e.target.value); setErro(null); };
 
   return (
@@ -69,7 +69,7 @@ export function TrocarSenha({ onFechar, onTrocada }: { onFechar: () => void; onT
       {erro && <p role="alert" className="mt-3 text-[13px] text-accent-ink">{erro}</p>}
 
       <button onClick={salvar} disabled={salvando}
-        className="mt-4 w-full rounded-[14px] bg-brand py-3.5 text-sm font-bold text-white transition active:scale-[.98] disabled:opacity-60">
+        className="mt-4 w-full rounded-[14px] bg-brand py-3.5 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:opacity-60">
         {salvando ? "Salvando…" : "Trocar senha"}
       </button>
     </Folha>

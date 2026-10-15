@@ -72,14 +72,14 @@ export function Denunciar({ denunciadoRa, denunciadoNome, onFechar, onEnviada }:
         <span className="text-xs font-semibold text-sub">Detalhes (opcional)</span>
         <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} maxLength={DESCRICAO_MAX} rows={3}
           placeholder="Conte o que aconteceu. Só a administração vê."
-          className="mt-1.5 w-full resize-none rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
+          className="mt-1.5 w-full resize-none rounded-xl border border-line-strong bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
         <span className="block text-right text-[11px] text-sub">{descricao.length}/{DESCRICAO_MAX}</span>
       </label>
 
       {erro && <p role="alert" className="mt-1 text-[13px] text-accent-ink">{erro}</p>}
 
       <button onClick={enviar} disabled={enviando}
-        className="mt-3 w-full rounded-[14px] bg-accent-ink py-3.5 text-sm font-bold text-white transition active:scale-[.98] disabled:opacity-60">
+        className="mt-3 w-full rounded-[14px] bg-accent-ink py-3.5 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:opacity-60">
         {enviando ? "Enviando…" : "Enviar denúncia"}
       </button>
       <p className="mt-2 text-center text-[11px] text-sub">A pessoa denunciada não fica sabendo quem denunciou.</p>

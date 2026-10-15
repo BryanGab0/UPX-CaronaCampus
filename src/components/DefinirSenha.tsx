@@ -33,15 +33,15 @@ export function DefinirSenha() {
     }
   };
 
-  const campo = "mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-base outline-none focus:border-brand";
+  const campo = "mt-1.5 w-full rounded-xl border border-line-strong bg-surface px-3.5 py-3 text-base outline-none focus:border-brand";
   const mudar = (definir: (v: string) => void) => (e: ChangeEvent<HTMLInputElement>) => { definir(e.target.value); setErro(null); };
 
   return (
     <div className="flex min-h-dvh justify-center bg-canvas desk:h-dvh desk:items-center desk:bg-shell desk:p-5">
       <main className="no-scrollbar relative flex min-h-dvh w-full flex-col overflow-y-auto bg-canvas px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(3.5rem+env(safe-area-inset-top))] text-ink min-[380px]:px-7 desk:h-[min(812px,100%)] desk:min-h-0 desk:max-w-[430px] desk:rounded-[32px] desk:pb-8 desk:pt-14 desk:shadow-2xl">
         <div className="flex items-center gap-2.5">
-          <div className="grid size-11 place-items-center rounded-[13px] bg-brand shadow-[0_8px_20px_rgba(47,75,255,.33)]">
-            <RouteIcon size={24} color="#fff" strokeWidth={2.4} />
+          <div className="grid size-11 place-items-center rounded-[13px] bg-brand sombra-brand-sm">
+            <RouteIcon size={24} strokeWidth={2.4} className="text-on-brand" />
           </div>
           <span className="font-display text-xl font-bold tracking-tight">CaronaCampus</span>
         </div>
@@ -73,7 +73,7 @@ export function DefinirSenha() {
             {erro && <p role="alert" className="text-[13px] text-accent-ink">{erro}</p>}
 
             <button onClick={salvar} disabled={salvando}
-              className="w-full rounded-[14px] bg-brand py-4 text-[15.5px] font-bold text-white transition active:scale-[.98] disabled:opacity-60">
+              className="w-full rounded-[14px] bg-brand py-4 text-[15.5px] font-bold text-on-brand transition active:scale-[.98] disabled:opacity-60">
               {salvando ? "Salvando…" : "Salvar e continuar"}
             </button>
           </div>

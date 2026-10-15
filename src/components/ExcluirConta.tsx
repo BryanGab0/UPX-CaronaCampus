@@ -56,7 +56,7 @@ export function ExcluirConta({ onFechar }: { onFechar: () => void }) {
         <span className="text-xs font-semibold text-sub">Confirme com a sua senha</span>
         <input type="password" value={senha} onChange={(e) => { setSenha(e.target.value); setErro(null); }}
           onKeyDown={(e) => e.key === "Enter" && excluir()} autoComplete="current-password"
-          className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-base outline-none focus:border-brand" />
+          className="mt-1.5 w-full rounded-xl border border-line-strong bg-surface px-3.5 py-3 text-base outline-none focus:border-brand" />
       </label>
 
       {erro && <p role="alert" className="mt-3 text-[13px] text-accent-ink">{erro}</p>}
@@ -67,7 +67,7 @@ export function ExcluirConta({ onFechar }: { onFechar: () => void }) {
           Voltar
         </button>
         <button onClick={excluir} disabled={excluindo}
-          className="flex-1 rounded-[14px] bg-accent-ink py-3.5 text-sm font-bold text-white transition active:scale-[.98] disabled:opacity-60">
+          className="flex-1 rounded-[14px] bg-accent-ink py-3.5 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:opacity-60">
           {excluindo ? "Excluindo…" : "Excluir conta"}
         </button>
       </div>

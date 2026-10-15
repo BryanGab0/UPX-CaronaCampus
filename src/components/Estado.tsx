@@ -54,15 +54,15 @@ export function EsqueletoDestaque() {
   return (
     <div aria-hidden className="animate-pulse rounded-[22px] bg-brand-soft p-5 motion-reduce:animate-none">
       <div className="flex items-center gap-3">
-        <div className="size-[50px] rounded-[15px] bg-white/70" />
+        <div className="size-[50px] rounded-[15px] bg-surface/70" />
         <div className="flex-1 space-y-2">
-          <div className="h-4 w-1/2 rounded-md bg-white/70" />
-          <div className="h-3 w-1/3 rounded-md bg-white/70" />
+          <div className="h-4 w-1/2 rounded-md bg-surface/70" />
+          <div className="h-3 w-1/3 rounded-md bg-surface/70" />
         </div>
       </div>
-      <div className="mt-4 h-3 w-3/4 rounded-md bg-white/70" />
-      <div className="mt-4 flex gap-2"><div className="h-7 w-24 rounded-[9px] bg-white/70" /><div className="h-7 w-20 rounded-[9px] bg-white/70" /></div>
-      <div className="mt-4 h-12 rounded-[13px] bg-white/70" />
+      <div className="mt-4 h-3 w-3/4 rounded-md bg-surface/70" />
+      <div className="mt-4 flex gap-2"><div className="h-7 w-24 rounded-[9px] bg-surface/70" /><div className="h-7 w-20 rounded-[9px] bg-surface/70" /></div>
+      <div className="mt-4 h-12 rounded-[13px] bg-surface/70" />
     </div>
   );
 }
@@ -72,7 +72,7 @@ export function EsqueletoDestaque() {
 interface Acao { texto: string; para?: string; onClick?: () => void }
 
 export function EstadoVazio({ icone, titulo, texto, acao, className }: { icone: ReactNode; titulo: string; texto: string; acao?: Acao; className?: string }) {
-  const estilo = "mt-4 inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white transition active:scale-[.98]";
+  const estilo = "mt-4 inline-flex items-center justify-center rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-on-brand transition active:scale-[.98]";
   return (
     <div className={cn("rounded-[18px] border border-line bg-surface p-6 text-center", className)}>
       <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand-soft text-brand">{icone}</div>
@@ -96,7 +96,7 @@ export function ErroCarga({ titulo = "Não foi possível carregar as caronas", o
       </p>
       {onTentar && (
         <button onClick={onTentar}
-          className="mx-auto mt-4 flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-white transition active:scale-[.98]">
+          className="mx-auto mt-4 flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-on-brand transition active:scale-[.98]">
           <RotateCw size={14} /> Tentar novamente
         </button>
       )}

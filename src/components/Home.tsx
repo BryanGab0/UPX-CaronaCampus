@@ -50,7 +50,7 @@ export function Home() {
               <Bell size={18} className="text-sub" />
               {pendentes > 0 && <span className="absolute right-2.5 top-2.5 size-[7px] rounded-full border-2 border-surface bg-accent" />}
             </Link>
-            <div className="grid size-10 place-items-center rounded-xl bg-brand text-sm font-bold text-white">{nome[0]}</div>
+            <div className="grid size-10 place-items-center rounded-xl bg-brand text-sm font-bold text-on-brand">{nome[0]}</div>
           </div>
         </div>
 

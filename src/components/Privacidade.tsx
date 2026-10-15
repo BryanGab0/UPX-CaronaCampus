@@ -30,7 +30,7 @@ export function Privacidade() {
           <Item><b>Trajeto:</b> endereço de saída com a localização no mapa (e o bairro e a cidade dele), dias e horários de ida e de volta, se você vai como motorista ou passageiro e, para motoristas, modelo, vagas e consumo do carro.</Item>
           <Item><b>Uso do app:</b> pedidos de carona, respostas e cancelamentos, notas das avaliações e denúncias.</Item>
           <Item><b>Notificações:</b> só se você ativar no Perfil. Guardamos o endereço que o seu navegador cria para receber os avisos (novo pedido, pedido aceito ou recusado). Ao desativar ou sair da conta, ele é apagado.</Item>
-          <Item><b>No seu aparelho:</b> o login fica salvo no navegador por até 7 dias, para você não precisar entrar toda vez.</Item>
+          <Item><b>No seu aparelho:</b> o login fica salvo no navegador por até 7 dias, para você não precisar entrar toda vez. A escolha de tema (claro ou escuro) também fica só no aparelho e não é enviada ao servidor.</Item>
         </Secao>
 
         <Secao titulo="Quem vê o quê">

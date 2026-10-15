@@ -61,8 +61,8 @@ export function Login() {
     <div className="flex min-h-dvh justify-center bg-canvas desk:h-dvh desk:items-center desk:bg-shell desk:p-5">
       <div className="no-scrollbar relative flex min-h-dvh w-full flex-col overflow-y-auto bg-canvas px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(3.5rem+env(safe-area-inset-top))] text-ink min-[380px]:px-7 desk:h-[min(812px,100%)] desk:min-h-0 desk:max-w-[430px] desk:rounded-[32px] desk:pb-8 desk:pt-14 desk:shadow-2xl">
         <div className="flex items-center gap-2.5">
-          <div className="grid size-11 place-items-center rounded-[13px] bg-brand shadow-[0_8px_20px_rgba(47,75,255,.33)]">
-            <RouteIcon size={24} color="#fff" strokeWidth={2.4} />
+          <div className="grid size-11 place-items-center rounded-[13px] bg-brand sombra-brand-sm">
+            <RouteIcon size={24} strokeWidth={2.4} className="text-on-brand" />
           </div>
           <span className="font-display text-xl font-bold tracking-tight">CaronaCampus</span>
         </div>
@@ -153,7 +153,7 @@ export function Login() {
             <button
               onClick={enviar}
               disabled={carregando}
-              className="w-full rounded-[14px] bg-brand py-4 text-[15.5px] font-bold text-white shadow-[0_10px_24px_rgba(47,75,255,.27)] transition active:scale-[.98]"
+              className="w-full rounded-[14px] bg-brand py-4 text-[15.5px] font-bold text-on-brand sombra-brand-md transition active:scale-[.98]"
             >
               {carregando ? "Aguarde…" : modo === "login" ? "Entrar" : "Criar conta"}
             </button>
@@ -184,7 +184,7 @@ export function Login() {
 
 function Campo({ icone, children }: { icone: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className={cn("flex items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3 transition focus-within:border-brand")}>
+    <div className={cn("flex items-center gap-2.5 rounded-[14px] border border-line-strong bg-surface px-3.5 py-3 transition focus-within:border-brand")}>
       <span className="shrink-0 text-sub">{icone}</span>
       {children}
     </div>

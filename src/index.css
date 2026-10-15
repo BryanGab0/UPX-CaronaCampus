@@ -8,9 +8,48 @@
      As vivas (accent/good) ficam só para gráficos: estrelas, bolinhas, barras, ícones decorativos. */
   --color-accent-ink: #C2410C;
   --color-good: #12B886; --color-good-soft: #E4F8F0; --color-good-ink: #0F7A5A;
+  /* Borda de CAMPO de formulário e contorno da estrela vazia: >= 3:1 (WCAG 1.4.11).
+     A "line" fica só para separar cards, onde a borda é decorativa. */
+  --color-line-strong: #7D8696;
+  /* Estrela da avaliação: laranja da marca escurecido até >= 3:1 no surface e no canvas. */
+  --color-star: #E2560F;
+  /* Texto e ícones SOBRE as cores cheias (brand, good-ink, accent-ink): branco no claro, quase preto no escuro. */
+  --color-on-brand: #FFFFFF;
+  /* Véu atrás das folhas (diálogos). */
+  --color-scrim: rgb(0 0 0 / .4);
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-display: "Space Grotesk", system-ui, sans-serif;
 }
+
+/* Tema escuro: as mesmas variáveis com outros valores; os componentes não mudam.
+   No escuro, brand/good-ink/accent-ink ficam claros (servem de texto sobre o fundo escuro)
+   e o texto sobre eles (on-brand) fica escuro. Todos os pares de texto >= 4,5:1. */
+:root[data-tema="escuro"] {
+  color-scheme: dark;
+  --color-shell: #07090D; --color-canvas: #0F1218; --color-surface: #1A1E27;
+  --color-ink: #E8EBF2; --color-sub: #A0A8B6; --color-line: #333A47;
+  --color-brand: #8C9BFF; --color-brand-dark: #7A8BFF; --color-brand-soft: #1F2547;
+  --color-accent: #FF8A5C; --color-accent-soft: #3A2219; --color-accent-ink: #FF9E78;
+  --color-good: #2ED3A0; --color-good-soft: #0F2E26; --color-good-ink: #45D6A8;
+  --color-line-strong: #6B7486; --color-star: #FF8A5C;
+  --color-on-brand: #0E1116;
+  --color-scrim: rgb(0 0 0 / .6);
+  /* Brilho azul claro sobre fundo escuro fica estranho: no escuro, sombra neutra. */
+  --sombra-brand-sm: 0 8px 20px rgb(0 0 0 / .45);
+  --sombra-brand-md: 0 10px 24px rgb(0 0 0 / .4);
+  --sombra-brand-lg: 0 18px 40px rgb(0 0 0 / .5);
+}
+
+/* Sombras coloridas da marca. Ficam fora do @theme porque o Tailwind grava a cor das
+   sombras do tema no build, e aí o escuro não conseguiria trocá-las. */
+:root {
+  --sombra-brand-sm: 0 8px 20px color-mix(in srgb, var(--color-brand) 33%, transparent);
+  --sombra-brand-md: 0 10px 24px color-mix(in srgb, var(--color-brand) 27%, transparent);
+  --sombra-brand-lg: 0 18px 40px color-mix(in srgb, var(--color-brand) 27%, transparent);
+}
+@utility sombra-brand-sm { box-shadow: var(--sombra-brand-sm); }
+@utility sombra-brand-md { box-shadow: var(--sombra-brand-md); }
+@utility sombra-brand-lg { box-shadow: var(--sombra-brand-lg); }
 /* "desk:" = tela larga E alta o bastante para a moldura de celular.
    Só a largura (sm:) pegava celular deitado e espremia a moldura. */
 @custom-variant desk (@media (min-width: 40rem) and (min-height: 30rem));
@@ -29,6 +68,15 @@ input[type="time"]::-webkit-date-and-time-value, input[type="date"]::-webkit-dat
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 .animate-rise { animation: rise .4s cubic-bezier(.2, .8, .2, 1) both; }
 @media (prefers-reduced-motion: reduce) { .animate-rise { animation: none; } }
+
+/* Mapa (Leaflet). Os blocos levam :root para vencer o leaflet.css, que é carregado depois.
+   Fundo enquanto os tiles carregam e crédito do OpenStreetMap com os tokens do tema. */
+:root .leaflet-container { background: var(--color-canvas); }
+:root .leaflet-container .leaflet-control-attribution { background: color-mix(in srgb, var(--color-surface) 80%, transparent); color: var(--color-sub); }
+:root .leaflet-container .leaflet-control-attribution a { color: var(--color-brand); }
+/* No escuro, os tiles do OpenStreetMap (só existem claros) são invertidos; o hue-rotate devolve
+   os tons (água azul, parques verdes). Só os tiles: rota e pinos seguem com as cores do tema. */
+:root[data-tema="escuro"] .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.95) contrast(.9); }
 
 /* Acessibilidade: contorno visível ao navegar pelo teclado (Tab). */
 @layer base {

@@ -57,19 +57,19 @@ export function EditarDados({ onFechar, onSalvo }: { onFechar: () => void; onSal
           <label className="mt-4 block">
             <span className="text-xs font-semibold text-sub">Nome</span>
             <input value={nome} onChange={(e) => { setNome(e.target.value); setErro(null); }} autoComplete="name" maxLength={80}
-              className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-base outline-none focus:border-brand" />
+              className="mt-1.5 w-full rounded-xl border border-line-strong bg-surface px-3.5 py-3 text-base outline-none focus:border-brand" />
           </label>
           <label className="mt-3 block">
             <span className="text-xs font-semibold text-sub">Telefone com DDD (WhatsApp)</span>
             <input value={telefone} onChange={(e) => { setTelefone(formatarTelefone(e.target.value)); setErro(null); }}
               placeholder="(11) 99999-9999" autoComplete="tel-national" inputMode="tel"
-              className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3.5 py-3 text-base outline-none focus:border-brand" />
+              className="mt-1.5 w-full rounded-xl border border-line-strong bg-surface px-3.5 py-3 text-base outline-none focus:border-brand" />
           </label>
 
           {erro && <p role="alert" className="mt-3 text-[13px] text-accent-ink">{erro}</p>}
 
           <button onClick={salvar} disabled={salvando}
-            className="mt-4 w-full rounded-[14px] bg-brand py-3.5 text-sm font-bold text-white transition active:scale-[.98] disabled:opacity-60">
+            className="mt-4 w-full rounded-[14px] bg-brand py-3.5 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:opacity-60">
             {salvando ? "Salvando…" : "Salvar"}
           </button>
         </>

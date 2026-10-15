@@ -12,7 +12,7 @@ export function NotaMedia({ media, total, className }: { media: number | null; t
   return (
     <span className={cn("inline-flex shrink-0 items-center gap-1 text-[11.5px] font-semibold", className)}
       aria-label={`Nota ${umaCasa(media)} de 5, ${total} ${total === 1 ? "avaliação" : "avaliações"}`}>
-      <Star size={12} className="fill-current text-accent" aria-hidden />
+      <Star size={12} className="fill-current text-star" aria-hidden />
       {umaCasa(media)} <span className="font-normal opacity-70">({total})</span>
     </span>
   );
@@ -28,7 +28,7 @@ export function Estrelas({ valor, onEscolher, desabilitado }: { valor: number | 
         <button key={n} type="button" aria-pressed={valor === n} aria-label={`Dar ${n} ${n === 1 ? "estrela" : "estrelas"}`}
           disabled={desabilitado} onClick={() => onEscolher(n)} onMouseEnter={() => setSobre(n)} onFocus={() => setSobre(n)} onBlur={() => setSobre(null)}
           className="grid size-10 place-items-center rounded-xl transition active:scale-[.9] disabled:opacity-50">
-          <Star size={26} className={cn("transition", n <= mostrada ? "fill-accent text-accent" : "text-line")} />
+          <Star size={26} className={cn("transition", n <= mostrada ? "fill-star text-star" : "text-line-strong")} />
         </button>
       ))}
     </div>

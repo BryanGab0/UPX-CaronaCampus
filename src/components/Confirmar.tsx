@@ -45,7 +45,7 @@ export function Confirmar({ titulo, texto, acao, onConfirmar, onFechar }: Props)
           Voltar
         </button>
         <button onClick={confirmar} disabled={enviando}
-          className="flex-1 rounded-[14px] bg-accent-ink py-3.5 text-sm font-bold text-white transition active:scale-[.98] disabled:opacity-60">
+          className="flex-1 rounded-[14px] bg-accent-ink py-3.5 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:opacity-60">
           {enviando ? "Aguarde…" : acao}
         </button>
       </div>

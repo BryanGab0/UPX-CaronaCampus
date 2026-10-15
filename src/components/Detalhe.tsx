@@ -11,6 +11,7 @@ import { usePerfilContext } from "../context/PerfilContext";
 import { useAuth } from "../context/AuthContext";
 import { avaliar, buscarSolicitacoes, cancelarSolicitacao, solicitarCarona } from "../lib/api";
 import type { MinhaSolicitacao } from "../lib/api";
+import { carregarPedido } from "../lib/pedido";
 import { reais } from "../lib/match";
 import type { TrechoComum } from "../lib/match";
 import { custoMensal } from "../lib/impacto";
@@ -33,6 +34,7 @@ export function Detalhe() {
   const { resultados, carregando, erro, recarregar: recarregarCaronas } = useResultados();
 
   const [solic, setSolic] = useState<MinhaSolicitacao | null>(null);
+  const [erroSolic, setErroSolic] = useState(false); // não deu para saber se já há pedido
   const [enviando, setEnviando] = useState(false);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
   const [denunciando, setDenunciando] = useState(false);
@@ -42,7 +44,10 @@ export function Detalhe() {
 
   const recarregar = () => {
     if (!ra || !id) return;
-    buscarSolicitacoes(ra).then((lista) => setSolic(lista.find((s) => s.motoristaRa === id) ?? null)).catch(() => {});
+    carregarPedido(buscarSolicitacoes, ra, id).then((r) => {
+      setErroSolic(r.erro);
+      setSolic(r.erro ? null : r.solic);
+    });
   };
   useEffect(recarregar, [ra, id]);
 
@@ -150,7 +155,10 @@ export function Detalhe() {
 
         {/* Ação / status */}
         {erroAcao && <p role="alert" className="mt-5 text-[13px] text-accent-ink">{erroAcao}</p>}
-        {status === "aceita" && solic?.motoristaTelefone ? (
+        {/* Sem o status do pedido, não oferece "Solicitar": pede para tentar de novo. */}
+        {erroSolic ? (
+          <ErroCarga titulo="Não foi possível verificar o seu pedido" onTentar={recarregar} />
+        ) : status === "aceita" && solic?.motoristaTelefone ? (
           <a href={linkWhatsapp(solic.motoristaTelefone, `Oi ${primeiroNome(carona.nome)}! Topei a carona pra Facens. Vamos combinar o ponto de encontro?`)}
             target="_blank" rel="noopener noreferrer"
             className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] bg-good-ink px-4 py-4 text-center text-sm font-bold text-white transition active:scale-[.98]">

@@ -73,7 +73,7 @@ export function DefinirSenha() {
             {erro && <p role="alert" className="text-[13px] text-accent-ink">{erro}</p>}
 
             <button onClick={salvar} disabled={salvando}
-              className="w-full rounded-[14px] bg-brand py-4 text-[15.5px] font-bold text-on-brand transition active:scale-[.98] disabled:opacity-60">
+              className="w-full rounded-[14px] bg-brand py-4 text-[15.5px] font-bold text-on-brand transition active:scale-[.98] disabled:bg-line disabled:text-sub disabled:shadow-none">
               {salvando ? "Salvando…" : "Salvar e continuar"}
             </button>
           </div>

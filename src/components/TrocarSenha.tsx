@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { KeyRound, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { trocarSenha } from "../lib/api";
 import { verificarPush } from "../lib/push";
 import { Folha } from "./Folha";
+import type { FolhaControle } from "./Folha";
 
 const SENHA_MIN = 6;
 
@@ -12,6 +13,7 @@ const SENHA_MIN = 6;
 // inscrições de notificação deles; este aparelho recebe um token novo e se inscreve de novo.
 export function TrocarSenha({ onFechar, onTrocada }: { onFechar: () => void; onTrocada: () => void }) {
   const { ra, atualizarSessao } = useAuth();
+  const folha = useRef<FolhaControle>(null);
   const [atual, setAtual] = useState("");
   const [nova, setNova] = useState("");
   const [confirmacao, setConfirmacao] = useState("");
@@ -28,7 +30,7 @@ export function TrocarSenha({ onFechar, onTrocada }: { onFechar: () => void; onT
       atualizarSessao({ token });
       // Se este aparelho recebia notificações, volta a se inscrever (a API apagou todas).
       await verificarPush(ra).catch((e: unknown) => console.error(e));
-      onTrocada();
+      folha.current?.fechar(onTrocada);
     } catch (e) {
       console.error(e);
       setErro(e instanceof Error && !e.message.startsWith("Erro ") ? e.message : "Não foi possível trocar a senha. Tente novamente.");
@@ -40,14 +42,14 @@ export function TrocarSenha({ onFechar, onTrocada }: { onFechar: () => void; onT
   const mudar = (definir: (v: string) => void) => (e: ChangeEvent<HTMLInputElement>) => { definir(e.target.value); setErro(null); };
 
   return (
-    <Folha tituloId="titulo-trocar-senha" onFechar={onFechar}>
+    <Folha ref={folha} tituloId="titulo-trocar-senha" onFechar={onFechar}>
       <div className="flex items-start gap-3">
         <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft"><KeyRound size={18} className="text-brand" /></div>
         <div className="min-w-0 flex-1">
           <h2 id="titulo-trocar-senha" className="font-display text-lg font-bold">Trocar senha</h2>
           <p className="text-xs text-sub">Os outros aparelhos em que você está logado vão sair da conta.</p>
         </div>
-        <button onClick={onFechar} aria-label="Fechar" className="grid size-9 shrink-0 place-items-center rounded-xl text-sub transition active:scale-[.98]">
+        <button onClick={() => folha.current?.fechar()} aria-label="Fechar" className="grid size-9 shrink-0 place-items-center rounded-xl text-sub transition active:scale-[.98]">
           <X size={18} />
         </button>
       </div>
@@ -69,7 +71,7 @@ export function TrocarSenha({ onFechar, onTrocada }: { onFechar: () => void; onT
       {erro && <p role="alert" className="mt-3 text-[13px] text-accent-ink">{erro}</p>}
 
       <button onClick={salvar} disabled={salvando}
-        className="mt-4 w-full rounded-[14px] bg-brand py-3.5 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:opacity-60">
+        className="mt-4 w-full rounded-[14px] bg-brand py-3.5 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:bg-line disabled:text-sub disabled:shadow-none">
         {salvando ? "Salvando…" : "Trocar senha"}
       </button>
     </Folha>

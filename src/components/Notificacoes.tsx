@@ -58,8 +58,8 @@ export function Notificacoes({ onAviso }: { onAviso: (tipo: "ok" | "erro", texto
         <p className="mt-0.5 text-xs leading-relaxed text-sub">{TEXTOS[estado]}</p>
         {podeAlternar && (
           <button onClick={alternar} disabled={ocupado}
-            className={cn("mt-3 rounded-xl px-3.5 py-2 text-xs font-bold transition active:scale-[.98] disabled:opacity-60",
-              estado === "ativo" ? "border border-line text-sub" : "bg-brand text-on-brand")}>
+            className={cn("mt-3 rounded-xl px-3.5 py-2 text-xs font-bold transition active:scale-[.98]",
+              estado === "ativo" ? "border border-line text-sub disabled:opacity-40" : "bg-brand text-on-brand disabled:bg-line disabled:text-sub disabled:shadow-none")}>
             {ocupado ? "Aguarde…" : estado === "ativo" ? "Desativar" : "Ativar notificações"}
           </button>
         )}

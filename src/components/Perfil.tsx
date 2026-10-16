@@ -68,6 +68,9 @@ export function Perfil() {
   // Lança o erro para a folha de confirmação mostrar (ex.: o passageiro cancelou nesse meio-tempo).
   const onDesfazer = async (p: Pedido) => {
     await cancelarSolicitacao(p.id);
+  };
+  // Depois que a folha de confirmação desce.
+  const aoDesfazer = (p: Pedido) => {
     setDesfazendo(null);
     recarregar();
     mostrar("ok", `Aceite desfeito. ${primeiroNome(p.passageiroNome)} recebeu um aviso.`);
@@ -140,11 +143,11 @@ export function Perfil() {
               {p.status === "pendente" && (
                 <div className="mt-3 flex gap-2">
                   <button onClick={() => responder(p, "aceita")} disabled={respondendo === p.id || cheio}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-good-ink py-2.5 text-xs font-bold text-on-brand transition active:scale-[.98] disabled:opacity-60">
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-good-ink py-2.5 text-xs font-bold text-on-brand transition active:scale-[.98] disabled:bg-line disabled:text-sub disabled:shadow-none">
                     <Check size={15} /> Aceitar
                   </button>
                   <button onClick={() => responder(p, "recusada")} disabled={respondendo === p.id}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2.5 text-xs font-bold text-sub transition active:scale-[.98] disabled:opacity-60">
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2.5 text-xs font-bold text-sub transition active:scale-[.98] disabled:opacity-40">
                     <X size={15} /> Recusar
                   </button>
                 </div>
@@ -193,7 +196,7 @@ export function Perfil() {
       <Aparencia />
 
       <Link to="/privacidade"
-        className="mt-5 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-4 py-3.5 text-sm font-semibold transition active:scale-[.98]">
+        className="mt-2.5 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-4 py-3.5 text-sm font-semibold transition active:scale-[.98]">
         <ShieldCheck size={17} className="shrink-0 text-brand" />
         <span className="flex-1">Privacidade e uso dos dados</span>
         <ChevronRight size={17} className="shrink-0 text-sub" />
@@ -220,7 +223,7 @@ export function Perfil() {
       {desfazendo && (
         <Confirmar titulo="Desfazer o aceite?"
           texto={`${primeiroNome(desfazendo.passageiroNome)} recebe um aviso e o telefone de cada um deixa de aparecer no app. Se já tinham combinado algo, avise pelo WhatsApp antes.`}
-          acao="Desfazer aceite" onConfirmar={() => onDesfazer(desfazendo)} onFechar={() => setDesfazendo(null)} />
+          acao="Desfazer aceite" onConfirmar={() => onDesfazer(desfazendo)} onConcluido={() => aoDesfazer(desfazendo)} onFechar={() => setDesfazendo(null)} />
       )}
       {denunciado && (
         <Denunciar denunciadoRa={denunciado.passageiroRa} denunciadoNome={denunciado.passageiroNome}

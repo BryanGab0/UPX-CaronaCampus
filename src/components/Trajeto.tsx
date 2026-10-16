@@ -246,7 +246,7 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
         </div>
 
         <button onClick={usarLocalizacao} disabled={gpsCarregando}
-          className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-brand">
+          className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-brand disabled:text-sub">
           {gpsCarregando ? <Loader2 size={13} className="animate-spin" /> : <LocateFixed size={13} />}
           usar minha localização atual
         </button>
@@ -316,7 +316,7 @@ function FormTrajeto({ trajeto }: { trajeto: TrajetoType }) {
         <>
           {erro && <p role="alert" className="mt-6 text-[13px] text-accent-ink">{erro}</p>}
           <button onClick={onSalvar} disabled={salvando}
-            className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-on-brand transition active:scale-[.98]", erro ? "mt-3" : "mt-6")}>
+            className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:bg-line disabled:text-sub disabled:shadow-none", erro ? "mt-3" : "mt-6")}>
             {salvando ? "Salvando…" : "Salvar trajeto"}
           </button>
         </>

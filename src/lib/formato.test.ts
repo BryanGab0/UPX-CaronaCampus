@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { primeiroNome, iniciais, linkWhatsapp, formatarTelefone, telefoneValido } from "./formato";
+import { primeiroNome, iniciais, linkWhatsapp, formatarTelefone, telefoneValido, umaCasa } from "./formato";
 
 describe("primeiroNome", () => {
   it("pega a primeira palavra", () => expect(primeiroNome("Ana Clara Souza")).toBe("Ana"));
@@ -32,4 +32,10 @@ describe("telefone", () => {
     expect(telefoneValido("(15) 98888-7777")).toBe(true);
     expect(telefoneValido("9888-7777")).toBe(false);
   });
+});
+
+describe("umaCasa", () => {
+  it("usa vírgula como separador decimal", () => expect(umaCasa(4.5)).toBe("4,5"));
+  it("mantém uma casa no zero", () => expect(umaCasa(0)).toBe("0,0"));
+  it("arredonda para uma casa", () => expect(umaCasa(2.26)).toBe("2,3"));
 });

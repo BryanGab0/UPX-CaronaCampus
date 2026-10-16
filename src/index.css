@@ -67,7 +67,18 @@ input[type="time"]::-webkit-date-and-time-value, input[type="date"]::-webkit-dat
 .no-scrollbar::-webkit-scrollbar { display: none; }
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 .animate-rise { animation: rise .4s cubic-bezier(.2, .8, .2, 1) both; }
-@media (prefers-reduced-motion: reduce) { .animate-rise { animation: none; } }
+/* Folhas: a folha sobe da base e o véu escurece com fade, cada um com a própria animação.
+   Só transform e opacity (o navegador anima na GPU, sem recalcular o layout); ease-out de 250ms. */
+@keyframes folha-sobe { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes veu-aparece { from { opacity: 0; } to { opacity: 1; } }
+.animate-folha { animation: folha-sobe .25s cubic-bezier(.25, 1, .5, 1) both; }
+.animate-veu { animation: veu-aparece .25s ease-out both; }
+/* Saída: o caminho de volta, com a curva espelhada (começa devagar e acelera para fora). */
+@keyframes folha-desce { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes veu-some { from { opacity: 1; } to { opacity: 0; } }
+.animate-folha-sai { animation: folha-desce .25s cubic-bezier(.5, 0, .75, 0) both; }
+.animate-veu-sai { animation: veu-some .25s ease-in both; }
+@media (prefers-reduced-motion: reduce) { .animate-rise, .animate-folha, .animate-veu, .animate-folha-sai, .animate-veu-sai { animation: none; } }
 
 /* Mapa (Leaflet). Os blocos levam :root para vencer o leaflet.css, que é carregado depois.
    Fundo enquanto os tiles carregam e crédito do OpenStreetMap com os tokens do tema. */

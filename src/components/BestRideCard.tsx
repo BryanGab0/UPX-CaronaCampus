@@ -34,8 +34,8 @@ export function BestRideCard({ resultado }: { resultado: Resultado }) {
         <Pill icone={<Clock size={13} />} texto={textoHorario(resumoHorario(carona.horarios, trechosComuns))} />
         <Pill icone={<Wallet size={13} />} texto={`${reais(custoTrecho)}/viagem`} />
         <Pill icone={<Users size={13} />} texto={textoVagas(carona)} />
-        <span className="inline-flex items-center rounded-[9px] bg-on-brand/15 px-2.5 py-1.5">
-          <NotaMedia media={carona.notaMedia} total={carona.totalAvaliacoes} className="text-on-brand [&_svg]:text-on-brand" />
+        <span className="inline-flex items-center rounded-[9px] bg-on-brand/12 px-2.5 py-1.5">
+          <NotaMedia media={carona.notaMedia} total={carona.totalAvaliacoes} sobreCor />
         </span>
       </div>
 
@@ -51,7 +51,7 @@ export function BestRideCard({ resultado }: { resultado: Resultado }) {
 
 function Pill({ icone, texto }: { icone: ReactNode; texto: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[9px] bg-on-brand/15 px-2.5 py-1.5 text-[11.5px] font-semibold">
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[9px] bg-on-brand/12 px-2.5 py-1.5 text-[11.5px] font-semibold">
       {icone}{texto}
     </span>
   );

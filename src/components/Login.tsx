@@ -153,7 +153,7 @@ export function Login() {
             <button
               onClick={enviar}
               disabled={carregando}
-              className="w-full rounded-[14px] bg-brand py-4 text-[15.5px] font-bold text-on-brand sombra-brand-md transition active:scale-[.98]"
+              className="w-full rounded-[14px] bg-brand py-4 text-[15.5px] font-bold text-on-brand sombra-brand-md transition active:scale-[.98] disabled:bg-line disabled:text-sub disabled:shadow-none"
             >
               {carregando ? "Aguarde…" : modo === "login" ? "Entrar" : "Criar conta"}
             </button>

@@ -41,7 +41,7 @@ export function Caronas() {
       <h1 className="font-display text-[26px] font-bold tracking-tight">Caronas</h1>
       <p className="mt-1 text-sm text-sub">{erroTrajeto ? "seu trajeto não carregou" : carregando || !pronto ? "buscando…" : !temTrajeto ? "cadastre seu trajeto para ver as compatíveis" : `${resultados.length} compatíveis com o seu trajeto`}</p>
 
-      <div className="mt-4 flex items-center gap-2.5 rounded-[14px] border border-line bg-surface px-3.5 py-3 transition focus-within:border-brand">
+      <div className="mt-4 flex items-center gap-2.5 rounded-[14px] border border-line-strong bg-surface px-3.5 py-3 transition focus-within:border-brand">
         <Search size={18} className="shrink-0 text-sub" />
         <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou endereço" aria-label="Buscar carona por nome ou endereço"
           className="min-w-0 flex-1 bg-transparent text-sm outline-none" />
@@ -52,7 +52,7 @@ export function Caronas() {
         {ORDENS.map((o) => (
           <button key={o.id} onClick={() => setOrdem(o.id)} aria-pressed={ordem === o.id}
             className={cn("shrink-0 whitespace-nowrap rounded-[11px] border px-3 py-1.5 text-xs font-semibold transition active:scale-[.98]",
-              ordem === o.id ? "border-brand bg-brand text-white" : "border-line bg-surface text-sub")}>
+              ordem === o.id ? "border-brand bg-brand text-on-brand" : "border-line bg-surface text-sub")}>
             {o.label}
           </button>
         ))}

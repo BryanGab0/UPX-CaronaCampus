@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Flag, X } from "lucide-react";
 import { cn } from "../lib/cn";
 import { useAuth } from "../context/AuthContext";
 import { denunciar } from "../lib/api";
 import type { MotivoDenuncia } from "../lib/api";
 import { Folha } from "./Folha";
+import type { FolhaControle } from "./Folha";
 
 const MOTIVOS: { id: MotivoDenuncia; texto: string }[] = [
   { id: "seguranca", texto: "Direção perigosa ou me senti inseguro(a)" },
@@ -25,6 +26,7 @@ interface Props {
 // Folha de denúncia (ver Folha: no celular sobe de baixo, no desktop fica centralizada).
 export function Denunciar({ denunciadoRa, denunciadoNome, onFechar, onEnviada }: Props) {
   const { ra } = useAuth();
+  const folha = useRef<FolhaControle>(null);
   const [motivo, setMotivo] = useState<MotivoDenuncia | null>(null);
   const [descricao, setDescricao] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -35,7 +37,7 @@ export function Denunciar({ denunciadoRa, denunciadoNome, onFechar, onEnviada }:
     setEnviando(true); setErro(null);
     try {
       await denunciar(ra, denunciadoRa, motivo, descricao);
-      onEnviada();
+      folha.current?.fechar(onEnviada);
     } catch (e) {
       console.error(e);
       setErro(e instanceof Error ? e.message : "Não foi possível enviar a denúncia. Tente novamente.");
@@ -44,14 +46,14 @@ export function Denunciar({ denunciadoRa, denunciadoNome, onFechar, onEnviada }:
   };
 
   return (
-    <Folha tituloId="titulo-denuncia" onFechar={onFechar}>
+    <Folha ref={folha} tituloId="titulo-denuncia" onFechar={onFechar}>
       <div className="flex items-start gap-3">
         <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent-soft"><Flag size={18} className="text-accent" /></div>
         <div className="min-w-0 flex-1">
           <h2 id="titulo-denuncia" className="font-display text-lg font-bold">Denunciar</h2>
           <p className="truncate text-xs text-sub">{denunciadoNome}</p>
         </div>
-        <button onClick={onFechar} aria-label="Fechar" className="grid size-9 shrink-0 place-items-center rounded-xl text-sub transition active:scale-[.98]">
+        <button onClick={() => folha.current?.fechar()} aria-label="Fechar" className="grid size-9 shrink-0 place-items-center rounded-xl text-sub transition active:scale-[.98]">
           <X size={18} />
         </button>
       </div>
@@ -72,14 +74,14 @@ export function Denunciar({ denunciadoRa, denunciadoNome, onFechar, onEnviada }:
         <span className="text-xs font-semibold text-sub">Detalhes (opcional)</span>
         <textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} maxLength={DESCRICAO_MAX} rows={3}
           placeholder="Conte o que aconteceu. Só a administração vê."
-          className="mt-1.5 w-full resize-none rounded-xl border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
+          className="mt-1.5 w-full resize-none rounded-xl border border-line-strong bg-surface px-3.5 py-3 text-sm outline-none focus:border-brand" />
         <span className="block text-right text-[11px] text-sub">{descricao.length}/{DESCRICAO_MAX}</span>
       </label>
 
       {erro && <p role="alert" className="mt-1 text-[13px] text-accent-ink">{erro}</p>}
 
       <button onClick={enviar} disabled={enviando}
-        className="mt-3 w-full rounded-[14px] bg-accent-ink py-3.5 text-sm font-bold text-white transition active:scale-[.98] disabled:opacity-60">
+        className="mt-3 w-full rounded-[14px] bg-accent-ink py-3.5 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:bg-line disabled:text-sub disabled:shadow-none">
         {enviando ? "Enviando…" : "Enviar denúncia"}
       </button>
       <p className="mt-2 text-center text-[11px] text-sub">A pessoa denunciada não fica sabendo quem denunciou.</p>

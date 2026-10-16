@@ -17,6 +17,7 @@ import { EditarDados } from "./EditarDados";
 import { TrocarSenha } from "./TrocarSenha";
 import { ExcluirConta } from "./ExcluirConta";
 import { Notificacoes } from "./Notificacoes";
+import { Aparencia } from "./Aparencia";
 import { desativarPush } from "../lib/push";
 import { Estrelas, NotaMedia } from "./Estrelas";
 
@@ -67,6 +68,9 @@ export function Perfil() {
   // Lança o erro para a folha de confirmação mostrar (ex.: o passageiro cancelou nesse meio-tempo).
   const onDesfazer = async (p: Pedido) => {
     await cancelarSolicitacao(p.id);
+  };
+  // Depois que a folha de confirmação desce.
+  const aoDesfazer = (p: Pedido) => {
     setDesfazendo(null);
     recarregar();
     mostrar("ok", `Aceite desfeito. ${primeiroNome(p.passageiroNome)} recebeu um aviso.`);
@@ -84,7 +88,7 @@ export function Perfil() {
       <h1 className="font-display text-[26px] font-bold tracking-tight">Perfil</h1>
 
       <div className="mt-4 flex items-center gap-3 rounded-[18px] border border-line bg-surface p-4">
-        <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-lg font-bold text-white">{iniciais(nome)}</div>
+        <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-lg font-bold text-on-brand">{iniciais(nome)}</div>
         <div className="min-w-0 flex-1">
           <div className="truncate font-bold">{nome}</div>
           <div className="flex items-center gap-1.5 text-xs text-sub"><Mail size={13} className="shrink-0" /> <span className="truncate">{email}</span></div>
@@ -139,11 +143,11 @@ export function Perfil() {
               {p.status === "pendente" && (
                 <div className="mt-3 flex gap-2">
                   <button onClick={() => responder(p, "aceita")} disabled={respondendo === p.id || cheio}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-good-ink py-2.5 text-xs font-bold text-white transition active:scale-[.98] disabled:opacity-60">
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-good-ink py-2.5 text-xs font-bold text-on-brand transition active:scale-[.98] disabled:bg-line disabled:text-sub disabled:shadow-none">
                     <Check size={15} /> Aceitar
                   </button>
                   <button onClick={() => responder(p, "recusada")} disabled={respondendo === p.id}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2.5 text-xs font-bold text-sub transition active:scale-[.98] disabled:opacity-60">
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2.5 text-xs font-bold text-sub transition active:scale-[.98] disabled:opacity-40">
                     <X size={15} /> Recusar
                   </button>
                 </div>
@@ -156,7 +160,7 @@ export function Perfil() {
               {p.status === "aceita" && p.passageiroTelefone && (
                 <a href={linkWhatsapp(p.passageiroTelefone, `Oi ${primeiroNome(p.passageiroNome)}! Aceitei seu pedido de carona pra Facens. Vamos combinar?`)}
                   target="_blank" rel="noopener noreferrer"
-                  className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-good-ink py-2.5 text-xs font-bold text-white transition active:scale-[.98]">
+                  className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-good-ink py-2.5 text-xs font-bold text-on-brand transition active:scale-[.98]">
                   <MessageCircle size={15} /> Chamar no WhatsApp
                 </a>
               )}
@@ -189,9 +193,10 @@ export function Perfil() {
       )}
 
       <Notificacoes onAviso={mostrar} />
+      <Aparencia />
 
       <Link to="/privacidade"
-        className="mt-5 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-4 py-3.5 text-sm font-semibold transition active:scale-[.98]">
+        className="mt-2.5 flex w-full items-center gap-2.5 rounded-[14px] border border-line bg-surface px-4 py-3.5 text-sm font-semibold transition active:scale-[.98]">
         <ShieldCheck size={17} className="shrink-0 text-brand" />
         <span className="flex-1">Privacidade e uso dos dados</span>
         <ChevronRight size={17} className="shrink-0 text-sub" />
@@ -218,7 +223,7 @@ export function Perfil() {
       {desfazendo && (
         <Confirmar titulo="Desfazer o aceite?"
           texto={`${primeiroNome(desfazendo.passageiroNome)} recebe um aviso e o telefone de cada um deixa de aparecer no app. Se já tinham combinado algo, avise pelo WhatsApp antes.`}
-          acao="Desfazer aceite" onConfirmar={() => onDesfazer(desfazendo)} onFechar={() => setDesfazendo(null)} />
+          acao="Desfazer aceite" onConfirmar={() => onDesfazer(desfazendo)} onConcluido={() => aoDesfazer(desfazendo)} onFechar={() => setDesfazendo(null)} />
       )}
       {denunciado && (
         <Denunciar denunciadoRa={denunciado.passageiroRa} denunciadoNome={denunciado.passageiroNome}

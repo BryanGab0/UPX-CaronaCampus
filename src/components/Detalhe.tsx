@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router";
 import { ChevronLeft, Fuel, Users, Leaf, Check, Clock, MessageCircle, Flag, X } from "lucide-react";
 import { lotado, textoVagas } from "../lib/vagas";
 import { cn } from "../lib/cn";
-import { iniciais, linkWhatsapp, primeiroNome } from "../lib/formato";
+import { iniciais, linkWhatsapp, primeiroNome, umaCasa } from "../lib/formato";
 import { FACENS } from "../data/mock";
 import { useResultados } from "../hooks/useResultados";
 import { usePerfilContext } from "../context/PerfilContext";
@@ -66,9 +66,11 @@ export function Detalhe() {
 
   // Lança o erro para a folha de confirmação mostrar (ex.: o motorista respondeu nesse meio-tempo).
   const onCancelar = async () => {
-    if (!solic) return;
-    const desistiu = solic.status === "aceita";
-    await cancelarSolicitacao(solic.id);
+    if (solic) await cancelarSolicitacao(solic.id);
+  };
+  // Depois que a folha desce: só então recarrega (o título dela depende do status do pedido).
+  const aoCancelar = () => {
+    const desistiu = solic?.status === "aceita";
     setCancelando(false);
     recarregar();
     mostrar("ok", desistiu ? "Você desistiu da carona. O motorista foi avisado." : "Pedido cancelado.");
@@ -107,7 +109,7 @@ export function Detalhe() {
         <button onClick={() => navigate(-1)} aria-label="Voltar" className="grid size-10 shrink-0 place-items-center rounded-xl border border-line transition active:scale-[.98]">
           <ChevronLeft size={19} className="text-sub" />
         </button>
-        <div className="hidden size-11 shrink-0 place-items-center rounded-[13px] bg-brand text-sm font-bold text-white min-[360px]:grid">{iniciais(carona.nome)}</div>
+        <div className="hidden size-11 shrink-0 place-items-center rounded-[13px] bg-brand text-sm font-bold text-on-brand min-[360px]:grid">{iniciais(carona.nome)}</div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="min-w-0 truncate font-bold">{carona.nome}</span>
@@ -134,7 +136,7 @@ export function Detalhe() {
             detalhe={`${porSemana} de ${totalTrechos} ${totalTrechos === 1 ? "viagem sua" : "viagens suas"} em comum · quanto mais perto o horário, mais pontua`} cor="bg-brand" />
           <SuasViagens suas={trajeto.horarios} motorista={carona.horarios} comuns={trechosComuns} />
           <Barra titulo="Proximidade de rota" pct={Math.round(scoreRota * 100)}
-            detalhe={`${desvioKm.toFixed(1)} km fora da sua rota direta até a Facens`} cor="bg-good" />
+            detalhe={`${umaCasa(desvioKm)} km fora da sua rota direta até a Facens`} cor="bg-good" />
           <p className="mt-3 text-[11.5px] leading-relaxed text-sub">
             Nota final = {Math.round(pesos.horario * 100)}% horário + {Math.round(pesos.rota * 100)}% rota = <b className="text-ink">{compat}%</b>
           </p>
@@ -161,7 +163,7 @@ export function Detalhe() {
         ) : status === "aceita" && solic?.motoristaTelefone ? (
           <a href={linkWhatsapp(solic.motoristaTelefone, `Oi ${primeiroNome(carona.nome)}! Topei a carona pra Facens. Vamos combinar o ponto de encontro?`)}
             target="_blank" rel="noopener noreferrer"
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] bg-good-ink px-4 py-4 text-center text-sm font-bold text-white transition active:scale-[.98]">
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-[14px] bg-good-ink px-4 py-4 text-center text-sm font-bold text-on-brand transition active:scale-[.98]">
             <MessageCircle size={18} className="shrink-0" /> Chamar {primeiroNome(carona.nome)} no WhatsApp
           </a>
         ) : status === "pendente" ? (
@@ -196,7 +198,7 @@ export function Detalhe() {
             ) : (
               <>
                 <button onClick={onSolicitar} disabled={enviando}
-                  className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-white transition active:scale-[.98]", erroAcao || status === "cancelada" ? "mt-3" : "mt-5")}>
+                  className={cn("w-full rounded-[14px] bg-brand py-4 text-sm font-bold text-on-brand transition active:scale-[.98] disabled:bg-line disabled:text-sub disabled:shadow-none", erroAcao || status === "cancelada" ? "mt-3" : "mt-5")}>
                   {enviando ? "Enviando…" : "Solicitar carona"}
                 </button>
                 <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-sub"><Users size={13} /> {textoVagas(carona)} {carona.vagasLivres === 1 ? "livre" : "livres"} no carro</p>
@@ -232,7 +234,7 @@ export function Detalhe() {
             ? `${primeiroNome(carona.nome)} recebe um aviso e o telefone de cada um deixa de aparecer no app. Se já tinham combinado algo, avise pelo WhatsApp antes.`
             : `O pedido para ${primeiroNome(carona.nome)} deixa de aguardar resposta. Você pode pedir de novo depois.`}
           acao={solic.status === "aceita" ? "Desistir" : "Cancelar pedido"}
-          onConfirmar={onCancelar} onFechar={() => setCancelando(false)} />
+          onConfirmar={onCancelar} onConcluido={aoCancelar} onFechar={() => setCancelando(false)} />
       )}
       {denunciando && (
         <Denunciar denunciadoRa={carona.id} denunciadoNome={carona.nome} onFechar={() => setDenunciando(false)}

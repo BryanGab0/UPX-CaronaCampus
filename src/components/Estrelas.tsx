@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { Star } from "lucide-react";
 import { cn } from "../lib/cn";
-
-const umaCasa = (n: number) => n.toFixed(1).replace(".", ",");
+import { umaCasa } from "../lib/formato";
 
 // Reputação de uma pessoa: "★ 4,5 (2)"; sem avaliações, "novo".
-export function NotaMedia({ media, total, className }: { media: number | null; total: number; className?: string }) {
+// sobreCor: dentro de um fundo da marca (card de destaque), texto e estrela em on-brand.
+// A cor vem daqui, e não de um className de fora: o cn() não resolve conflito de classes,
+// e o text-sub do "novo" vencia o text-on-brand passado pelo card (ficava cinza no lilás).
+export function NotaMedia({ media, total, sobreCor = false }: { media: number | null; total: number; sobreCor?: boolean }) {
   if (!media || total === 0) {
-    return <span className={cn("inline-flex shrink-0 items-center gap-1 text-[11.5px] text-sub", className)}>novo</span>;
+    return <span className={cn("inline-flex shrink-0 items-center gap-1 text-[11.5px]", sobreCor ? "text-on-brand" : "text-sub")}>novo</span>;
   }
   return (
-    <span className={cn("inline-flex shrink-0 items-center gap-1 text-[11.5px] font-semibold", className)}
+    <span className={cn("inline-flex shrink-0 items-center gap-1 text-[11.5px] font-semibold", sobreCor && "text-on-brand")}
       aria-label={`Nota ${umaCasa(media)} de 5, ${total} ${total === 1 ? "avaliação" : "avaliações"}`}>
-      <Star size={12} className="fill-current text-accent" aria-hidden />
-      {umaCasa(media)} <span className="font-normal opacity-70">({total})</span>
+      <Star size={12} className={cn("fill-current", sobreCor ? "text-on-brand" : "text-star")} aria-hidden />
+      {umaCasa(media)} <span className="font-normal">({total})</span>
     </span>
   );
 }
@@ -27,8 +29,8 @@ export function Estrelas({ valor, onEscolher, desabilitado }: { valor: number | 
       {[1, 2, 3, 4, 5].map((n) => (
         <button key={n} type="button" aria-pressed={valor === n} aria-label={`Dar ${n} ${n === 1 ? "estrela" : "estrelas"}`}
           disabled={desabilitado} onClick={() => onEscolher(n)} onMouseEnter={() => setSobre(n)} onFocus={() => setSobre(n)} onBlur={() => setSobre(null)}
-          className="grid size-10 place-items-center rounded-xl transition active:scale-[.9] disabled:opacity-50">
-          <Star size={26} className={cn("transition", n <= mostrada ? "fill-accent text-accent" : "text-line")} />
+          className="grid size-10 place-items-center rounded-xl transition active:scale-[.9] disabled:opacity-40">
+          <Star size={26} className={cn("transition", n <= mostrada ? "fill-star text-star" : "text-line-strong")} />
         </button>
       ))}
     </div>

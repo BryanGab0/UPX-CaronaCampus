@@ -47,11 +47,13 @@ export function MapaRota({ voce, regiaoMotorista, destino }: { voce: Coord; regi
     const M: LatLng = [regiaoMotorista.lat, regiaoMotorista.lng];
     const F: LatLng = [destino.lat, destino.lng];
 
-    let rota = L.polyline([M, F], { color: "#2F4BFF", weight: 4, opacity: 0.45, dashArray: "6 6" }).addTo(map);
+    // Cores pelas classes (tokens do tema): o CSS vence os atributos SVG que o Leaflet grava,
+    // então o mapa acompanha a troca de tema sem ser recriado.
+    let rota = L.polyline([M, F], { className: "stroke-brand", weight: 4, opacity: 0.45, dashArray: "6 6" }).addTo(map);
 
-    L.marker(V, { icon: pino("#FF7A45", 15) }).addTo(map);
-    L.circle(M, { radius: RAIO_REGIAO_M, color: "#2F4BFF", weight: 2, fillOpacity: 0.15 }).addTo(map);
-    L.marker(F, { icon: pino("#161A22", 16) }).addTo(map);
+    L.marker(V, { icon: pino("bg-accent", 15) }).addTo(map);
+    L.circle(M, { radius: RAIO_REGIAO_M, className: "stroke-brand fill-brand", weight: 2, fillOpacity: 0.15 }).addTo(map);
+    L.marker(F, { icon: pino("bg-ink", 16) }).addTo(map);
     // Área do círculo calculada pela coordenada: o getBounds() do círculo só funciona com o mapa já posicionado.
     const areaRegiao = L.latLng(M).toBounds(RAIO_REGIAO_M * 2);
     map.fitBounds(L.latLngBounds([V, F]).extend(areaRegiao).pad(0.3));
@@ -59,7 +61,7 @@ export function MapaRota({ voce, regiaoMotorista, destino }: { voce: Coord; regi
     buscarRota(M, F).then((r) => {
       if (!ativo || !r) return;
       map.removeLayer(rota);
-      rota = L.polyline(r, { color: "#2F4BFF", weight: 4 }).addTo(map);
+      rota = L.polyline(r, { className: "stroke-brand", weight: 4 }).addTo(map);
       map.fitBounds(L.latLngBounds([V, ...r]).extend(areaRegiao).pad(0.2));
     });
 
@@ -69,9 +71,9 @@ export function MapaRota({ voce, regiaoMotorista, destino }: { voce: Coord; regi
   return <div ref={ref} role="img" aria-label="Mapa com a sua localização, a região aproximada do motorista e a rota até a Facens" className="isolate h-52 w-full overflow-hidden rounded-[14px]" />;
 }
 
-function pino(cor: string, size: number) {
+// O próprio elemento do ícone é o pino (o Leaflet dá o tamanho pelo iconSize).
+function pino(cor: "bg-accent" | "bg-ink", size: number) {
   return L.divIcon({
-    className: "", iconSize: [size, size], iconAnchor: [size / 2, size / 2],
-    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${cor};border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)"></div>`,
+    className: `rounded-full border-3 border-surface shadow-md ${cor}`, iconSize: [size, size], iconAnchor: [size / 2, size / 2],
   });
 }

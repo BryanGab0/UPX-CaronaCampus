@@ -27,3 +27,6 @@ export function formatarTelefone(valor: string): string {
   if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7, 11)}`;
 }
+
+// Número com uma casa decimal no formato brasileiro: 4.5 -> "4,5"; 0 -> "0,0".
+export const umaCasa = (n: number) => n.toFixed(1).replace(".", ",");

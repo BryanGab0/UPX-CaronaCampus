@@ -50,7 +50,7 @@ export function Home() {
               <Bell size={18} className="text-sub" />
               {pendentes > 0 && <span className="absolute right-2.5 top-2.5 size-[7px] rounded-full border-2 border-surface bg-accent" />}
             </Link>
-            <div className="grid size-10 place-items-center rounded-xl bg-brand text-sm font-bold text-white">{nome[0]}</div>
+            <div className="grid size-10 place-items-center rounded-xl bg-brand text-sm font-bold text-on-brand">{nome[0]}</div>
           </div>
         </div>
 
@@ -93,12 +93,18 @@ export function Home() {
             </div>
             {melhor && <BestRideCard resultado={melhor} />}
           </div>
-          <div className="flex items-center justify-between px-[22px] pb-2 pt-[18px]">
-            <span className="text-sm font-bold">Outras compatíveis</span>
-          </div>
-          <div className="px-4">
-            {outras.map((r) => <RideRow key={r.carona.id} resultado={r} />)}
-          </div>
+          {outras.length > 0 ? (
+            <>
+              <div className="flex items-center justify-between px-[22px] pb-2 pt-[18px]">
+                <span className="text-sm font-bold">Outras compatíveis</span>
+              </div>
+              <div className="px-4">
+                {outras.map((r) => <RideRow key={r.carona.id} resultado={r} />)}
+              </div>
+            </>
+          ) : (
+            <p className="px-[22px] pt-4 text-center text-xs text-sub">Por enquanto, esta é a única carona compatível com o seu trajeto.</p>
+          )}
         </>
       )}
     </div>

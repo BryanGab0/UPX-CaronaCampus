@@ -14,10 +14,10 @@ export function BestRideCard({ resultado }: { resultado: Resultado }) {
   const { carona, compat, custoTrecho, trechosComuns } = resultado;
 
   return (
-    <div className="relative overflow-hidden rounded-[22px] bg-linear-to-br from-brand to-brand-dark p-5 text-white shadow-[0_18px_40px_rgba(47,75,255,.27)]">
-      <div className="absolute -right-10 -top-10 size-40 rounded-full bg-white/10" />
+    <div className="relative overflow-hidden rounded-[22px] bg-linear-to-br from-brand to-brand-dark p-5 text-on-brand sombra-brand-lg">
+      <div className="absolute -right-10 -top-10 size-40 rounded-full bg-on-brand/10" />
       <div className="relative flex items-center gap-3">
-        <div className="grid size-[50px] shrink-0 place-items-center rounded-[15px] bg-white/20 text-[17px] font-bold">{iniciais(carona.nome)}</div>
+        <div className="grid size-[50px] shrink-0 place-items-center rounded-[15px] bg-on-brand/20 text-[17px] font-bold">{iniciais(carona.nome)}</div>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[16.5px] font-bold">{carona.nome}</div>
           <div className="mt-px flex items-center gap-1.5 text-xs opacity-85"><Car size={13} className="shrink-0" /> <span className="truncate">{carona.carro}</span></div>
@@ -34,14 +34,14 @@ export function BestRideCard({ resultado }: { resultado: Resultado }) {
         <Pill icone={<Clock size={13} />} texto={textoHorario(resumoHorario(carona.horarios, trechosComuns))} />
         <Pill icone={<Wallet size={13} />} texto={`${reais(custoTrecho)}/viagem`} />
         <Pill icone={<Users size={13} />} texto={textoVagas(carona)} />
-        <span className="inline-flex items-center rounded-[9px] bg-white/15 px-2.5 py-1.5">
-          <NotaMedia media={carona.notaMedia} total={carona.totalAvaliacoes} className="text-white [&_svg]:text-white" />
+        <span className="inline-flex items-center rounded-[9px] bg-on-brand/12 px-2.5 py-1.5">
+          <NotaMedia media={carona.notaMedia} total={carona.totalAvaliacoes} sobreCor />
         </span>
       </div>
 
       <button
         onClick={() => navigate(`/carona/${carona.id}`)}
-        className="relative mt-4 w-full rounded-[13px] bg-white py-3.5 text-sm font-bold text-brand transition active:scale-[.98]"
+        className="relative mt-4 w-full rounded-[13px] bg-on-brand py-3.5 text-sm font-bold text-brand transition active:scale-[.98]"
       >
         Ver detalhes e solicitar
       </button>
@@ -51,7 +51,7 @@ export function BestRideCard({ resultado }: { resultado: Resultado }) {
 
 function Pill({ icone, texto }: { icone: ReactNode; texto: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[9px] bg-white/15 px-2.5 py-1.5 text-[11.5px] font-semibold">
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[9px] bg-on-brand/12 px-2.5 py-1.5 text-[11.5px] font-semibold">
       {icone}{texto}
     </span>
   );
